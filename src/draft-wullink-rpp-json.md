@@ -10,7 +10,7 @@ TocDepth = 4
 
 [seriesInfo]
 name = "Internet-Draft"
-value = "draft-wullink-rpp-json-03"
+value = "draft-ietf-rpp-json-00"
 stream = "IETF"
 status = "standard"
 
@@ -3078,7 +3078,7 @@ TODO
 
 # Change History
 
-## Version 02 to 03
+## Version 02 to 00
 
 - Added JSContact support for contact objects. (Issue #43)
 - Added schema and examples for Transfer approve/reject/cancel operations (Issue #28)
