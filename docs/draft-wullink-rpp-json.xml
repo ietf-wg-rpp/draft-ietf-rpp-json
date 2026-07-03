@@ -355,10 +355,40 @@ A Aggregation represents a relationship between two independent objects, where o
 <t>Rule 17: If the external type has neither a native JSON nor a native UTF-8 text representation, the binary representation of the value MUST be Base64-encoded (<xref target="RFC4648"></xref>, Section 4) and embedded as a JSON <tt>string</tt>.</t>
 </section>
 
+<section anchor="process-data-embedding-rules"><name>Process Data Embedding Rules</name>
+<t>As defined in <xref target="I-D.wullink-rpp-core"></xref>, a uniform interface operation MAY require process data in addition to the object representation data. This section defines how such process data MUST be represented in JSON when transmitted together with the object representation in a single request body.</t>
+<t>Rule 18: Process data accompanying a uniform interface operation MUST be represented using the <tt>processes</tt> data element of the owning resource object (see Processes Object), following the Aggregation rules for the corresponding process type (for example <tt>createProcess</tt> for creation-specific inputs). Each embedded process object MUST be a valid JSON representation of the process object. This applies uniformly regardless of whether the resource object already exists.</t>
+<t>Example: a domain create request body carrying a two-year registration period as process data embedded in a <tt>createProcess</tt> process object under <tt>processes</tt>:</t>
+
+<sourcecode type="json"><![CDATA[{
+    "@type": "domainName",
+    "name": "example.example",
+    "nameservers": [
+        { "@type": "host", "hostName": "ns1.example.example" },
+        { "@type": "host", "hostName": "ns2.example.example" }
+    ],
+    "processes": {
+        "@type": "processes",
+        "createProcess": [
+            {
+                "@type": "createProcess",
+                "period": {
+                    "@type": "period",
+                    "value": 2,
+                    "unit": "y"
+                }
+            }
+        ]
+    }
+}
+]]>
+</sourcecode>
+</section>
+
 <section anchor="json-schema-definition-rules"><name>JSON Schema Definition Rules</name>
-<t>Rule 18: Each RPP component object and resource object MUST have a corresponding JSON Schema definition. Object definitions MUST be placed in the <tt>$defs</tt> keyword of the JSON Schema document.</t>
-<t>Rule 19: Identifier fields MUST use <tt>&quot;type&quot;: &quot;string&quot;</tt> in JSON Schema.</t>
-<t>Rule 20: Enumeration constraints on string fields MUST be expressed using the <tt>&quot;enum&quot;</tt> keyword in JSON Schema.</t>
+<t>Rule 20: Each RPP component object and resource object MUST have a corresponding JSON Schema definition. Object definitions MUST be placed in the <tt>$defs</tt> keyword of the JSON Schema document.</t>
+<t>Rule 21: Identifier fields MUST use <tt>&quot;type&quot;: &quot;string&quot;</tt> in JSON Schema.</t>
+<t>Rule 22: Enumeration constraints on string fields MUST be expressed using the <tt>&quot;enum&quot;</tt> keyword in JSON Schema.</t>
 <t>Example (Transfer Status enum):</t>
 
 <sourcecode type="json"><![CDATA["trStatus": {
@@ -368,9 +398,9 @@ A Aggregation represents a relationship between two independent objects, where o
 }
 ]]>
 </sourcecode>
-<t>Rule 21: Each JSON Schema definition for an RPP object MUST include a <tt>&quot;required&quot;</tt> array listing all data elements with cardinality <tt>1</tt> or <tt>1+</tt>.</t>
-<t>Rule 22: JSON Schema definitions for extendible RPP objects MUST NOT use <tt>&quot;additionalProperties&quot;: false</tt> or <tt>&quot;unevaluatedProperties&quot;: false</tt>. However, before validation, schemas on every property level MUST be enriched with <tt>&quot;unevaluatedProperties&quot;: false</tt> property to prevent the presence of undeclared properties in JSON instances. JSON Schemas for Object type MAY use <tt>&quot;additionalProperties&quot;: true</tt> to allow for free key definition.</t>
-<t>Rule 23: Every RPP object representation MUST include a <tt>&quot;@type&quot;</tt> property whose value is the object's identifier as registered in the IANA RPP Data Object Registry. This property enables identification and allows clients and servers to unambiguously determine the type of an object. The <tt>&quot;@type&quot;</tt> property MUST be included in the JSON Schema <tt>&quot;properties&quot;</tt> object for each RPP object definition with a <tt>&quot;const&quot;</tt> constraint fixing the value to the object's registered identifier. The <tt>&quot;@type&quot;</tt> property MUST be listed in the <tt>&quot;required&quot;</tt> array of the corresponding JSON Schema definition.</t>
+<t>Rule 23: Each JSON Schema definition for an RPP object MUST include a <tt>&quot;required&quot;</tt> array listing all data elements with cardinality <tt>1</tt> or <tt>1+</tt>.</t>
+<t>Rule 24: JSON Schema definitions for extendible RPP objects MUST NOT use <tt>&quot;additionalProperties&quot;: false</tt> or <tt>&quot;unevaluatedProperties&quot;: false</tt>. However, before validation, schemas on every property level MUST be enriched with <tt>&quot;unevaluatedProperties&quot;: false</tt> property to prevent the presence of undeclared properties in JSON instances. JSON Schemas for Object type MAY use <tt>&quot;additionalProperties&quot;: true</tt> to allow for free key definition.</t>
+<t>Rule 25: Every RPP object representation MUST include a <tt>&quot;@type&quot;</tt> property whose value is the object's identifier as registered in the IANA RPP Data Object Registry. This property enables identification and allows clients and servers to unambiguously determine the type of an object. The <tt>&quot;@type&quot;</tt> property MUST be included in the JSON Schema <tt>&quot;properties&quot;</tt> object for each RPP object definition with a <tt>&quot;const&quot;</tt> constraint fixing the value to the object's registered identifier. The <tt>&quot;@type&quot;</tt> property MUST be listed in the <tt>&quot;required&quot;</tt> array of the corresponding JSON Schema definition.</t>
 <t>Example (Domain Name Data Object):</t>
 
 <sourcecode type="json"><![CDATA[{
@@ -379,10 +409,207 @@ A Aggregation represents a relationship between two independent objects, where o
 }
 ]]>
 </sourcecode>
-<t>Rule 24: When a transfer request or other operation requires authorization information (e.g., EPP-style authinfo), the client MUST NOT include the <tt>authInfo</tt> object in the JSON request body. Instead, the client MUST convey the authorization information using the <tt>RPP-Authorization</tt> HTTP request header as defined in <xref target="I-D.wullink-rpp-core"></xref>. Servers MUST reject any request that includes an <tt>authInfo</tt> object in the JSON body with an appropriate error response.</t>
+<t>Rule 26: When a transfer request or other operation requires authorization information (e.g., EPP-style authinfo), the client MUST NOT include the <tt>authInfo</tt> object in the JSON request body. Instead, the client MUST convey the authorization information using the <tt>RPP-Authorization</tt> HTTP request header as defined in <xref target="I-D.wullink-rpp-core"></xref>. Servers MUST reject any request that includes an <tt>authInfo</tt> object in the JSON body with an appropriate error response.</t>
 
 <section anchor="rpp-profiles-and-validation"><name>RPP Profiles and Validation</name>
 <t>RPP profiles, such as the EPP Compatibility Profile defined in <xref target="I-D.kowalik-rpp-data-objects"></xref>, may impose additional constraints on top of the base RPP data model. These additional constraints MUST be enforced by implementations through validation rules that go beyond what can be expressed in JSON Schema. Such validation rules MUST be clearly documented in the profile specification and implemented by both clients and servers when operating under that profile. For example, the EPP Compatibility Profile requires that certain fields be present in specific object types, and that certain identifier fields conform to EPP syntax rules. These constraints cannot be fully captured in JSON Schema and therefore require additional validation logic in implementations.</t>
+</section>
+</section>
+</section>
+
+<section anchor="update-rules"><name>Update Rules</name>
+<t><strong>NOTE</strong>: The update rules in this section are still under discussion and may be subject to change. Feedback from the community is welcome.</t>
+
+<section anchor="full"><name>Full</name>
+<t>A full update operation replaces the entire state of a resource object with the new representation provided in the request, all required properties MUST be included in the new representation.</t>
+</section>
+
+<section anchor="partial"><name>Partial</name>
+<t>A partial update operation allows clients to update specific properties of a resource object, while leaving other properties unchanged.
+A partial update MUST use JSON Patch <xref target="RFC6902"></xref> and an RPP extension to support the <tt>match</tt> property for matching of array elements.</t>
+<t>The <tt>match</tt> property is used to identify a specific element in an array, it is a JSON object that contains key-value pairs corresponding to the properties of the array elements. The server uses the <tt>match</tt> property to locate the specific element in the array that should be updated, removed, or replaced. The server MUST compare every key and corresponding value in the <tt>match</tt> object against the properties of each element in the array. If an element matches all key-value pairs in the <tt>match</tt> object, it is considered a match.</t>
+<t>If the righthand side of the <tt>match</tt> property contains a complex datatype (object or array), the <tt>match</tt> property MUST contain a key named <tt>object</tt>, the value of which is a JSON object that contains the properties to be matched against. The server MUST compare the properties of the nested object against the corresponding properties of the array element. If all properties match, the element is considered a match.</t>
+<t>The server MUST NOT allow recursive matching of nested data structures. The <tt>match</tt> property is only used for matching elements in the immediate array specified by the <tt>path</tt> property of the JSON Patch operation. If the array elements contain nested objects or arrays, the server MUST NOT attempt to match against those nested structures.</t>
+<t>Example domain object for matching an array element with a specific key-value pair:</t>
+
+<sourcecode type="json"><![CDATA[{
+    "@type": "domainName",
+    "name": "example.example",
+    "contacts": [
+        { "label": "admin", "object": { "@type": "contact", "id": "REG-100" } },
+        { "label": "tech", "object": { "@type": "contact", "id": "REG-200" } },
+        { "label": "tech", "object": { "@type": "contact", "id": "REG-300" } }
+    ]
+}
+]]>
+</sourcecode>
+<t>Example <tt>match</tt> object for matching the array element with the &quot;tech&quot; label and the contact ID &quot;REG-200&quot; in the <tt>contacts</tt> array of the domain object above:</t>
+
+<sourcecode type="json"><![CDATA[{
+"match": {
+      "label": "tech",
+      "object": { "@type": "contact", "id": "REG-200" }
+    }
+}
+]]>
+</sourcecode>
+<t>For the <tt>remove</tt> operation, if multiple matched elements are found, then the sever MUST remove all matched elements. For the <tt>replace</tt> operation, if multiple matched elements are found, then the server MUST return an error response indicating that the operation is ambiguous and cannot be performed. If a match does not have any results, then the server MUST return an error response indicating that the specified element could not be found.</t>
+<t>The following rules apply for partial updates:</t>
+
+<ul spacing="compact">
+<li>Rule 25: JSON Patch operations other than &quot;add&quot;, &quot;remove&quot; and &quot;replace&quot; MUST NOT be used.</li>
+<li>Rule 26: If a JSONPointer path points to field using a JSON simple data type (e.g. string or number) then the &quot;value&quot; property MUST be provided and its type MUST match the type of the target field.</li>
+<li>Rule 27: If a JSONPointer path points to an object, then the &quot;value&quot; property MUST be provided and contain a valid object, the new object's &quot;@type&quot; property MUST match the &quot;@type&quot; of the target object.</li>
+<li><t>Rule 28: If a JSONPointer path points to an array, then:</t>
+
+<ul spacing="compact">
+<li>The &quot;match&quot; property MUST be provided to identify the specific element to be updated.</li>
+<li>The &quot;match&quot; property MUST only be used for matching array elements of the same type, and the rules 26 and 27 apply.</li>
+<li><t>The value of the &quot;op&quot; property determines the action to be taken on the matched element:</t>
+
+<ul spacing="compact">
+<li>The &quot;add&quot; operation, appends the new value to the array.</li>
+<li>The &quot;remove&quot; operation, removes the specified value from the array.</li>
+<li>The &quot;replace&quot; operation, replaces the existing value at the matching array element with the specified value.</li>
+</ul></li>
+<li>If the value of the &quot;op&quot; property is &quot;replace&quot;, and there is a matching element, then the element MUST be fully replaced with the new value provided in the &quot;value&quot; property. The new value MUST include all required fields for the object type.</li>
+</ul></li>
+<li>Rule 29: If any of the JSONPointer paths in the request fail to match an existing field or element in the target resource object, the server MUST reject the complete request with an appropriate error response.</li>
+</ul>
+</section>
+
+<section anchor="schema"><name>Schema</name>
+<t>A partial update request body MUST be a JSON array of patch operation objects. Each operation MUST include an <tt>op</tt> and a <tt>path</tt> property. The <tt>value</tt> property MUST be present for <tt>add</tt> and <tt>replace</tt> operations. The <tt>match</tt> property MUST be present when the <tt>path</tt> points to an array property and is used to identify the specific array element to operate on.</t>
+
+<sourcecode type="json"><![CDATA[{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$ref": "#/$defs/partialUpdate",
+  "$defs": {
+    "partialUpdate": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/patchOperation" },
+      "minItems": 1
+    },
+    "patchOperation": {
+      "oneOf": [
+        { "$ref": "#/$defs/patchAdd" },
+        { "$ref": "#/$defs/patchRemove" },
+        { "$ref": "#/$defs/patchReplace" }
+      ]
+    },
+    "patchAdd": {
+      "type": "object",
+      "properties": {
+        "op":    { "type": "string", "const": "add" },
+        "path":  { "type": "string" },
+        "value": {}
+      },
+      "required": ["op", "path", "value"],
+      "additionalProperties": false
+    },
+    "patchRemove": {
+      "type": "object",
+      "properties": {
+        "op":    { "type": "string", "const": "remove" },
+        "path":  { "type": "string" },
+        "match": { "type": "object" }
+      },
+      "required": ["op", "path"],
+      "additionalProperties": false
+    },
+    "patchReplace": {
+      "type": "object",
+      "properties": {
+        "op":    { "type": "string", "const": "replace" },
+        "path":  { "type": "string" },
+        "match": { "type": "object" },
+        "value": {}
+      },
+      "required": ["op", "path", "value"],
+      "additionalProperties": false
+    }
+  }
+}
+]]>
+</sourcecode>
+
+<section anchor="examples"><name>Examples</name>
+<t>Example JSON document used by partial update examples below:</t>
+
+<sourcecode type="json"><![CDATA[{
+    "@type": "domainName",
+    "name": "example.example",
+    "provMetadata": {
+        "@type": "provMetadata",
+        "repositoryId": "EXAMPLE1-REP",
+        "spClientId": "ClientX",
+        "crClientId": "ClientX",
+        "crDate": "1999-04-03T22:00:00.0Z"
+    },
+    "nameservers": [
+        { "@type": "host", "hostName": "ns1.example.example" },
+        { "@type": "host", "hostName": "ns2.example.example" }
+    ],
+    "registrant": { "@type": "contact", "id": "jd1234" },
+    "contacts": [
+        { "label": "admin", "object": { "@type": "contact", "id": "sh8013" } },
+        { "label": "tech", "object": { "@type": "contact", "id": "sh8013" } }
+    ],
+    "status": [
+        { "@type": "status", "label": "ok" }
+    ],
+    "expiryDate": "2027-01-01T00:00:00.0Z"
+}
+]]>
+</sourcecode>
+<t>Example of a partial update request to change the registrant of a domain name from &quot;jd1234&quot; to &quot;jd1234-new&quot;:</t>
+
+<sourcecode type="json"><![CDATA[[
+  {
+    "op": "replace",
+    "path": "/registrant",
+    "value": {
+      "@type": "contact",
+      "id": "jd1234-new"
+    }
+  }
+]
+]]>
+</sourcecode>
+<t>Example of a partial update request to change the status of a domain name from &quot;ok&quot; to &quot;clientProhibited&quot;:</t>
+
+<sourcecode type="json"><![CDATA[[
+  {
+    "op": "replace",
+    "path": "/status",
+    "match": {
+      "label": "ok"
+    },
+    "value": {
+      "@type": "status",
+      "label": "clientProhibited"
+    }
+  }
+]
+]]>
+</sourcecode>
+<t>Example of a partial update request for adding a additional tech contact to a domain name:</t>
+
+<sourcecode type="json"><![CDATA[[
+  {
+    "op": "add",
+    "path": "/contacts",
+    "value": {
+      "label": "tech",
+      "object": {
+        "@type": "contact",
+        "id": "sh8014"
+      }
+    }
+  }
+]
+]]>
+</sourcecode>
 </section>
 </section>
 </section>
@@ -395,6 +622,19 @@ A Aggregation represents a relationship between two independent objects, where o
 
 <section anchor="identifier"><name>Identifier</name>
 <t>Identifiers are character strings with a specified minimum length, a specified maximum length, and a specified format outlined in <xref target="RFC5730" sectionFormat="of" section="2.8"></xref>. Identifiers for certain object types MAY have additional constraints imposed either by server policy, object-specific specifications, or both.</t>
+<t>In JSON, an Identifier MUST be represented as a <tt>string</tt> value conforming to the <tt>roidType</tt> syntax defined in <xref target="RFC5730" sectionFormat="of" section="2.8"></xref>: one to eight word characters optionally preceded by an underscore, followed by a hyphen and one or more word characters, with a maximum total length of 89 characters.</t>
+
+<sourcecode type="json"><![CDATA[{
+  "$defs": {
+    "identifier": {
+      "type": "string",
+      "pattern": "^(\\w|_){1,8}-\\w{1,}$",
+      "maxLength": 89
+    }
+  }
+}
+]]>
+</sourcecode>
 </section>
 
 <section anchor="client-identifier"><name>Client Identifier</name>
@@ -644,7 +884,7 @@ A Aggregation represents a relationship between two independent objects, where o
 </section>
 
 <section anchor="jscontact-card-object"><name>JSContact Card Object</name>
-<t>The Contact Data Object uses version 2.0 of JSContact <xref target="RFC9982"></xref> to represent contact information.  The <tt>contact</tt> component object is defined below according to the RPP JSContact profile described in the Contact Data Object section.</t>
+<t>The Contact Data Object uses version 2.0 of JSContact <xref target="RFC9982"></xref> to represent contact information. The <tt>Contact</tt> object is defined below according to the RPP JSContact Profile [TODO Add Ref].</t>
 <t>The following constraints cannot be expressed in JSON Schema and MUST be enforced by implementations:</t>
 
 <ul spacing="compact">
@@ -793,11 +1033,163 @@ A Aggregation represents a relationship between two independent objects, where o
 ]]>
 </sourcecode>
 </section>
+
+<section anchor="organisation-role-object"><name>Organisation Role Object</name>
+<t>The following constraints cannot be expressed in JSON Schema and MUST be enforced by implementations:</t>
+
+<ul spacing="compact">
+<li><tt>type</tt> MUST only use values registered in the IANA &quot;EPP Organization Role Values&quot; registry (<xref target="RFC8543"></xref>).</li>
+</ul>
+
+<sourcecode type="json"><![CDATA[{
+  "$defs": {
+    "organisationRole": {
+      "type": "object",
+      "properties": {
+        "@type":  { "type": "string", "const": "organisationRole" },
+        "status": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": ["ok", "linked", "clientLinkProhibited", "serverLinkProhibited"]
+          }
+        },
+        "roleId": { "type": "string" }
+      },
+      "required": ["@type"]
+    }
+  }
+}
+]]>
+</sourcecode>
+</section>
+
+<section anchor="processes-object"><name>Processes Object</name>
+<t>The Processes Object is a read-only container grouping the currently active Process Objects on the owning resource object, keyed by process type. Each key holds an array of the corresponding Process Object's read representation, per the Aggregation rules.</t>
+
+<sourcecode type="json"><![CDATA[{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$ref": "#/$defs/processes",
+  "$defs": {
+    "processes": {
+      "type": "object",
+      "properties": {
+        "@type":           { "type": "string", "const": "processes", "readOnly": true },
+        "createProcess":   {
+          "type": "array",
+          "items": { "$ref": "#/$defs/createProcess.read" },
+          "readOnly": true
+        },
+        "renewProcess":    {
+          "type": "array",
+          "items": { "$ref": "#/$defs/renewProcess.read" },
+          "readOnly": true
+        },
+        "transferProcess": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/transferProcess.read" },
+          "readOnly": true
+        },
+        "restoreProcess":  {
+          "type": "array",
+          "items": { "$ref": "#/$defs/restoreProcess.read" },
+          "readOnly": true
+        }
+      },
+      "required": ["@type"]
+    }
+  }
+}
+]]>
+</sourcecode>
+</section>
 </section>
 
 <section anchor="process-object-schemas"><name>Process Object Schemas</name>
 
+<section anchor="create-process-object"><name>Create Process Object</name>
+<t>The Create Process Object carries the process-specific inputs for a resource creation operation, such as the requested registration period. It is submitted as an element of the <tt>createProcess</tt> array under the <tt>processes</tt> data element of the owning resource object (see Processes Object), following the same Aggregation representation as the other process types.</t>
+<t>Create request schema (create-only and read-write properties):</t>
+
+<sourcecode type="json"><![CDATA[{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$ref": "#/$defs/createProcess.create",
+  "$defs": {
+    "createProcess.create": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "createProcess" },
+        "period": { "$ref": "#/$defs/period" }
+      },
+      "required": ["@type"]
+    }
+  }
+}
+]]>
+</sourcecode>
+<t>Read response schema (read-only properties):</t>
+
+<sourcecode type="json"><![CDATA[{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$ref": "#/$defs/createProcess.read",
+  "$defs": {
+    "createProcess.read": {
+      "type": "object",
+      "properties": {
+        "@type":  { "type": "string", "const": "createProcess", "readOnly": true },
+        "period": { "$ref": "#/$defs/period", "readOnly": true }
+      },
+      "required": ["@type"]
+    }
+  }
+}
+]]>
+</sourcecode>
+</section>
+
+<section anchor="renew-process-object"><name>Renew Process Object</name>
+<t>Renew request schema (create-only properties):</t>
+
+<sourcecode type="json"><![CDATA[{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$ref": "#/$defs/renewProcess.create",
+  "$defs": {
+    "renewProcess.create": {
+      "type": "object",
+      "properties": {
+        "@type":         { "type": "string", "const": "renewProcess" },
+        "expiryDate":    { "type": "string", "format": "date-time" },
+        "renewalPeriod": { "$ref": "#/$defs/period" }
+      },
+      "required": ["@type"]
+    }
+  }
+}
+]]>
+</sourcecode>
+<t>Renew response schema (read-only properties):</t>
+
+<sourcecode type="json"><![CDATA[{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$ref": "#/$defs/renewProcess.read",
+  "$defs": {
+    "renewProcess.read": {
+      "type": "object",
+      "properties": {
+        "@type":      { "type": "string", "const": "renewProcess", "readOnly": true },
+        "expiryDate": { "type": "string", "format": "date-time", "readOnly": true }
+      },
+      "required": ["@type"]
+    }
+  }
+}
+]]>
+</sourcecode>
+</section>
+
 <section anchor="transfer-process-object"><name>Transfer Process Object</name>
+
+<section anchor="create"><name>Create</name>
 <t>Create request schema (create-only and read-write properties):</t>
 
 <sourcecode type="json"><![CDATA[{
@@ -838,26 +1230,9 @@ A Aggregation represents a relationship between two independent objects, where o
 }
 ]]>
 </sourcecode>
-<t>Create request for Domain Object schema (create-only and read-write properties):</t>
+</section>
 
-<sourcecode type="json"><![CDATA[{
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$ref": "#/$defs/transferProcess.create.domain",
-  "$defs": {
-    "transferProcess.create.domain": {
-      "allOf": [
-        { "$ref": "#/$defs/transferProcess.create" },
-        {
-          "properties": {
-            "transferPeriod": { "$ref": "#/$defs/period" }
-          }
-        }
-      ]
-    }
-  }
-}
-]]>
-</sourcecode>
+<section anchor="read"><name>Read</name>
 <t>Read response schema (read-write and read-only properties):</t>
 
 <sourcecode type="json"><![CDATA[{
@@ -894,26 +1269,39 @@ A Aggregation represents a relationship between two independent objects, where o
 }
 ]]>
 </sourcecode>
-<t>Read response for Domain Object schema (read-write and read-only properties):</t>
+</section>
+
+<section anchor="approve"><name>Approve</name>
+<t>The Approve operation MUST always have a request body, which may be an empty JSON object. The server can identify the transfer process to be approved based on the request URL and the authenticated client's permissions. There is no Approve request schema defined in this specification.</t>
+<t>The Approve response schema MUST equal the read response schema.</t>
+</section>
+
+<section anchor="cancel"><name>Cancel</name>
+<t>The Cancel operation, which is similar to a delete operation, has no request body, the server can identify the transfer process to be cancelled based on the request URL and the authenticated client's permissions. Because the Cancel operation has no request body, it is not possible to extend the request schema with additional properties.</t>
+<t>The Cancel response schema MUST equal the read response schema or an empty response.</t>
+</section>
+
+<section anchor="reject"><name>Reject</name>
+<t>Reject request schema:</t>
 
 <sourcecode type="json"><![CDATA[{
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$ref": "#/$defs/transferProcess.read.domain",
+  "$ref": "#/$defs/transferProcess.reject",
   "$defs": {
-    "transferProcess.read.domain": {
-      "allOf": [
-        { "$ref": "#/$defs/transferProcess.read" },
-        {
-          "properties": {
-            "expiryDate":  { "type": "string", "format": "date-time", "readOnly": true }
-          }
-        }
-      ]
+    "transferProcess.reject": {
+      "type": "object",
+      "properties": {
+        "@type":  { "type": "string", "const": "transferProcess" },
+        "reason": { "type": "string" }
+      },
+      "required": ["@type"]
     }
   }
 }
 ]]>
 </sourcecode>
+<t>Reject response schema MUST equal the read response schema.</t>
+</section>
 </section>
 
 <section anchor="restore-process-object"><name>Restore Process Object</name>
@@ -978,6 +1366,8 @@ A Aggregation represents a relationship between two independent objects, where o
 <ul spacing="compact">
 <li><tt>name</tt> MUST be a fully qualified domain name conforming to the syntax described in <xref target="RFC1035"></xref>. Servers MAY restrict allowable domain names to a specific namespace for which they are authoritative. The implicit trailing dot MUST NOT be included.</li>
 </ul>
+
+<section anchor="create-1"><name>Create</name>
 <t>Create request schema (create-only and read-write properties):</t>
 
 <sourcecode type="json"><![CDATA[{
@@ -1007,7 +1397,18 @@ A Aggregation represents a relationship between two independent objects, where o
         },
         "dns":    { "$ref": "#/$defs/dnsData" },
         "authInfo": { "$ref": "#/$defs/authInfo" },
-        "period": { "$ref": "#/$defs/period" }
+        "processes": {
+          "type": "object",
+          "properties": {
+            "@type": { "type": "string", "const": "processes" },
+            "createProcess": {
+              "type": "array",
+              "items": { "$ref": "#/$defs/createProcess.create" },
+              "maxItems": 1
+            }
+          },
+          "required": ["@type"]
+        }
       },
       "required": ["@type", "name"]
     }
@@ -1015,6 +1416,9 @@ A Aggregation represents a relationship between two independent objects, where o
 }
 ]]>
 </sourcecode>
+</section>
+
+<section anchor="read-1"><name>Read</name>
 <t>Read response schema (read-write and read-only properties):</t>
 
 <sourcecode type="json"><![CDATA[{
@@ -1055,7 +1459,8 @@ A Aggregation represents a relationship between two independent objects, where o
           "readOnly": true
         },
         "expiryDate": { "type": "string", "format": "date-time", "readOnly": true },
-        "authInfo":  { "$ref": "#/$defs/authInfo" }
+        "authInfo":  { "$ref": "#/$defs/authInfo" },
+        "processes": { "$ref": "#/$defs/processes", "readOnly": true }
       },
       "required": ["@type", "name", "provMetadata"]
     }
@@ -1063,6 +1468,9 @@ A Aggregation represents a relationship between two independent objects, where o
 }
 ]]>
 </sourcecode>
+</section>
+
+<section anchor="update"><name>Update</name>
 <t>Update request schema (read-write properties):</t>
 
 <sourcecode type="json"><![CDATA[{
@@ -1098,24 +1506,121 @@ A Aggregation represents a relationship between two independent objects, where o
 }
 ]]>
 </sourcecode>
+</section>
+
+<section anchor="renew"><name>Renew</name>
 <t>Renew minimal response schema (only expire date):</t>
 
 <sourcecode type="json"><![CDATA[{
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$ref": "#/$defs/domainObject.renewResponse",
+  "$ref": "#/$defs/renewProcess.create.domain",
   "$defs": {
-    "domainObject.renewResponse": {
-      "type": "object",
-      "properties": {
-        "@type":       { "type": "string", "const": "domainName", "readOnly": true },
-        "expiryDate": { "type": "string", "format": "date-time", "readOnly": true }
-      },
-      "required": ["@type", "expiryDate"]
+    "renewProcess.create.domain": {
+       "$ref": "#/$defs/renewProcess.create"
     }
   }
 }
 ]]>
 </sourcecode>
+</section>
+
+<section anchor="transfer"><name>Transfer</name>
+<t>Create request for Domain Transfer Process Object schema (create-only and read-write properties):</t>
+
+<sourcecode type="json"><![CDATA[{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$ref": "#/$defs/transferProcess.create.domain",
+  "$defs": {
+    "transferProcess.create.domain": {
+      "allOf": [
+        { "$ref": "#/$defs/transferProcess.create" },
+        {
+          "properties": {
+            "transferPeriod": { "$ref": "#/$defs/period" }
+          }
+        }
+      ]
+    }
+  }
+}
+]]>
+</sourcecode>
+<t>Read response for Domain Transfer Process Object schema (read-write and read-only properties):</t>
+
+<sourcecode type="json"><![CDATA[{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$ref": "#/$defs/transferProcess.read.domain",
+  "$defs": {
+    "transferProcess.read.domain": {
+      "allOf": [
+        { "$ref": "#/$defs/transferProcess.read" },
+        {
+          "properties": {
+            "expiryDate":  { "type": "string", "format": "date-time", "readOnly": true }
+          }
+        }
+      ]
+    }
+  }
+}
+]]>
+</sourcecode>
+<t>Both Approve and Delete (Cancel) operations have no request body, the server can identify the transfer process to be approved or cancelled based on the request URL and the authenticated client's permissions.</t>
+<t>Delete (Cancel) response Domain Transfer Process Object schema (read-write and read-only properties):</t>
+
+<sourcecode type="json"><![CDATA[{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$ref": "#/$defs/transferProcess.delete.domain",
+  "$defs": {
+    "transferProcess.delete.domain": {
+      "$ref": "#/$defs/transferProcess.read.domain"
+    }
+  }
+}
+]]>
+</sourcecode>
+<t>Approve response Domain Transfer Process Object schema (read-write and read-only properties):</t>
+
+<sourcecode type="json"><![CDATA[{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$ref": "#/$defs/transferProcess.approve.domain",
+  "$defs": {
+    "transferProcess.approve.domain": {
+      "$ref": "#/$defs/transferProcess.read.domain"
+    }
+  }
+}
+]]>
+</sourcecode>
+<t>Reject request Domain Object schema:</t>
+
+<sourcecode type="json"><![CDATA[{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$ref": "#/$defs/transferProcess.reject.domain",
+  "$defs": {
+    "transferProcess.reject.domain": {
+      "$ref": "#/$defs/transferProcess.reject"
+    }
+  }
+}
+]]>
+</sourcecode>
+<t>Reject response schema (read-write and read-only properties):</t>
+
+<sourcecode type="json"><![CDATA[{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$ref": "#/$defs/transferProcess.reject.domain",
+  "$defs": {
+    "transferProcess.reject.domain": {
+      "$ref": "#/$defs/transferProcess.read.domain"
+    }
+  }
+}
+]]>
+</sourcecode>
+</section>
+
+<section anchor="reference"><name>Reference</name>
 <t>Reference schema (identifier only):</t>
 
 <sourcecode type="json"><![CDATA[{
@@ -1135,9 +1640,10 @@ A Aggregation represents a relationship between two independent objects, where o
 ]]>
 </sourcecode>
 </section>
+</section>
 
 <section anchor="contact-data-object"><name>Contact Data Object</name>
-<t>This document uses version 2.0 of JSContact <xref target="RFC9982"></xref> for the JSON representation of Contact Data Object contact information. The contact's name, postal address, phone numbers, email addresses, and other contact details are encapsulated in a JSContact <tt>Card</tt> object embedded in the <tt>card</tt> property of the contact JSON object.</t>
+<t>This document uses version 2.0 of JSContact <xref target="RFC9982"></xref> for the JSON representation of Contact Data Object contact information. The contact's name, postal address, phone numbers, email addresses, and other contact details are encapsulated in a JSContact <tt>Card</tt> object embedded in the <tt>contactInfo</tt> property.</t>
 
 <section anchor="jscontact-profile-for-rpp"><name>JSContact Profile for RPP</name>
 <t>Since JSContact is a general-purpose representation of contact data, this document defines a restricted usage profile for use within RPP, see [TODO: ref to RPP JSContact profile here: <eref target="https://github.com/SIDN/ietf-rpp-jscontact-profile">https://github.com/SIDN/ietf-rpp-jscontact-profile</eref>].</t>
@@ -1149,6 +1655,9 @@ A Aggregation represents a relationship between two independent objects, where o
 <li><tt>card.emails.email.address</tt> MUST be provided in EPP Compatibility Profile.</li>
 <li><tt>card.addresses[*].countryCode</tt> MUST be a valid two-character ISO 3166-1 <xref target="ISO3166-1"></xref> alpha-2 code when present.</li>
 </ul>
+</section>
+
+<section anchor="create-2"><name>Create</name>
 <t>Create request schema (create-only and read-write properties):</t>
 
 <sourcecode type="json"><![CDATA[{
@@ -1160,36 +1669,19 @@ A Aggregation represents a relationship between two independent objects, where o
       "properties": {
         "@type":  { "type": "string", "const": "contact" },
         "id":     { "type": "string" },
-        "card":   { "$ref": "#/$defs/Card" },
+        "contactInfo":   { "$ref": "#/$defs/Card" },
         "authInfo": { "$ref": "#/$defs/authInfo" }
       },
-      "required": ["@type", "id", "card"],
+      "required": ["@type", "id", "contactInfo"],
       "unevaluatedProperties": false
     }
   }
 }
 ]]>
 </sourcecode>
-<t>Update request schema (read-write properties):</t>
+</section>
 
-<sourcecode type="json"><![CDATA[{
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$ref": "#/$defs/contactObject.update",
-  "$defs": {
-    "contactObject.update": {
-      "type": "object",
-      "properties": {
-        "@type":  { "type": "string", "const": "contact" },
-        "card":   { "$ref": "#/$defs/Card" },
-        "authInfo": { "$ref": "#/$defs/authInfo" }
-      },
-      "required": ["@type", "card"],
-      "unevaluatedProperties": false
-    }
-  }
-}
-]]>
-</sourcecode>
+<section anchor="read-2"><name>Read</name>
 <t>Read response schema (read-write and read-only properties):</t>
 
 <sourcecode type="json"><![CDATA[{
@@ -1207,16 +1699,59 @@ A Aggregation represents a relationship between two independent objects, where o
           "items": { "$ref": "#/$defs/status" },
           "readOnly": true
         },
-        "card":   { "$ref": "#/$defs/Card" },
+        "contactInfo":   { "$ref": "#/$defs/Card" },
         "authInfo": { "$ref": "#/$defs/authInfo" }
       },
-      "required": ["@type", "id", "provMetadata", "card"],
+      "required": ["@type", "id", "provMetadata", "contactInfo"],
       "unevaluatedProperties": false
     }
   }
 }
 ]]>
 </sourcecode>
+</section>
+
+<section anchor="update-1"><name>Update</name>
+<t>Update request schema (read-write properties):</t>
+
+<sourcecode type="json"><![CDATA[{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$ref": "#/$defs/contactObject.update",
+  "$defs": {
+    "contactObject.update": {
+      "type": "object",
+      "properties": {
+        "@type":  { "type": "string", "const": "contact" },
+        "contactInfo":   { "$ref": "#/$defs/Card" },
+        "authInfo": { "$ref": "#/$defs/authInfo" },
+        "processes": { "$ref": "#/$defs/processes", "readOnly": true }
+      },
+      "required": ["@type", "contactInfo"],
+      "unevaluatedProperties": false
+    }
+  }
+}
+]]>
+</sourcecode>
+</section>
+
+<section anchor="transfer-1"><name>Transfer</name>
+<t>Transfer create request for Contact Object schema (create-only and read-write properties):</t>
+
+<sourcecode type="json"><![CDATA[{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$ref": "#/$defs/transferProcess.create.contact",
+  "$defs": {
+    "transferProcess.create.contact": {
+      "$ref": "#/$defs/transferProcess.create"
+    }
+  }
+}
+]]>
+</sourcecode>
+</section>
+
+<section anchor="reference-1"><name>Reference</name>
 <t>Reference schema (identifier only):</t>
 
 <sourcecode type="json"><![CDATA[{
@@ -1245,6 +1780,8 @@ A Aggregation represents a relationship between two independent objects, where o
 <li><tt>hostName</tt> MUST be a syntactically valid fully qualified host name.</li>
 <li>If the host name is subordinate to a domain for which the server is authoritative, the superordinate domain MUST already exist in the server.</li>
 </ul>
+
+<section anchor="create-3"><name>Create</name>
 <t>Create request schema (create-only and read-write properties):</t>
 
 <sourcecode type="json"><![CDATA[{
@@ -1264,6 +1801,9 @@ A Aggregation represents a relationship between two independent objects, where o
 }
 ]]>
 </sourcecode>
+</section>
+
+<section anchor="read-3"><name>Read</name>
 <t>Read response schema (read-write and read-only properties):</t>
 
 <sourcecode type="json"><![CDATA[{
@@ -1281,7 +1821,8 @@ A Aggregation represents a relationship between two independent objects, where o
           "items": { "$ref": "#/$defs/status" },
           "readOnly": true
         },
-        "dns":           { "$ref": "#/$defs/dnsData" }
+        "dns":           { "$ref": "#/$defs/dnsData" },
+        "processes":     { "$ref": "#/$defs/processes", "readOnly": true }
       },
       "required": ["@type", "hostName", "provMetadata"]
     }
@@ -1289,6 +1830,13 @@ A Aggregation represents a relationship between two independent objects, where o
 }
 ]]>
 </sourcecode>
+</section>
+
+<section anchor="update-2"><name>Update</name>
+<t>TODO</t>
+</section>
+
+<section anchor="reference-2"><name>Reference</name>
 <t>Reference schema (identifier only):</t>
 
 <sourcecode type="json"><![CDATA[{
@@ -1308,28 +1856,299 @@ A Aggregation represents a relationship between two independent objects, where o
 ]]>
 </sourcecode>
 </section>
+</section>
 
 <section anchor="organisation-data-object"><name>Organisation Data Object</name>
-<t>TBD</t>
+<t>The following constraints cannot be expressed in JSON Schema and MUST be enforced by implementations:</t>
+
+<ul spacing="compact">
+<li><tt>id</tt> MUST be a server-unique identifier conforming to the Identifier syntax.</li>
+<li><tt>status</tt> MUST always contain at least one value. <tt>pendingCreate</tt>, <tt>ok</tt>, <tt>hold</tt>, and <tt>terminated</tt> are mutually exclusive. <tt>ok</tt> MAY only be combined with <tt>linked</tt>.</li>
+<li><tt>parent</tt>, if present, MUST reference a known Organisation Object. Circular parent references MUST be rejected.</li>
+<li><tt>contacts</tt> keys MUST be contact type values registered in the IANA &quot;EPP Organisation Contact Types&quot; registry (<xref target="RFC8543"></xref>).</li>
+</ul>
+
+<section anchor="create-4"><name>Create</name>
+<t>Create request schema (create-only and read-write properties):</t>
+
+<sourcecode type="json"><![CDATA[{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$ref": "#/$defs/organisationObject.create",
+  "$defs": {
+    "organisationObject.create": {
+      "type": "object",
+      "properties": {
+        "@type":       { "type": "string", "const": "organisation" },
+        "id":          { "$ref": "#/$defs/identifier" },
+        "roles":       {
+          "type": "object",
+          "additionalProperties": { "$ref": "#/$defs/organisationRole" },
+          "minProperties": 1
+        },
+        "parent":    { "$ref": "#/$defs/organisationObject.reference" },
+        "contactInfo": { "$ref": "#/$defs/Card" },
+        "contacts": {
+          "type": "array",
+          "items": { 
+            "type": "object",
+            "properties": {
+              "label": { "type": "string" },
+              "object": { "$ref": "#/$defs/contactObject.reference" }
+            },
+            "required": ["label", "object"]
+           }
+        }
+      },
+      "required": ["@type", "id", "roles"]      
+    }
+  }
+}
+]]>
+</sourcecode>
+</section>
+
+<section anchor="read-4"><name>Read</name>
+<t>Read response schema (read-write and read-only properties):</t>
+
+<sourcecode type="json"><![CDATA[{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$ref": "#/$defs/organisationObject.read",
+  "$defs": {
+    "organisationObject.read": {
+      "allOf": [
+        { "$ref": "#/$defs/organisationObject.create" },
+        {
+          "properties": {
+            "provMetadata": { "$ref": "#/$defs/provMetadata", "readOnly": true },
+            "status": {
+              "type": "array",
+              "items": { "$ref": "#/$defs/status" },
+              "readOnly": true
+            },
+            "users": {
+              "type": "array",
+              "items": { 
+                "type": "object",
+                "properties": {
+                  "label": { "type": "string" },
+                  "object": { "$ref": "#/$defs/userObject.reference" }
+                },
+                "required": ["label", "object"]
+              }
+            }
+          },
+          "required": ["provMetadata", "status"]
+        }
+      ]
+    }
+  }
+}
+]]>
+</sourcecode>
+</section>
+
+<section anchor="update-3"><name>Update</name>
+<t>Update request schema (read-write properties):</t>
+
+<sourcecode type="json"><![CDATA[{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$ref": "#/$defs/organisationObject.update",
+  "$defs": {
+    "organisationObject.update": {
+      "type": "object",
+      "properties": {
+        "@type":       { "type": "string", "const": "organisation" },
+        "roles":       {
+          "type": "object",
+          "additionalProperties": { "$ref": "#/$defs/organisationRole" }
+        },
+        "parent":    { "$ref": "#/$defs/organisationObject.reference" },
+        "contactInfo": { "$ref": "#/$defs/Card" },
+        "contacts": {
+            "type": "array",
+            "items": { 
+              "type": "object",
+              "properties": {
+                "label": { "type": "string" },
+                "object": { "$ref": "#/$defs/contactObject.reference" }
+              },
+              "required": ["label", "object"]
+            }
+        },
+        "status": {
+              "type": "array",
+              "items": { "$ref": "#/$defs/status" },
+              "readOnly": true
+        },
+        "users":       {
+          "type": "array",
+          "items": { 
+            "type": "object",
+            "properties": {
+              "label": { "type": "string" },
+              "object": { "$ref": "#/$defs/userObject.reference" }
+            },
+            "required": ["label", "object"]
+          }
+        }
+      },
+      "required": ["@type"]
+    }
+  }
+}
+]]>
+</sourcecode>
+</section>
+
+<section anchor="reference-3"><name>Reference</name>
+<t>Reference schema (identifier only):</t>
+
+<sourcecode type="json"><![CDATA[{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$ref": "#/$defs/organisationObject.reference",
+  "$defs": {
+    "organisationObject.reference": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "organisation", "readOnly": true },
+        "id":    { "$ref": "#/$defs/identifier", "readOnly": true }
+      },
+      "required": ["@type", "id"]
+    }
+  }
+}
+]]>
+</sourcecode>
 </section>
 </section>
 
-<section anchor="examples"><name>Examples</name>
+<section anchor="user-data-object"><name>User Data Object</name>
+<t>The User Data Object represents a user linked to an Organisation Object. The lifecycle of a User Object is bound to its owning Organisation Object.</t>
+<t>Note: User status values are plain strings, not Status Objects.</t>
+
+<section anchor="create-5"><name>Create</name>
+<t>Create request schema (create-only and read-write properties):</t>
+
+<sourcecode type="json"><![CDATA[{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$ref": "#/$defs/userObject.create",
+  "$defs": {
+    "userObject.create": {
+      "type": "object",
+      "properties": {
+        "@type":  { "type": "string", "const": "user" },
+        "organisationId": { "$ref": "#/$defs/organisationObject.reference" },
+        "details": { "$ref": "#/$defs/contactObject.reference" },
+        "status": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": ["active", "suspended", "deactivated", "pending"]
+          }
+        },
+        "description":  { "type": "string", "const": "user" }
+      },
+      "required": ["@type", "organisationId", "details"]
+    }
+  }
+}
+]]>
+</sourcecode>
+</section>
+
+<section anchor="read-5"><name>Read</name>
+<t>Read response schema (read-write and read-only properties):</t>
+
+<sourcecode type="json"><![CDATA[{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$ref": "#/$defs/userObject.read",
+  "$defs": {
+    "userObject.read": {
+      "type": "object",
+      "properties": {
+        "@type":  { "type": "string", "const": "user", "readOnly": true },
+        "organisationId": { "$ref": "#/$defs/organisationObject.reference" },
+        "userId": { "$ref": "#/$defs/identifier", "readOnly": true },
+        "details": { "$ref": "#/$defs/contactObject.reference" },
+        "status": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": ["active", "suspended", "deactivated", "pending"]
+          }
+        },
+        "description":  { "type": "string", "const": "user" }
+      },
+      "required": ["@type", "userId", "details", "status"]
+    }
+  }
+}
+]]>
+</sourcecode>
+</section>
+
+<section anchor="update-4"><name>Update</name>
+<t>Update request schema (read-write properties):</t>
+
+<sourcecode type="json"><![CDATA[{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$ref": "#/$defs/userObject.update",
+  "$defs": {
+    "userObject.update": {
+      "type": "object",
+      "properties": {
+        "@type":  { "type": "string", "const": "user" },
+        "details": { "$ref": "#/$defs/contactObject.reference" },
+        "status": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": ["active", "suspended", "deactivated", "pending"]
+          }
+        }
+      },
+      "required": ["@type"]
+    }
+  }
+}
+]]>
+</sourcecode>
+</section>
+
+<section anchor="reference-4"><name>Reference</name>
+<t>Reference schema (identifier only):</t>
+
+<sourcecode type="json"><![CDATA[{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$ref": "#/$defs/userObject.reference",
+  "$defs": {
+    "userObject.reference": {
+      "type": "object",
+      "properties": {
+        "@type":  { "type": "string", "const": "user", "readOnly": true },
+        "id": { "$ref": "#/$defs/identifier", "readOnly": true }
+      },
+      "required": ["@type", "id"]
+    }
+  }
+}
+]]>
+</sourcecode>
+</section>
+</section>
+</section>
+
+<section anchor="examples-1"><name>Examples</name>
 <t>This section provides examples that follow the JSON representation rules and JSON Schema definitions specified in the previous sections. The examples illustrate typical request and response messages for domain name, contact, and host resources.</t>
 
 <section anchor="domain-name"><name>Domain Name</name>
 
-<section anchor="create"><name>Create</name>
+<section anchor="create-6"><name>Create</name>
 <t>Example domain create request:</t>
 
 <sourcecode type="json"><![CDATA[{
     "@type": "domainName",
     "name": "example.example",
-    "period": {
-        "@type": "period",
-        "value": 2,
-        "unit": "y"
-    },
     "nameservers": [
         { "@type": "host", "hostName": "ns1.example.example" },
         { "@type": "host", "hostName": "ns2.example.example" }
@@ -1343,6 +2162,19 @@ A Aggregation represents a relationship between two independent objects, where o
         "@type": "authInfo",
         "method": "authinfo",
         "authdata": "2fooBAR"
+    },
+    "processes": {
+        "@type": "processes",
+        "createProcess": [
+            {
+                "@type": "createProcess",
+                "period": {
+                    "@type": "period",
+                    "value": 2,
+                    "unit": "y"
+                }
+            }
+        ]
     }
 }
 ]]>
@@ -1369,7 +2201,22 @@ A Aggregation represents a relationship between two independent objects, where o
 </sourcecode>
 </section>
 
-<section anchor="read"><name>Read</name>
+<section anchor="create-process-data"><name>Create Process Data</name>
+<t>Example Create Process Object for a two-year registration period, as embedded above in <tt>processes.createProcess</tt>:</t>
+
+<sourcecode type="json"><![CDATA[{
+    "@type": "createProcess",
+    "period": {
+        "@type": "period",
+        "value": 2,
+        "unit": "y"
+    }
+}
+]]>
+</sourcecode>
+</section>
+
+<section anchor="read-6"><name>Read</name>
 <t>Example domain read response:</t>
 
 <sourcecode type="json"><![CDATA[{
@@ -1418,13 +2265,26 @@ A Aggregation represents a relationship between two independent objects, where o
         "@type": "authInfo",
         "method": "authinfo",
         "authdata": "2fooBAR"
+    },
+    "processes": {
+        "@type": "processes",
+        "createProcess": [
+            {
+                "@type": "createProcess",
+                "period": {
+                    "@type": "period",
+                    "value": 2,
+                    "unit": "y"
+                }
+            }
+        ]
     }
 }
 ]]>
 </sourcecode>
 </section>
 
-<section anchor="update"><name>Update</name>
+<section anchor="update-5"><name>Update</name>
 <t>Example domain update request (read-write properties):</t>
 
 <sourcecode type="json"><![CDATA[{
@@ -1478,13 +2338,13 @@ A Aggregation represents a relationship between two independent objects, where o
 </sourcecode>
 </section>
 
-<section anchor="renew"><name>Renew</name>
-<t>The renew operation accepts a transient <tt>currentExpiryDate</tt> parameter for validation and an optional <tt>renewalPeriod</tt>.</t>
+<section anchor="renew-1"><name>Renew</name>
+<t>The renew operation creates a Renew Process Object. The optional <tt>expiryDate</tt> in the request is the <em>current</em> expiry date, sent by the client for server-side validation to prevent duplicate renewals. The response returns a Renew Process Object containing the <em>new</em> expiry date.</t>
 <t>Example domain renew request:</t>
 
 <sourcecode type="json"><![CDATA[{
-    "@type": "domainName.renew",
-    "currentExpiryDate": "2005-04-03T22:00:00.0Z",
+    "@type": "renewProcess",
+    "expiryDate": "2005-04-03T22:00:00.0Z",
     "renewalPeriod": {
         "@type": "period",
         "value": 5,
@@ -1496,7 +2356,7 @@ A Aggregation represents a relationship between two independent objects, where o
 <t>Example domain renew response:</t>
 
 <sourcecode type="json"><![CDATA[{
-    "@type": "domainName",
+    "@type": "renewProcess",
     "expiryDate": "2010-04-03T22:00:00.0Z"
 }
 ]]>
@@ -1551,8 +2411,33 @@ A Aggregation represents a relationship between two independent objects, where o
 </sourcecode>
 </section>
 
-<section anchor="transfer-cancel-reject-approve"><name>Transfer Cancel / Reject / Approve</name>
-<t>Transfer cancel, reject, and approve responses return the Transfer Process Object. The response structure is the same as the Transfer Query response above. The <tt>trStatus</tt> value reflects the outcome of the operation (e.g. <tt>&quot;clientCancelled&quot;</tt>, <tt>&quot;clientRejected&quot;</tt>, or <tt>&quot;clientApproved&quot;</tt>).</t>
+<section anchor="transfer-approve"><name>Transfer Approve</name>
+<t>The Transfer approve operation has request body with an empty JSON object, the server can identify the transfer process to be approved based on the request URL and the authenticated client's permissions.</t>
+<t>Example domain transfer approve request with empty JSON object:</t>
+
+<sourcecode type="json"><![CDATA[{ 
+  "@type": "transferProcess"
+}
+]]>
+</sourcecode>
+<t>The response is the Transfer Process Object, similar to the transfer create and query responses.</t>
+</section>
+
+<section anchor="transfer-cancel"><name>Transfer Cancel</name>
+<t>The Transfer cancel operation has an empty request body, the server can identify the transfer process to be cancelled based on the request URL and the authenticated client's permissions.</t>
+<t>The response is the Transfer Process Object, similar to the transfer create and query responses.</t>
+</section>
+
+<section anchor="transfer-reject"><name>Transfer Reject</name>
+<t>Example domain transfer reject request</t>
+
+<sourcecode type="json"><![CDATA[{
+    "@type": "transferProcess",
+    "reason": "Client rejected the transfer request."
+}
+]]>
+</sourcecode>
+<t>The transfer reject response is the Transfer Process Object, similar to the transfer create and query responses.</t>
 </section>
 
 <section anchor="restore-request"><name>Restore Request</name>
@@ -1663,13 +2548,13 @@ A Aggregation represents a relationship between two independent objects, where o
 
 <section anchor="contact"><name>Contact</name>
 
-<section anchor="create-1"><name>Create</name>
+<section anchor="create-7"><name>Create</name>
 <t>Example contact create request:</t>
 
 <sourcecode type="json"><![CDATA[{
     "@type": "contact",
     "id": "jd1234",
-    "card": {
+    "contactInfo": {
         "@type": "Card",
         "version": "2.0",
         "kind": "individual",
@@ -1726,7 +2611,7 @@ A Aggregation represents a relationship between two independent objects, where o
     "status": [
         { "@type": "status", "label": "ok" }
     ],
-    "card": {
+    "contactInfo": {
         "@type": "Card",
         "version": "2.0",
         "kind": "individual",
@@ -1765,7 +2650,7 @@ A Aggregation represents a relationship between two independent objects, where o
 </sourcecode>
 </section>
 
-<section anchor="read-1"><name>Read</name>
+<section anchor="read-7"><name>Read</name>
 <t>Example contact read response:</t>
 
 <sourcecode type="json"><![CDATA[{
@@ -1783,7 +2668,7 @@ A Aggregation represents a relationship between two independent objects, where o
     "status": [
         { "@type": "status", "label": "ok" }
     ],
-    "card": {
+    "contactInfo": {
         "@type": "Card",
         "version": "2.0",
         "kind": "individual",
@@ -1821,12 +2706,12 @@ A Aggregation represents a relationship between two independent objects, where o
 </sourcecode>
 </section>
 
-<section anchor="update-1"><name>Update</name>
+<section anchor="update-6"><name>Update</name>
 <t>Example contact update request:</t>
 
 <sourcecode type="json"><![CDATA[{
     "@type": "contact",
-    "card": {
+    "contactInfo": {
         "@type": "Card",
         "version": "2.0",
         "addresses": {
@@ -1868,7 +2753,7 @@ A Aggregation represents a relationship between two independent objects, where o
     "status": [
         { "@type": "status", "label": "ok" }
     ],
-    "card": {
+    "contactInfo": {
         "@type": "Card",
         "version": "2.0",
         "kind": "individual",
@@ -1951,15 +2836,26 @@ A Aggregation represents a relationship between two independent objects, where o
 </sourcecode>
 </section>
 
-<section anchor="transfer-cancel-reject-approve-1"><name>Transfer Cancel / Reject / Approve</name>
-<t>Transfer cancel, reject, and approve responses return the Transfer Process Object. The response structure is the same as the Transfer Query response above. The <tt>trStatus</tt> value reflects the outcome of the operation (e.g. <tt>&quot;clientCancelled&quot;</tt>, <tt>&quot;clientRejected&quot;</tt>, or <tt>&quot;clientApproved&quot;</tt>).</t>
-<t>Note: Unlike domain transfers, contact transfers do not include an <tt>expiryDate</tt> field in the Transfer Process Object, as contacts do not have registration periods.</t>
+<section anchor="transfer-cancel-approve"><name>Transfer Cancel / Approve</name>
+<t>Transfer cancel and approve responses return the Transfer Process Object. The response structure is the same as the Transfer Query response above. The <tt>trStatus</tt> value reflects the outcome of the operation (e.g. <tt>&quot;clientCancelled&quot;</tt>, <tt>&quot;clientRejected&quot;</tt>, or <tt>&quot;clientApproved&quot;</tt>).</t>
+</section>
+
+<section anchor="transfer-reject-1"><name>Transfer Reject</name>
+<t>Example Contact Transfer Reject request</t>
+
+<sourcecode type="json"><![CDATA[{
+    "@type": "transferProcess",
+    "reason": "Client rejected the transfer request."
+}
+]]>
+</sourcecode>
+<t>The transfer reject response is the Transfer Process Object, similar to the transfer create and query responses.</t>
 </section>
 </section>
 
 <section anchor="host"><name>Host</name>
 
-<section anchor="create-2"><name>Create</name>
+<section anchor="create-8"><name>Create</name>
 <t>Example host create request:</t>
 
 <sourcecode type="json"><![CDATA[{
@@ -2034,7 +2930,7 @@ A Aggregation represents a relationship between two independent objects, where o
 </sourcecode>
 </section>
 
-<section anchor="read-2"><name>Read</name>
+<section anchor="read-8"><name>Read</name>
 <t>Example host read response:</t>
 
 <sourcecode type="json"><![CDATA[{
@@ -2072,7 +2968,7 @@ A Aggregation represents a relationship between two independent objects, where o
 </sourcecode>
 </section>
 
-<section anchor="update-2"><name>Update</name>
+<section anchor="update-7"><name>Update</name>
 <t>Example host update request:</t>
 
 <sourcecode type="json"><![CDATA[{
@@ -2209,6 +3105,275 @@ A Aggregation represents a relationship between two independent objects, where o
 </sourcecode>
 </section>
 </section>
+
+<section anchor="organisation"><name>Organisation</name>
+
+<section anchor="create-9"><name>Create</name>
+<t>Example organisation create request:</t>
+
+<sourcecode type="json"><![CDATA[{
+    "@type": "organisation",
+    "id": "ORG-12345",
+    "roles": { "registrar": 
+        {
+            "@type": "organisationRole",
+            "roleId": "1234"
+        }
+    },
+    "parent": { "@type": "organisation", "id": "ORG-9999" },
+    "contactInfo": {
+        "@type": "Card",
+        "version": "2.0",
+        "kind": "org",
+        "name": {
+            "full": "Example Registrar Inc."
+        },
+        "addresses": {
+            "addr": {
+                "components": [
+                    { "kind": "name",     "value": "Meander 501" },
+                    { "kind": "locality", "value": "Arnhem" },
+                    { "kind": "region",   "value": "Gelderland" },
+                    { "kind": "postcode", "value": "6825MD" },
+                    { "kind": "country",  "value": "Netherlands" }
+                ],
+                "countryCode": "NL"
+            }
+        },
+        "emails": {
+            "email": { "address": "registrar@example.example" }
+        }
+    },
+    "contacts": [
+        { "label": "admin", "object": { "@type": "contact", "id": "CID-1001" } },
+        { "label": "tech", "object": { "@type": "contact", "id": "CID-1002" } }
+    ]
+}
+]]>
+</sourcecode>
+<t>Example organisation create response:</t>
+
+<sourcecode type="json"><![CDATA[{
+    "@type": "organisation",
+    "id": "ORG-12345",
+    "provMetadata": {
+        "@type": "provMetadata",
+        "repositoryId": "ORG12345-REP",
+        "spClientId": "ClientX",
+        "crClientId": "ClientX",
+        "crDate": "2025-03-15T10:00:00.0Z"
+    },
+    "status": [
+        { "@type": "status", "label": "ok" }
+    ],
+    "roles": { "registrar":
+        {
+            "@type": "organisationRole",
+            "status": ["ok"],
+            "roleId": "1234"
+        }
+    },
+    "parent": { "@type": "organisation", "id": "ORG-9999" },
+    "contactInfo": {
+        "@type": "Card",
+        "version": "2.0",
+        "kind": "org",
+        "name": {
+            "full": "Example Registrar Inc."
+        },
+        "addresses": {
+            "addr": {
+               "components": [
+                    { "kind": "name",     "value": "Meander 501" },
+                    { "kind": "locality", "value": "Arnhem" },
+                    { "kind": "region",   "value": "Gelderland" },
+                    { "kind": "postcode", "value": "6825MD" },
+                    { "kind": "country",  "value": "Netherlands" }
+                ],
+                "countryCode": "NL"
+            }
+        },
+        "emails": {
+            "email": { "address": "registrar@example.example" }
+        }
+    },
+    "contacts": [
+        { "label": "admin", "object": { "@type": "contact", "id": "CID-1001" } },
+        { "label": "tech", "object": { "@type": "contact", "id": "CID-1002" } }
+    ],
+    "users": [
+        { "label": "admin", "object": { "@type": "user", "id": "UID-5001" } }
+    ]
+}
+]]>
+</sourcecode>
+</section>
+
+<section anchor="read-9"><name>Read</name>
+<t>Example organisation read response:</t>
+
+<sourcecode type="json"><![CDATA[{
+    "@type": "organisation",
+    "id": "ORG-12345",
+    "provMetadata": {
+        "@type": "provMetadata",
+        "repositoryId": "ORG12345-REP",
+        "spClientId": "ClientX",
+        "crClientId": "ClientX",
+        "crDate": "2025-03-15T10:00:00.0Z",
+        "upClientId": "ClientX",
+        "upDate": "2025-06-01T08:30:00.0Z"
+    },
+    "status": [
+        { "@type": "status", "label": "linked" }
+    ],
+    "roles": { "registrar":
+        {
+            "@type": "organisationRole",
+            "status": ["ok"],
+            "roleId": "1234"
+        }
+    },
+    "parent": { "@type": "organisation", "id": "ORG-9999" },
+    "contactInfo": {
+        "@type": "Card",
+        "version": "2.0",
+        "kind": "org",
+        "name": {
+            "full": "Example Registrar Inc."
+        },
+        "addresses": {
+            "addr": {
+                "components": [
+                    { "kind": "name",     "value": "Meander 501" },
+                    { "kind": "locality", "value": "Arnhem" },
+                    { "kind": "region",   "value": "Gelderland" },
+                    { "kind": "postcode", "value": "6825MD" },
+                    { "kind": "country",  "value": "Netherlands" }
+                ],
+                "countryCode": "NL"
+            }
+        },
+        "emails": {
+            "email": { "address": "registrar@example.example" }
+        }
+    },
+    "contacts": [
+        { "label": "admin", "object": { "@type": "contact", "id": "CID-1001" } },
+        { "label": "tech", "object": { "@type": "contact", "id": "CID-1002" } }
+    ],
+    "users": [
+        { "label": "admin", "object": { "@type": "user", "id": "UID-5001" } }
+    ]
+}
+]]>
+</sourcecode>
+</section>
+
+<section anchor="update-8"><name>Update</name>
+<t>Example organisation update request:</t>
+
+<sourcecode type="json"><![CDATA[{
+    "@type": "organisation",
+    "roles": { "registrar":
+        {
+            "@type": "organisationRole",
+            "status": ["clientLinkProhibited"],
+            "roleId": "1234"
+        }
+    },
+    "status": [
+        { "@type": "status", "label": "clientLinkProhibited" }
+    ],
+    "contacts": [
+        { "label": "admin", "object": { "@type": "contact", "id": "CID-2001" } },
+        { "label": "tech", "object": { "@type": "contact", "id": "CID-2002" } }
+    ]
+}
+]]>
+</sourcecode>
+</section>
+
+<section anchor="delete-3"><name>Delete</name>
+<t>The organisation delete operation takes the organisation identifier as the resource identifier. No request body is required. The server MUST reject the request if the organisation object is associated with any other objects.</t>
+</section>
+
+<section anchor="reference-5"><name>Reference</name>
+<t>Example organisation reference (used when referencing an organisation from another object):</t>
+
+<sourcecode type="json"><![CDATA[{
+    "@type": "organisation",
+    "id": "ORG-12345"
+}
+]]>
+</sourcecode>
+</section>
+</section>
+
+<section anchor="user"><name>User</name>
+
+<section anchor="create-10"><name>Create</name>
+<t>Example user create request:</t>
+
+<sourcecode type="json"><![CDATA[{
+    "@type": "user",
+    "details": { "@type": "contact", "id": "USER-1234" },
+    "status": ["active"]
+}
+]]>
+</sourcecode>
+<t>Example user create response:</t>
+
+<sourcecode type="json"><![CDATA[{
+    "@type": "user",
+    "userId": "UID-5001",
+    "details": { "@type": "contact", "id": "USER-1234" },
+    "status": ["active"]
+}
+]]>
+</sourcecode>
+</section>
+
+<section anchor="read-10"><name>Read</name>
+<t>Example user read response:</t>
+
+<sourcecode type="json"><![CDATA[{
+    "@type": "user",
+    "organisationId": { "@type": "organisation", "id": "ORG-12345" },
+    "userId": "UID-5001",
+    "details": { "@type": "contact", "id": "USER-1234" },
+    "status": ["active"]
+}
+]]>
+</sourcecode>
+</section>
+
+<section anchor="update-9"><name>Update</name>
+<t>Example user update request (suspend the user):</t>
+
+<sourcecode type="json"><![CDATA[{
+    "@type": "user",
+    "status": ["suspended"]
+}
+]]>
+</sourcecode>
+</section>
+
+<section anchor="delete-4"><name>Delete</name>
+<t>The user delete operation takes the user identifier as the resource identifier in the context of the owning organisation. No request body is required.</t>
+</section>
+
+<section anchor="reference-6"><name>Reference</name>
+<t>Example user reference (used when referencing a user from an organisation object):</t>
+
+<sourcecode type="json"><![CDATA[{
+    "@type": "user",
+    "id": "UID-5001"
+}
+]]>
+</sourcecode>
+</section>
+</section>
 </section>
 
 <section anchor="iana-considerations"><name>IANA Considerations</name>
@@ -2228,6 +3393,19 @@ A Aggregation represents a relationship between two independent objects, where o
 </section>
 
 <section anchor="change-history"><name>Change History</name>
+
+<section anchor="version-02-to-03"><name>Version 02 to 03</name>
+
+<ul spacing="compact">
+<li>Added &quot;Update Rules&quot; section, describing update requests (Issue #54)</li>
+<li>Added schema and examples for Transfer approve/reject/cancel operations (Issue #28)</li>
+<li>Added Organisation and User Object JSON schemas and examples. (Issue #57)</li>
+<li>Added schema and examples for the Renew Process Object. (Issue #45)</li>
+<li>Add representation for embedding of process data in uniform interface operations (especially create). (Issue #60)</li>
+<li>define rules for External Type Embedding.</li>
+<li>Add JSContact as External Type Embedding (Issue #43).</li>
+</ul>
+</section>
 
 <section anchor="version-01-to-02"><name>Version 01 to 02</name>
 
@@ -2290,7 +3468,9 @@ A Aggregation represents a relationship between two independent objects, where o
 <xi:include href="https://bib.ietf.org/public/rfc/bibxml/reference.RFC.4648.xml"/>
 <xi:include href="https://bib.ietf.org/public/rfc/bibxml/reference.RFC.5730.xml"/>
 <xi:include href="https://bib.ietf.org/public/rfc/bibxml/reference.RFC.5732.xml"/>
+<xi:include href="https://bib.ietf.org/public/rfc/bibxml/reference.RFC.6902.xml"/>
 <xi:include href="https://bib.ietf.org/public/rfc/bibxml/reference.RFC.8259.xml"/>
+<xi:include href="https://bib.ietf.org/public/rfc/bibxml/reference.RFC.8543.xml"/>
 <xi:include href="https://bib.ietf.org/public/rfc/bibxml/reference.RFC.9553.xml"/>
 <xi:include href="https://bib.ietf.org/public/rfc/bibxml/reference.RFC.9982.xml"/>
 </references>
