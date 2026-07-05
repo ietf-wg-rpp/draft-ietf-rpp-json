@@ -7,6 +7,7 @@ workgroup = "Network Working Group"
 submissiontype = "IETF"
 keyword = [""]
 TocDepth = 4
+date = 2026-07-05
 
 [seriesInfo]
 name = "Internet-Draft"
