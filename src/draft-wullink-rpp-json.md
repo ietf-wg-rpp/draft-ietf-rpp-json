@@ -1,5 +1,5 @@
 %%%
-title = "JSON for Restful Provisioning Protocol (RPP)"
+title = "JSON for RESTful Provisioning Protocol (RPP)"
 abbrev = "JSON for RPP"
 ipr = "trust200902"
 area = "Internet"
@@ -7,10 +7,11 @@ workgroup = "Network Working Group"
 submissiontype = "IETF"
 keyword = [""]
 TocDepth = 4
+date = 2026-07-05
 
 [seriesInfo]
 name = "Internet-Draft"
-value = "draft-wullink-rpp-json-02"
+value = "draft-ietf-rpp-json-00"
 stream = "IETF"
 status = "standard"
 
@@ -38,13 +39,13 @@ organization = "DENIC"
 
 .# Abstract
 
-This document defines the rules for representing the RESTful Provisioning Protocol (RPP) data objects, as defined in [@!I-D.kowalik-rpp-data-objects], using the JavaScript Object Notation (JSON) Data Interchange Format [@!RFC8259]. It specifies how RPP primitive types, common data types, component objects, resource objects, and associations are mapped to JSON and JSON Schema, and provides normative JSON Schema definitions and worked examples for domain name, contact, and host data objects.
+This document defines the rules for representing the RESTful Provisioning Protocol (RPP) data objects, as defined in [@!I-D.ietf-rpp-data-objects], using the JavaScript Object Notation (JSON) Data Interchange Format [@!RFC8259]. It specifies how RPP primitive types, common data types, component objects, resource objects, and associations are mapped to JSON and JSON Schema, and provides normative JSON Schema definitions and worked examples for domain name, contact, and host data objects.
 
 {mainmatter}
 
 # Introduction
 
-The RESTful Provisioning Protocol (RPP) defines a set of data objects for managing foundational registry resources including domain names, contacts, and hosts. The data model is defined in [@!I-D.kowalik-rpp-data-objects] independently of any particular representation format. This document defines the JSON [@!RFC8259] representation of those data objects.
+The RESTful Provisioning Protocol (RPP) defines a set of data objects for managing foundational registry resources including domain names, contacts, and hosts. The data model is defined in [@!I-D.ietf-rpp-data-objects] independently of any particular representation format. This document defines the JSON [@!RFC8259] representation of those data objects.
 
 JSON has emerged as the de facto standard data format for modern RESTful APIs. Its widespread adoption across tools, libraries, and developer communities makes it well suited as the primary representation format for RPP. This document provides the normative rules and JSON Schema definitions required for implementations to produce and consume RPP messages in JSON.
 
@@ -58,19 +59,19 @@ JSON's syntax, known for its straightforwardness and minimal verbosity, signific
 
 The lightweight nature of JSON can result in faster processing and data transfers, a critical aspect in high-volume transaction environments such as domain registration. Enhanced API response times can lead to more efficient domain lookups, registrations, and updates. JSON parsing is typically fast and well-supported by standard libraries, contributing to improved system performance amid frequent interactions between RPP clients and servers.
 
-However, the absence of a standardised JSON format for domain provisioning has led to the emergence of TLD-specific implementations that lack interoperability, increasing the development effort required for integration. Similarly, at the registrar level, the absence of standards has resulted in numerous incompatible API implementations provided to clients and resellers. Standardising a JSON format for domain provisioning within the RPP framework could mitigate these challenges, reducing fragmentation and simplifying integration efforts across the domain registration industry.
+However, the absence of a standardized JSON format for domain provisioning has led to the emergence of TLD-specific implementations that lack interoperability, increasing the development effort required for integration. Similarly, at the registrar level, the absence of standards has resulted in numerous incompatible API implementations provided to clients and resellers. Standardizing a JSON format for domain provisioning within the RPP framework could mitigate these challenges, reducing fragmentation and simplifying integration efforts across the domain registration industry.
 
 # Terminology
 
-In this document the following terminology is used.
+In this document, the following terminology is used.
 
-RPP Data Objects - The abstract data model definitions for domain name, contact, and host resources, as specified in [@!I-D.kowalik-rpp-data-objects].
+RPP Data Objects - The abstract data model definitions for domain name, contact, and host resources, as specified in [@!I-D.ietf-rpp-data-objects].
 
 RESTful Provisioning Protocol - A RESTful protocol for provisioning heterogeneous database objects.
 
 JSON Schema - A vocabulary that allows annotation and validation of JSON documents, as described in [@?JSON-SCHEMA].
 
-EPP Compatibility Profile - A set of additional constraints defined in [@!I-D.kowalik-rpp-data-objects] that a server MUST adhere to when supporting both RPP and EPP concurrently.
+EPP Compatibility Profile - A set of additional constraints defined in [@!I-D.ietf-rpp-data-objects] that a server MUST adhere to when supporting both RPP and EPP concurrently.
 
 # Conventions Used in This Document
 
@@ -88,7 +89,7 @@ All JSON Schema definitions in this document use JSON Schema draft 2020-12 [@?JS
 
 # JSON Representation Rules
 
-This section defines the normative rules for representing the RPP data model in JSON. The data model is specified in [@!I-D.kowalik-rpp-data-objects], which defines all primitive types, common data types, component objects, resource objects, and associations independently of any concrete representation format. The rules in this section specify how those abstract definitions map to JSON and JSON Schema version 2020-12.
+This section defines the normative rules for representing the RPP data model in JSON. The data model is specified in [@!I-D.ietf-rpp-data-objects], which defines all primitive types, common data types, component objects, resource objects, and associations independently of any concrete representation format. The rules in this section specify how those abstract definitions map to JSON and JSON Schema version 2020-12.
 
 ## Primitive Type Mappings
 
@@ -188,7 +189,7 @@ A Aggregation represents a relationship between two independent objects, where o
 
 ### Labelled associations
 
-Some associations between objects carry a string label that provides additional context for the relationship. The label is not an identifier of the target object, but rather a descriptor of the association itself. Labelled associations can occur in both aggregations and compositions. When representing labelled associations in JSON, the property `label` MUST be included  alongside the reference to the target object. A property with the name `object` MUST be used to contain the reference to the target object, which can be either limited representation containing at minimum the primary object identifier for aggregations or an embedded object for compositions.
+Some associations between objects carry a string label that provides additional context for the relationship. The label is not an identifier of the target object, but rather a descriptor of the association itself. Labelled associations can occur in both aggregations and compositions. When representing labelled associations in JSON, the property `label` MUST be included alongside the reference to the target object. A property with the name `object` MUST be used to contain the reference to the target object, which can be either limited representation containing at minimum the primary object identifier for aggregations or an embedded object for compositions.
 
 <!-- TODO: update text to clarify what data objects attribute must be used for unique object identifier in aggregation examples -->
 
@@ -198,7 +199,7 @@ An `Aggregation[Type]` represents a relationship between two independent objects
 
 Rule 8: `Aggregation[Type]` with cardinality `0+` or `1+` MUST be represented as a JSON array of embedded objects. Each object in the array MUST include the data elements of the referenced object type that are relevant to the context (at minimum the primary identifier field). Other data elements of the referenced object type MAY be included as needed to provide additional context for the client, but are not required. The JSON Schema MUST allow for the presence of these additional fields.
 
-Example: domain nameservers (Aggregation[Host Data Object]) in a read response, returning a limited object representation, only cvontaining the primary identifier field `hostName`:
+Example: domain nameservers (Aggregation[Host Data Object]) in a read response, returning a limited object representation containing only the primary identifier field `hostName`:
 
 ```json
 {
@@ -365,7 +366,7 @@ Rule 17: If the external type has neither a native JSON nor a native UTF-8 text 
 
 ## Process Data Embedding Rules
 
-As defined in [@!I-D.wullink-rpp-core], a uniform interface operation MAY require process data in addition to the object representation data. This section defines how such process data MUST be represented in JSON when transmitted together with the object representation in a single request body.
+As defined in [@!I-D.ietf-rpp-core], a uniform interface operation MAY require process data in addition to the object representation data. This section defines how such process data MUST be represented in JSON when transmitted together with the object representation in a single request body.
 
 Rule 18: Process data accompanying a uniform interface operation MUST be represented using the `processes` data element of the owning resource object (see Processes Object), following the Aggregation rules for the corresponding process type (for example `createProcess` for creation-specific inputs). Each embedded process object MUST be a valid JSON representation of the process object. This applies uniformly regardless of whether the resource object already exists.
 
@@ -431,11 +432,11 @@ Example (Domain Name Data Object):
 }
 ```
 
-Rule 26: When a transfer request or other operation requires authorization information (e.g., EPP-style authinfo), the client MUST NOT include the `authInfo` object in the JSON request body. Instead, the client MUST convey the authorization information using the `RPP-Authorization` HTTP request header as defined in [@!I-D.wullink-rpp-core]. Servers MUST reject any request that includes an `authInfo` object in the JSON body with an appropriate error response.
+Rule 26: When a transfer request or other operation requires authorization information (e.g., EPP-style authinfo), the client MUST NOT include the `authInfo` object in the JSON request body. Instead, the client MUST convey the authorization information using the `RPP-Authorization` HTTP request header as defined in [@!I-D.ietf-rpp-core]. Servers MUST reject any request that includes an `authInfo` object in the JSON body with an appropriate error response.
 
 ### RPP Profiles and Validation
 
-RPP profiles, such as the EPP Compatibility Profile defined in [@!I-D.kowalik-rpp-data-objects], may impose additional constraints on top of the base RPP data model. These additional constraints MUST be enforced by implementations through validation rules that go beyond what can be expressed in JSON Schema. Such validation rules MUST be clearly documented in the profile specification and implemented by both clients and servers when operating under that profile. For example, the EPP Compatibility Profile requires that certain fields be present in specific object types, and that certain identifier fields conform to EPP syntax rules. These constraints cannot be fully captured in JSON Schema and therefore require additional validation logic in implementations.
+RPP profiles, such as the EPP Compatibility Profile defined in [@!I-D.ietf-rpp-data-objects], may impose additional constraints on top of the base RPP data model. These additional constraints MUST be enforced by implementations through validation rules that go beyond what can be expressed in JSON Schema. Such validation rules MUST be clearly documented in the profile specification and implemented by both clients and servers when operating under that profile. For example, the EPP Compatibility Profile requires that certain fields be present in specific object types, and that certain identifier fields conform to EPP syntax rules. These constraints cannot be fully captured in JSON Schema and therefore require additional validation logic in implementations.
 
 # Update Rules
 
@@ -921,12 +922,12 @@ The following constraints cannot be expressed in JSON Schema and MUST be enforce
 }
 ```
 
-### Authorisation Information Object
+### Authorization Information Object
 
 The following constraints cannot be expressed in JSON Schema and MUST be enforced by implementations:
 
-- `method` MUST be one of the values registered in the IANA RPP Authorisation Method Registry as defined in [@!I-D.wullink-rpp-core]. In EPP Compatibility Profile, this value MUST be "authinfo" for standard password-based authorisation.
-- The Authorisation Information Object is immutable. When authorisation information changes, a new instance MUST be created rather than modifying the existing one. The value of `authdata` MAY not be returned in read responses, depending on the method and server policy.
+- `method` MUST be one of the values registered in the IANA RPP Authorization Method Registry as defined in [@!I-D.ietf-rpp-core]. In EPP Compatibility Profile, this value MUST be "authinfo" for standard password-based authorization.
+- The Authorization Information Object is immutable. When authorization information changes, a new instance MUST be created rather than modifying the existing one. The value of `authdata` MAY be omitted from read responses, depending on the method and server policy.
 
 ```json
 {
@@ -3485,15 +3486,14 @@ TODO
 
 # Change History
 
-## Version 02 to 03
+## Version 02 to 00
 
 - Added "Update Rules" section, describing update requests (Issue #54)
 - Added schema and examples for Transfer approve/reject/cancel operations (Issue #28)
 - Added Organisation and User Object JSON schemas and examples. (Issue #57)
 - Added schema and examples for the Renew Process Object. (Issue #45)
-- Add representation for embedding of process data in uniform interface operations (especially create). (Issue #60)
-- define rules for External Type Embedding.
-- Add JSContact as External Type Embedding (Issue #43).
+- Added representation for embedding of process data in uniform interface operations (especially create). (Issue #60)
+- Added JSContact as External Type Embedding (Issue #43).
 
 ## Version 01 to 02
 
