@@ -38,13 +38,13 @@ organization = "DENIC"
 
 .# Abstract
 
-This document defines the rules for representing the RESTful Provisioning Protocol (RPP) data objects, as defined in [@!I-D.kowalik-rpp-data-objects], using the JavaScript Object Notation (JSON) Data Interchange Format [@!RFC8259]. It specifies how RPP primitive types, common data types, component objects, resource objects, and associations are mapped to JSON and JSON Schema, and provides normative JSON Schema definitions and worked examples for domain name, contact, and host data objects.
+This document defines the rules for representing the RESTful Provisioning Protocol (RPP) data objects, as defined in [@!I-D.ietf-rpp-data-objects], using the JavaScript Object Notation (JSON) Data Interchange Format [@!RFC8259]. It specifies how RPP primitive types, common data types, component objects, resource objects, and associations are mapped to JSON and JSON Schema, and provides normative JSON Schema definitions and worked examples for domain name, contact, and host data objects.
 
 {mainmatter}
 
 # Introduction
 
-The RESTful Provisioning Protocol (RPP) defines a set of data objects for managing foundational registry resources including domain names, contacts, and hosts. The data model is defined in [@!I-D.kowalik-rpp-data-objects] independently of any particular representation format. This document defines the JSON [@!RFC8259] representation of those data objects.
+The RESTful Provisioning Protocol (RPP) defines a set of data objects for managing foundational registry resources including domain names, contacts, and hosts. The data model is defined in [@!I-D.ietf-rpp-data-objects] independently of any particular representation format. This document defines the JSON [@!RFC8259] representation of those data objects.
 
 JSON has emerged as the de facto standard data format for modern RESTful APIs. Its widespread adoption across tools, libraries, and developer communities makes it well suited as the primary representation format for RPP. This document provides the normative rules and JSON Schema definitions required for implementations to produce and consume RPP messages in JSON.
 
@@ -64,13 +64,13 @@ However, the absence of a standardized JSON format for domain provisioning has l
 
 In this document, the following terminology is used.
 
-RPP Data Objects - The abstract data model definitions for domain name, contact, and host resources, as specified in [@!I-D.kowalik-rpp-data-objects].
+RPP Data Objects - The abstract data model definitions for domain name, contact, and host resources, as specified in [@!I-D.ietf-rpp-data-objects].
 
 RESTful Provisioning Protocol - A RESTful protocol for provisioning heterogeneous database objects.
 
 JSON Schema - A vocabulary that allows annotation and validation of JSON documents, as described in [@?JSON-SCHEMA].
 
-EPP Compatibility Profile - A set of additional constraints defined in [@!I-D.kowalik-rpp-data-objects] that a server MUST adhere to when supporting both RPP and EPP concurrently.
+EPP Compatibility Profile - A set of additional constraints defined in [@!I-D.ietf-rpp-data-objects] that a server MUST adhere to when supporting both RPP and EPP concurrently.
 
 # Conventions Used in This Document
 
@@ -88,7 +88,7 @@ All JSON Schema definitions in this document use JSON Schema draft 2020-12 [@?JS
 
 # JSON Representation Rules
 
-This section defines the normative rules for representing the RPP data model in JSON. The data model is specified in [@!I-D.kowalik-rpp-data-objects], which defines all primitive types, common data types, component objects, resource objects, and associations independently of any concrete representation format. The rules in this section specify how those abstract definitions map to JSON and JSON Schema version 2020-12.
+This section defines the normative rules for representing the RPP data model in JSON. The data model is specified in [@!I-D.ietf-rpp-data-objects], which defines all primitive types, common data types, component objects, resource objects, and associations independently of any concrete representation format. The rules in this section specify how those abstract definitions map to JSON and JSON Schema version 2020-12.
 
 ## Primitive Type Mappings
 
@@ -365,7 +365,7 @@ Rule 17: If the external type has neither a native JSON nor a native UTF-8 text 
 
 ## Process Data Embedding Rules
 
-As defined in [@!I-D.wullink-rpp-core], a uniform interface operation MAY require process data in addition to the object representation data. This section defines how such process data MUST be represented in JSON when transmitted together with the object representation in a single request body.
+As defined in [@!I-D.ietf-rpp-core], a uniform interface operation MAY require process data in addition to the object representation data. This section defines how such process data MUST be represented in JSON when transmitted together with the object representation in a single request body.
 
 Rule 18: Process data accompanying a uniform interface operation MUST be represented using the `processes` data element of the owning resource object (see Processes Object), following the Aggregation rules for the corresponding process type (for example `createProcess` for creation-specific inputs). Each embedded process object MUST be a valid JSON representation of the process object. This applies uniformly regardless of whether the resource object already exists.
 
@@ -431,11 +431,11 @@ Example (Domain Name Data Object):
 }
 ```
 
-Rule 26: When a transfer request or other operation requires authorization information (e.g., EPP-style authinfo), the client MUST NOT include the `authInfo` object in the JSON request body. Instead, the client MUST convey the authorization information using the `RPP-Authorization` HTTP request header as defined in [@!I-D.wullink-rpp-core]. Servers MUST reject any request that includes an `authInfo` object in the JSON body with an appropriate error response.
+Rule 26: When a transfer request or other operation requires authorization information (e.g., EPP-style authinfo), the client MUST NOT include the `authInfo` object in the JSON request body. Instead, the client MUST convey the authorization information using the `RPP-Authorization` HTTP request header as defined in [@!I-D.ietf-rpp-core]. Servers MUST reject any request that includes an `authInfo` object in the JSON body with an appropriate error response.
 
 ### RPP Profiles and Validation
 
-RPP profiles, such as the EPP Compatibility Profile defined in [@!I-D.kowalik-rpp-data-objects], may impose additional constraints on top of the base RPP data model. These additional constraints MUST be enforced by implementations through validation rules that go beyond what can be expressed in JSON Schema. Such validation rules MUST be clearly documented in the profile specification and implemented by both clients and servers when operating under that profile. For example, the EPP Compatibility Profile requires that certain fields be present in specific object types, and that certain identifier fields conform to EPP syntax rules. These constraints cannot be fully captured in JSON Schema and therefore require additional validation logic in implementations.
+RPP profiles, such as the EPP Compatibility Profile defined in [@!I-D.ietf-rpp-data-objects], may impose additional constraints on top of the base RPP data model. These additional constraints MUST be enforced by implementations through validation rules that go beyond what can be expressed in JSON Schema. Such validation rules MUST be clearly documented in the profile specification and implemented by both clients and servers when operating under that profile. For example, the EPP Compatibility Profile requires that certain fields be present in specific object types, and that certain identifier fields conform to EPP syntax rules. These constraints cannot be fully captured in JSON Schema and therefore require additional validation logic in implementations.
 
 # Update Rules
 
@@ -925,7 +925,7 @@ The following constraints cannot be expressed in JSON Schema and MUST be enforce
 
 The following constraints cannot be expressed in JSON Schema and MUST be enforced by implementations:
 
-- `method` MUST be one of the values registered in the IANA RPP Authorization Method Registry as defined in [@!I-D.wullink-rpp-core]. In EPP Compatibility Profile, this value MUST be "authinfo" for standard password-based authorization.
+- `method` MUST be one of the values registered in the IANA RPP Authorization Method Registry as defined in [@!I-D.ietf-rpp-core]. In EPP Compatibility Profile, this value MUST be "authinfo" for standard password-based authorization.
 - The Authorization Information Object is immutable. When authorization information changes, a new instance MUST be created rather than modifying the existing one. The value of `authdata` MAY be omitted from read responses, depending on the method and server policy.
 
 ```json
