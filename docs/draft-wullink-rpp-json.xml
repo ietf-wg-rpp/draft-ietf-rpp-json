@@ -1,21 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- name="GENERATOR" content="github.com/mmarkdown/mmark Mmark Markdown Processor - mmark.miek.nl" -->
-<rfc version="3" ipr="trust200902" docName="draft-wullink-rpp-json-02" submissionType="IETF" category="std" xml:lang="en" xmlns:xi="http://www.w3.org/2001/XInclude" indexInclude="true" tocDepth="4">
+<rfc version="3" ipr="trust200902" docName="draft-ietf-rpp-json-00" submissionType="IETF" category="std" xml:lang="en" xmlns:xi="http://www.w3.org/2001/XInclude" indexInclude="true" tocDepth="4">
 
 <front>
-<title abbrev="JSON for RPP">JSON for Restful Provisioning Protocol (RPP)</title><seriesInfo value="draft-wullink-rpp-json-02" stream="IETF" status="standard" name="Internet-Draft"></seriesInfo>
+<title abbrev="JSON for RPP">JSON for RESTful Provisioning Protocol (RPP)</title><seriesInfo value="draft-ietf-rpp-json-00" stream="IETF" status="standard" name="Internet-Draft"></seriesInfo>
 <author initials="M." surname="Wullink" fullname="Maarten Wullink"><organization>SIDN Labs</organization><address><postal><street></street>
 </postal><email>maarten.wullink@sidn.nl</email>
 <uri>https://sidn.nl/</uri>
 </address></author><author initials="P." surname="Kowalik" fullname="Pawel Kowalik"><organization>DENIC</organization><address><postal><street></street>
 </postal><email>pawel.kowalik@denic.de</email>
 <uri>https://denic.de/</uri>
-</address></author><date/>
+</address></author><date year="2026" month="July" day="6"></date>
 <area>Internet</area>
 <workgroup>Network Working Group</workgroup>
 
 <abstract>
-<t>This document defines the rules for representing the RESTful Provisioning Protocol (RPP) data objects, as defined in <xref target="I-D.kowalik-rpp-data-objects"></xref>, using the JavaScript Object Notation (JSON) Data Interchange Format <xref target="RFC8259"></xref>. It specifies how RPP primitive types, common data types, component objects, resource objects, and associations are mapped to JSON and JSON Schema, and provides normative JSON Schema definitions and worked examples for domain name, contact, and host data objects.</t>
+<t>This document defines the rules for representing the RESTful Provisioning Protocol (RPP) data objects, as defined in <xref target="I-D.ietf-rpp-data-objects"></xref>, using the JavaScript Object Notation (JSON) Data Interchange Format <xref target="RFC8259"></xref>. It specifies how RPP primitive types, common data types, component objects, resource objects, and associations are mapped to JSON and JSON Schema, and provides normative JSON Schema definitions and worked examples for domain name, contact, and host data objects.</t>
 </abstract>
 
 </front>
@@ -23,7 +23,7 @@
 <middle>
 
 <section anchor="introduction"><name>Introduction</name>
-<t>The RESTful Provisioning Protocol (RPP) defines a set of data objects for managing foundational registry resources including domain names, contacts, and hosts. The data model is defined in <xref target="I-D.kowalik-rpp-data-objects"></xref> independently of any particular representation format. This document defines the JSON <xref target="RFC8259"></xref> representation of those data objects.</t>
+<t>The RESTful Provisioning Protocol (RPP) defines a set of data objects for managing foundational registry resources including domain names, contacts, and hosts. The data model is defined in <xref target="I-D.ietf-rpp-data-objects"></xref> independently of any particular representation format. This document defines the JSON <xref target="RFC8259"></xref> representation of those data objects.</t>
 <t>JSON has emerged as the de facto standard data format for modern RESTful APIs. Its widespread adoption across tools, libraries, and developer communities makes it well suited as the primary representation format for RPP. This document provides the normative rules and JSON Schema definitions required for implementations to produce and consume RPP messages in JSON.</t>
 <t>The separation between the abstract data model and its concrete JSON representation ensures that the protocol's semantic foundation remains stable while enabling the adoption of JSON across diverse deployment environments.</t>
 
@@ -31,16 +31,16 @@
 <t>The RESTful Provisioning Protocol (RPP) introduces a new provisioning mechanism that aligns more closely with modern cloud infrastructure, enhancing the scalability of server deployments. While RESTful protocols do not mandate a specific media type for resource description, the widespread adoption of JSON in web services has established it as the de facto standard for modern APIs. The increasing availability of tools, software libraries, and a skilled workforce has led several registries to adopt JSON for data exchange within their API ecosystems. Registries supporting JSON can offer a unified API ecosystem that extends beyond domain name and IP address provisioning, maintaining a consistent technology stack, data formats, and developer experience.</t>
 <t>JSON's syntax, known for its straightforwardness and minimal verbosity, significantly eases the tasks of writing, reading, and maintaining code. This simplicity is especially advantageous for the rapid comprehension and integration of provisioning APIs.</t>
 <t>The lightweight nature of JSON can result in faster processing and data transfers, a critical aspect in high-volume transaction environments such as domain registration. Enhanced API response times can lead to more efficient domain lookups, registrations, and updates. JSON parsing is typically fast and well-supported by standard libraries, contributing to improved system performance amid frequent interactions between RPP clients and servers.</t>
-<t>However, the absence of a standardised JSON format for domain provisioning has led to the emergence of TLD-specific implementations that lack interoperability, increasing the development effort required for integration. Similarly, at the registrar level, the absence of standards has resulted in numerous incompatible API implementations provided to clients and resellers. Standardising a JSON format for domain provisioning within the RPP framework could mitigate these challenges, reducing fragmentation and simplifying integration efforts across the domain registration industry.</t>
+<t>However, the absence of a standardized JSON format for domain provisioning has led to the emergence of TLD-specific implementations that lack interoperability, increasing the development effort required for integration. Similarly, at the registrar level, the absence of standards has resulted in numerous incompatible API implementations provided to clients and resellers. Standardizing a JSON format for domain provisioning within the RPP framework could mitigate these challenges, reducing fragmentation and simplifying integration efforts across the domain registration industry.</t>
 </section>
 </section>
 
 <section anchor="terminology"><name>Terminology</name>
-<t>In this document the following terminology is used.</t>
-<t>RPP Data Objects - The abstract data model definitions for domain name, contact, and host resources, as specified in <xref target="I-D.kowalik-rpp-data-objects"></xref>.</t>
+<t>In this document, the following terminology is used.</t>
+<t>RPP Data Objects - The abstract data model definitions for domain name, contact, and host resources, as specified in <xref target="I-D.ietf-rpp-data-objects"></xref>.</t>
 <t>RESTful Provisioning Protocol - A RESTful protocol for provisioning heterogeneous database objects.</t>
 <t>JSON Schema - A vocabulary that allows annotation and validation of JSON documents, as described in <xref target="JSON-SCHEMA"></xref>.</t>
-<t>EPP Compatibility Profile - A set of additional constraints defined in <xref target="I-D.kowalik-rpp-data-objects"></xref> that a server MUST adhere to when supporting both RPP and EPP concurrently.</t>
+<t>EPP Compatibility Profile - A set of additional constraints defined in <xref target="I-D.ietf-rpp-data-objects"></xref> that a server MUST adhere to when supporting both RPP and EPP concurrently.</t>
 </section>
 
 <section anchor="conventions-used-in-this-document"><name>Conventions Used in This Document</name>
@@ -56,7 +56,7 @@ document are to be interpreted as described in <xref target="RFC2119"></xref>.</
 </section>
 
 <section anchor="json-representation-rules"><name>JSON Representation Rules</name>
-<t>This section defines the normative rules for representing the RPP data model in JSON. The data model is specified in <xref target="I-D.kowalik-rpp-data-objects"></xref>, which defines all primitive types, common data types, component objects, resource objects, and associations independently of any concrete representation format. The rules in this section specify how those abstract definitions map to JSON and JSON Schema version 2020-12.</t>
+<t>This section defines the normative rules for representing the RPP data model in JSON. The data model is specified in <xref target="I-D.ietf-rpp-data-objects"></xref>, which defines all primitive types, common data types, component objects, resource objects, and associations independently of any concrete representation format. The rules in this section specify how those abstract definitions map to JSON and JSON Schema version 2020-12.</t>
 
 <section anchor="primitive-type-mappings"><name>Primitive Type Mappings</name>
 <t>RPP primitive types MUST be represented in JSON as follows:</t>
@@ -194,13 +194,13 @@ document are to be interpreted as described in <xref target="RFC2119"></xref>.</
 A Aggregation represents a relationship between two independent objects, where one object references another. A Composition represents a parent-child relationship where the child object is embedded within the parent object and cannot exist independently.</t>
 
 <section anchor="labelled-associations"><name>Labelled associations</name>
-<t>Some associations between objects carry a string label that provides additional context for the relationship. The label is not an identifier of the target object, but rather a descriptor of the association itself. Labelled associations can occur in both aggregations and compositions. When representing labelled associations in JSON, the property <tt>label</tt> MUST be included  alongside the reference to the target object. A property with the name <tt>object</tt> MUST be used to contain the reference to the target object, which can be either limited representation containing at minimum the primary object identifier for aggregations or an embedded object for compositions.</t>
+<t>Some associations between objects carry a string label that provides additional context for the relationship. The label is not an identifier of the target object, but rather a descriptor of the association itself. Labelled associations can occur in both aggregations and compositions. When representing labelled associations in JSON, the property <tt>label</tt> MUST be included alongside the reference to the target object. A property with the name <tt>object</tt> MUST be used to contain the reference to the target object, which can be either limited representation containing at minimum the primary object identifier for aggregations or an embedded object for compositions.</t>
 </section>
 
 <section anchor="aggregation"><name>Aggregation</name>
 <t>An <tt>Aggregation[Type]</tt> represents a relationship between two independent objects. When the cardinality allows more than one target, it MUST be represented as a JSON array. Each element of the array MUST be the identifier of the referenced object.</t>
 <t>Rule 8: <tt>Aggregation[Type]</tt> with cardinality <tt>0+</tt> or <tt>1+</tt> MUST be represented as a JSON array of embedded objects. Each object in the array MUST include the data elements of the referenced object type that are relevant to the context (at minimum the primary identifier field). Other data elements of the referenced object type MAY be included as needed to provide additional context for the client, but are not required. The JSON Schema MUST allow for the presence of these additional fields.</t>
-<t>Example: domain nameservers (Aggregation[Host Data Object]) in a read response, returning a limited object representation, only cvontaining the primary identifier field <tt>hostName</tt>:</t>
+<t>Example: domain nameservers (Aggregation[Host Data Object]) in a read response, returning a limited object representation containing only the primary identifier field <tt>hostName</tt>:</t>
 
 <sourcecode type="json"><![CDATA[{
     "@type": "domainName",
@@ -356,7 +356,7 @@ A Aggregation represents a relationship between two independent objects, where o
 </section>
 
 <section anchor="process-data-embedding-rules"><name>Process Data Embedding Rules</name>
-<t>As defined in <xref target="I-D.wullink-rpp-core"></xref>, a uniform interface operation MAY require process data in addition to the object representation data. This section defines how such process data MUST be represented in JSON when transmitted together with the object representation in a single request body.</t>
+<t>As defined in <xref target="I-D.ietf-rpp-core"></xref>, a uniform interface operation MAY require process data in addition to the object representation data. This section defines how such process data MUST be represented in JSON when transmitted together with the object representation in a single request body.</t>
 <t>Rule 18: Process data accompanying a uniform interface operation MUST be represented using the <tt>processes</tt> data element of the owning resource object (see Processes Object), following the Aggregation rules for the corresponding process type (for example <tt>createProcess</tt> for creation-specific inputs). Each embedded process object MUST be a valid JSON representation of the process object. This applies uniformly regardless of whether the resource object already exists.</t>
 <t>Example: a domain create request body carrying a two-year registration period as process data embedded in a <tt>createProcess</tt> process object under <tt>processes</tt>:</t>
 
@@ -409,10 +409,10 @@ A Aggregation represents a relationship between two independent objects, where o
 }
 ]]>
 </sourcecode>
-<t>Rule 26: When a transfer request or other operation requires authorization information (e.g., EPP-style authinfo), the client MUST NOT include the <tt>authInfo</tt> object in the JSON request body. Instead, the client MUST convey the authorization information using the <tt>RPP-Authorization</tt> HTTP request header as defined in <xref target="I-D.wullink-rpp-core"></xref>. Servers MUST reject any request that includes an <tt>authInfo</tt> object in the JSON body with an appropriate error response.</t>
+<t>Rule 26: When a transfer request or other operation requires authorization information (e.g., EPP-style authinfo), the client MUST NOT include the <tt>authInfo</tt> object in the JSON request body. Instead, the client MUST convey the authorization information using the <tt>RPP-Authorization</tt> HTTP request header as defined in <xref target="I-D.ietf-rpp-core"></xref>. Servers MUST reject any request that includes an <tt>authInfo</tt> object in the JSON body with an appropriate error response.</t>
 
 <section anchor="rpp-profiles-and-validation"><name>RPP Profiles and Validation</name>
-<t>RPP profiles, such as the EPP Compatibility Profile defined in <xref target="I-D.kowalik-rpp-data-objects"></xref>, may impose additional constraints on top of the base RPP data model. These additional constraints MUST be enforced by implementations through validation rules that go beyond what can be expressed in JSON Schema. Such validation rules MUST be clearly documented in the profile specification and implemented by both clients and servers when operating under that profile. For example, the EPP Compatibility Profile requires that certain fields be present in specific object types, and that certain identifier fields conform to EPP syntax rules. These constraints cannot be fully captured in JSON Schema and therefore require additional validation logic in implementations.</t>
+<t>RPP profiles, such as the EPP Compatibility Profile defined in <xref target="I-D.ietf-rpp-data-objects"></xref>, may impose additional constraints on top of the base RPP data model. These additional constraints MUST be enforced by implementations through validation rules that go beyond what can be expressed in JSON Schema. Such validation rules MUST be clearly documented in the profile specification and implemented by both clients and servers when operating under that profile. For example, the EPP Compatibility Profile requires that certain fields be present in specific object types, and that certain identifier fields conform to EPP syntax rules. These constraints cannot be fully captured in JSON Schema and therefore require additional validation logic in implementations.</t>
 </section>
 </section>
 </section>
@@ -858,12 +858,12 @@ A partial update MUST use JSON Patch <xref target="RFC6902"></xref> and an RPP e
 </sourcecode>
 </section>
 
-<section anchor="authorisation-information-object"><name>Authorisation Information Object</name>
+<section anchor="authorization-information-object"><name>Authorization Information Object</name>
 <t>The following constraints cannot be expressed in JSON Schema and MUST be enforced by implementations:</t>
 
 <ul spacing="compact">
-<li><tt>method</tt> MUST be one of the values registered in the IANA RPP Authorisation Method Registry as defined in <xref target="I-D.wullink-rpp-core"></xref>. In EPP Compatibility Profile, this value MUST be &quot;authinfo&quot; for standard password-based authorisation.</li>
-<li>The Authorisation Information Object is immutable. When authorisation information changes, a new instance MUST be created rather than modifying the existing one. The value of <tt>authdata</tt> MAY not be returned in read responses, depending on the method and server policy.</li>
+<li><tt>method</tt> MUST be one of the values registered in the IANA RPP Authorization Method Registry as defined in <xref target="I-D.ietf-rpp-core"></xref>. In EPP Compatibility Profile, this value MUST be &quot;authinfo&quot; for standard password-based authorization.</li>
+<li>The Authorization Information Object is immutable. When authorization information changes, a new instance MUST be created rather than modifying the existing one. The value of <tt>authdata</tt> MAY be omitted from read responses, depending on the method and server policy.</li>
 </ul>
 
 <sourcecode type="json"><![CDATA[{
@@ -3394,16 +3394,15 @@ A partial update MUST use JSON Patch <xref target="RFC6902"></xref> and an RPP e
 
 <section anchor="change-history"><name>Change History</name>
 
-<section anchor="version-02-to-03"><name>Version 02 to 03</name>
+<section anchor="version-02-to-00"><name>Version 02 to 00</name>
 
 <ul spacing="compact">
 <li>Added &quot;Update Rules&quot; section, describing update requests (Issue #54)</li>
 <li>Added schema and examples for Transfer approve/reject/cancel operations (Issue #28)</li>
 <li>Added Organisation and User Object JSON schemas and examples. (Issue #57)</li>
 <li>Added schema and examples for the Renew Process Object. (Issue #45)</li>
-<li>Add representation for embedding of process data in uniform interface operations (especially create). (Issue #60)</li>
-<li>define rules for External Type Embedding.</li>
-<li>Add JSContact as External Type Embedding (Issue #43).</li>
+<li>Added representation for embedding of process data in uniform interface operations (especially create). (Issue #60)</li>
+<li>Added JSContact as External Type Embedding (Issue #43).</li>
 </ul>
 </section>
 
@@ -3430,8 +3429,8 @@ A partial update MUST use JSON Patch <xref target="RFC6902"></xref> and an RPP e
 <back>
 <references><name>References</name>
 <references><name>Normative References</name>
-<xi:include href="https://bib.ietf.org/public/rfc/bibxml3/reference.I-D.kowalik-rpp-data-objects.xml"/>
-<xi:include href="https://bib.ietf.org/public/rfc/bibxml3/reference.I-D.wullink-rpp-core.xml"/>
+<xi:include href="https://bib.ietf.org/public/rfc/bibxml3/reference.I-D.ietf-rpp-core.xml"/>
+<xi:include href="https://bib.ietf.org/public/rfc/bibxml3/reference.I-D.ietf-rpp-data-objects.xml"/>
 <reference anchor="ISO3166-1" target="https://www.iso.org/standard/72482.html">
   <front>
     <title>Codes for the representation of names of countries and their subdivisions - Part 1: Country code</title>
