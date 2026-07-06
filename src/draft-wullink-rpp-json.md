@@ -7,7 +7,7 @@ workgroup = "Network Working Group"
 submissiontype = "IETF"
 keyword = [""]
 TocDepth = 4
-date = 2026-07-05
+date = 2026-07-06
 
 [seriesInfo]
 name = "Internet-Draft"
@@ -3486,7 +3486,7 @@ TODO
 
 # Change History
 
-## Version 02 to 00
+## Version draft-wullink-rpp-json-02 to draft-ietf-rpp-json-00
 
 - Added "Update Rules" section, describing update requests (Issue #54)
 - Added schema and examples for Transfer approve/reject/cancel operations (Issue #28)
