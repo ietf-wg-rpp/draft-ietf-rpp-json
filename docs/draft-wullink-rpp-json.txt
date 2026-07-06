@@ -212,12 +212,12 @@ Internet-Draft                JSON for RPP                     July 2026
    10. Security Considerations . . . . . . . . . . . . . . . . . . .  89
    11. Acknowledgments . . . . . . . . . . . . . . . . . . . . . . .  89
    12. Change History  . . . . . . . . . . . . . . . . . . . . . . .  89
-     12.1.  Version 02 to 00 . . . . . . . . . . . . . . . . . . . .  89
+     12.1.  Version draft-wullink-rpp-json-02 to
+            draft-ietf-rpp-json-00 . . . . . . . . . . . . . . . . .  89
      12.2.  Version 01 to 02 . . . . . . . . . . . . . . . . . . . .  90
      12.3.  Version 00 to 01 . . . . . . . . . . . . . . . . . . . .  90
    13. References  . . . . . . . . . . . . . . . . . . . . . . . . .  90
      13.1.  Normative References . . . . . . . . . . . . . . . . . .  90
-     13.2.  Informative References . . . . . . . . . . . . . . . . .  92
 
 
 
@@ -226,6 +226,7 @@ Wullink & Kowalik        Expires 7 January 2027                 [Page 4]
 Internet-Draft                JSON for RPP                     July 2026
 
 
+     13.2.  Informative References . . . . . . . . . . . . . . . . .  92
    Authors' Addresses  . . . . . . . . . . . . . . . . . . . . . . .  92
 
 1.  Introduction
@@ -269,11 +270,10 @@ Internet-Draft                JSON for RPP                     July 2026
    maintaining code.  This simplicity is especially advantageous for the
    rapid comprehension and integration of provisioning APIs.
 
-
-
-
-
-
+   The lightweight nature of JSON can result in faster processing and
+   data transfers, a critical aspect in high-volume transaction
+   environments such as domain registration.  Enhanced API response
+   times can lead to more efficient domain lookups, registrations, and
 
 
 
@@ -282,10 +282,6 @@ Wullink & Kowalik        Expires 7 January 2027                 [Page 5]
 Internet-Draft                JSON for RPP                     July 2026
 
 
-   The lightweight nature of JSON can result in faster processing and
-   data transfers, a critical aspect in high-volume transaction
-   environments such as domain registration.  Enhanced API response
-   times can lead to more efficient domain lookups, registrations, and
    updates.  JSON parsing is typically fast and well-supported by
    standard libraries, contributing to improved system performance amid
    frequent interactions between RPP clients and servers.
@@ -324,9 +320,13 @@ Internet-Draft                JSON for RPP                     July 2026
    "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this
    document are to be interpreted as described in [RFC2119].
 
-
-
-
+   JSON is case sensitive.  Unless stated otherwise, JSON specifications
+   and examples provided in this document MUST be interpreted in the
+   character case presented.  The examples in this document assume that
+   request and response messages are properly formatted JSON documents.
+   Indentation and white space in examples are provided only to
+   illustrate element relationships and for improving readability, and
+   are not REQUIRED features of the protocol.
 
 
 
@@ -337,14 +337,6 @@ Wullink & Kowalik        Expires 7 January 2027                 [Page 6]
 
 Internet-Draft                JSON for RPP                     July 2026
 
-
-   JSON is case sensitive.  Unless stated otherwise, JSON specifications
-   and examples provided in this document MUST be interpreted in the
-   character case presented.  The examples in this document assume that
-   request and response messages are properly formatted JSON documents.
-   Indentation and white space in examples are provided only to
-   illustrate element relationships and for improving readability, and
-   are not REQUIRED features of the protocol.
 
    All JSON Schema definitions in this document use JSON Schema draft
    2020-12 [JSON-SCHEMA], and where not provided with a $schema keyword,
@@ -365,6 +357,14 @@ Internet-Draft                JSON for RPP                     July 2026
 4.1.  Primitive Type Mappings
 
    RPP primitive types MUST be represented in JSON as follows:
+
+
+
+
+
+
+
+
 
 
 
@@ -4964,7 +4964,7 @@ Internet-Draft                JSON for RPP                     July 2026
 
 12.  Change History
 
-12.1.  Version 02 to 00
+12.1.  Version draft-wullink-rpp-json-02 to draft-ietf-rpp-json-00
 
    -  Added "Update Rules" section, describing update requests (Issue
       #54)
