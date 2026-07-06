@@ -3394,7 +3394,7 @@ A partial update MUST use JSON Patch <xref target="RFC6902"></xref> and an RPP e
 
 <section anchor="change-history"><name>Change History</name>
 
-<section anchor="version-02-to-00"><name>Version 02 to 00</name>
+<section anchor="version-draft-wullink-rpp-json-02-to-draft-ietf-rpp-json-00"><name>Version draft-wullink-rpp-json-02 to draft-ietf-rpp-json-00</name>
 
 <ul spacing="compact">
 <li>Added &quot;Update Rules&quot; section, describing update requests (Issue #54)</li>

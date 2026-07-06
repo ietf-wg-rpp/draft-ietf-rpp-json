@@ -188,7 +188,8 @@ Table of Contents
    10. Security Considerations
    11. Acknowledgments
    12. Change History
-     12.1.  Version 02 to 00
+     12.1.  Version draft-wullink-rpp-json-02 to
+            draft-ietf-rpp-json-00
      12.2.  Version 01 to 02
      12.3.  Version 00 to 01
    13. References
@@ -3813,7 +3814,7 @@ Table of Contents
 
 12.  Change History
 
-12.1.  Version 02 to 00
+12.1.  Version draft-wullink-rpp-json-02 to draft-ietf-rpp-json-00
 
    -  Added "Update Rules" section, describing update requests (Issue
       #54)
