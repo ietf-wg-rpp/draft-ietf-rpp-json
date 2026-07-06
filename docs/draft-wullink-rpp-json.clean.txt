@@ -5,18 +5,18 @@
 Network Working Group                                         M. Wullink
 Internet-Draft                                                 SIDN Labs
 Intended status: Standards Track                              P. Kowalik
-Expires: 4 January 2027                                            DENIC
-                                                             3 July 2026
+Expires: 7 January 2027                                            DENIC
+                                                             6 July 2026
 
 
-              JSON for Restful Provisioning Protocol (RPP)
-                       draft-wullink-rpp-json-02
+              JSON for RESTful Provisioning Protocol (RPP)
+                         draft-ietf-rpp-json-00
 
 Abstract
 
    This document defines the rules for representing the RESTful
    Provisioning Protocol (RPP) data objects, as defined in
-   [I-D.kowalik-rpp-data-objects], using the JavaScript Object Notation
+   [I-D.ietf-rpp-data-objects], using the JavaScript Object Notation
    (JSON) Data Interchange Format [RFC8259].  It specifies how RPP
    primitive types, common data types, component objects, resource
    objects, and associations are mapped to JSON and JSON Schema, and
@@ -38,7 +38,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 4 January 2027.
+   This Internet-Draft will expire on 7 January 2027.
 
 Copyright Notice
 
@@ -94,7 +94,7 @@ Table of Contents
        6.2.4.  DNS Resource Record Object
        6.2.5.  DNS Operational Controls Object
        6.2.6.  DNS Data Object
-       6.2.7.  Authorisation Information Object
+       6.2.7.  Authorization Information Object
        6.2.8.  JSContact Card Object
        6.2.9.  Restore Report Object
        6.2.10. Organisation Role Object
@@ -188,7 +188,7 @@ Table of Contents
    10. Security Considerations
    11. Acknowledgments
    12. Change History
-     12.1.  Version 02 to 03
+     12.1.  Version 02 to 00
      12.2.  Version 01 to 02
      12.3.  Version 00 to 01
    13. References
@@ -201,7 +201,7 @@ Table of Contents
    The RESTful Provisioning Protocol (RPP) defines a set of data objects
    for managing foundational registry resources including domain names,
    contacts, and hosts.  The data model is defined in
-   [I-D.kowalik-rpp-data-objects] independently of any particular
+   [I-D.ietf-rpp-data-objects] independently of any particular
    representation format.  This document defines the JSON [RFC8259]
    representation of those data objects.
 
@@ -245,23 +245,23 @@ Table of Contents
    standard libraries, contributing to improved system performance amid
    frequent interactions between RPP clients and servers.
 
-   However, the absence of a standardised JSON format for domain
+   However, the absence of a standardized JSON format for domain
    provisioning has led to the emergence of TLD-specific implementations
    that lack interoperability, increasing the development effort
    required for integration.  Similarly, at the registrar level, the
    absence of standards has resulted in numerous incompatible API
-   implementations provided to clients and resellers.  Standardising a
+   implementations provided to clients and resellers.  Standardizing a
    JSON format for domain provisioning within the RPP framework could
    mitigate these challenges, reducing fragmentation and simplifying
    integration efforts across the domain registration industry.
 
 2.  Terminology
 
-   In this document the following terminology is used.
+   In this document, the following terminology is used.
 
    RPP Data Objects - The abstract data model definitions for domain
    name, contact, and host resources, as specified in
-   [I-D.kowalik-rpp-data-objects].
+   [I-D.ietf-rpp-data-objects].
 
    RESTful Provisioning Protocol - A RESTful protocol for provisioning
    heterogeneous database objects.
@@ -270,7 +270,7 @@ Table of Contents
    JSON documents, as described in [JSON-SCHEMA].
 
    EPP Compatibility Profile - A set of additional constraints defined
-   in [I-D.kowalik-rpp-data-objects] that a server MUST adhere to when
+   in [I-D.ietf-rpp-data-objects] that a server MUST adhere to when
    supporting both RPP and EPP concurrently.
 
 3.  Conventions Used in This Document
@@ -297,7 +297,7 @@ Table of Contents
 
    This section defines the normative rules for representing the RPP
    data model in JSON.  The data model is specified in
-   [I-D.kowalik-rpp-data-objects], which defines all primitive types,
+   [I-D.ietf-rpp-data-objects], which defines all primitive types,
    common data types, component objects, resource objects, and
    associations independently of any concrete representation format.
    The rules in this section specify how those abstract definitions map
@@ -467,7 +467,7 @@ Table of Contents
    these additional fields.
 
    Example: domain nameservers (Aggregation[Host Data Object]) in a read
-   response, returning a limited object representation, only cvontaining
+   response, returning a limited object representation containing only
    the primary identifier field hostName:
 
    {
@@ -672,10 +672,10 @@ Table of Contents
 
 4.7.  Process Data Embedding Rules
 
-   As defined in [I-D.wullink-rpp-core], a uniform interface operation
-   MAY require process data in addition to the object representation
-   data.  This section defines how such process data MUST be represented
-   in JSON when transmitted together with the object representation in a
+   As defined in [I-D.ietf-rpp-core], a uniform interface operation MAY
+   require process data in addition to the object representation data.
+   This section defines how such process data MUST be represented in
+   JSON when transmitted together with the object representation in a
    single request body.
 
    Rule 18: Process data accompanying a uniform interface operation MUST
@@ -763,16 +763,15 @@ Table of Contents
    authorization information (e.g., EPP-style authinfo), the client MUST
    NOT include the authInfo object in the JSON request body.  Instead,
    the client MUST convey the authorization information using the RPP-
-   Authorization HTTP request header as defined in
-   [I-D.wullink-rpp-core].  Servers MUST reject any request that
-   includes an authInfo object in the JSON body with an appropriate
-   error response.
+   Authorization HTTP request header as defined in [I-D.ietf-rpp-core].
+   Servers MUST reject any request that includes an authInfo object in
+   the JSON body with an appropriate error response.
 
 4.8.1.  RPP Profiles and Validation
 
    RPP profiles, such as the EPP Compatibility Profile defined in
-   [I-D.kowalik-rpp-data-objects], may impose additional constraints on
-   top of the base RPP data model.  These additional constraints MUST be
+   [I-D.ietf-rpp-data-objects], may impose additional constraints on top
+   of the base RPP data model.  These additional constraints MUST be
    enforced by implementations through validation rules that go beyond
    what can be expressed in JSON Schema.  Such validation rules MUST be
    clearly documented in the profile specification and implemented by
@@ -1313,20 +1312,20 @@ Table of Contents
      }
    }
 
-6.2.7.  Authorisation Information Object
+6.2.7.  Authorization Information Object
 
    The following constraints cannot be expressed in JSON Schema and MUST
    be enforced by implementations:
 
    -  method MUST be one of the values registered in the IANA RPP
-      Authorisation Method Registry as defined in
-      [I-D.wullink-rpp-core].  In EPP Compatibility Profile, this value
-      MUST be "authinfo" for standard password-based authorisation.
-   -  The Authorisation Information Object is immutable.  When
-      authorisation information changes, a new instance MUST be created
+      Authorization Method Registry as defined in [I-D.ietf-rpp-core].
+      In EPP Compatibility Profile, this value MUST be "authinfo" for
+      standard password-based authorization.
+   -  The Authorization Information Object is immutable.  When
+      authorization information changes, a new instance MUST be created
       rather than modifying the existing one.  The value of authdata MAY
-      not be returned in read responses, depending on the method and
-      server policy.
+      be omitted from read responses, depending on the method and server
+      policy.
 
    {
      "$defs": {
@@ -3814,7 +3813,7 @@ Table of Contents
 
 12.  Change History
 
-12.1.  Version 02 to 03
+12.1.  Version 02 to 00
 
    -  Added "Update Rules" section, describing update requests (Issue
       #54)
@@ -3824,10 +3823,9 @@ Table of Contents
       (Issue #57)
    -  Added schema and examples for the Renew Process Object.  (Issue
       #45)
-   -  Add representation for embedding of process data in uniform
+   -  Added representation for embedding of process data in uniform
       interface operations (especially create).  (Issue #60)
-   -  define rules for External Type Embedding.
-   -  Add JSContact as External Type Embedding (Issue #43).
+   -  Added JSContact as External Type Embedding (Issue #43).
 
 12.2.  Version 01 to 02
 
@@ -3847,19 +3845,19 @@ Table of Contents
 
 13.1.  Normative References
 
-   [I-D.kowalik-rpp-data-objects]
+   [I-D.ietf-rpp-core]
+              Wullink, M. and P. Kowalik, "RESTful Provisioning Protocol
+              (RPP)", Work in Progress, Internet-Draft, draft-ietf-rpp-
+              core-00, 6 July 2026,
+              <https://datatracker.ietf.org/doc/html/draft-ietf-rpp-
+              core-00>.
+
+   [I-D.ietf-rpp-data-objects]
               Kowalik, P. and M. Wullink, "RESTful Provisioning Protocol
               (RPP) Data Objects", Work in Progress, Internet-Draft,
-              draft-kowalik-rpp-data-objects-04, 12 June 2026,
-              <https://datatracker.ietf.org/doc/html/draft-kowalik-rpp-
-              data-objects-04>.
-
-   [I-D.wullink-rpp-core]
-              Wullink, M. and P. Kowalik, "RESTful Provisioning Protocol
-              (RPP)", Work in Progress, Internet-Draft, draft-wullink-
-              rpp-core-05, 15 March 2026,
-              <https://datatracker.ietf.org/doc/html/draft-wullink-rpp-
-              core-05>.
+              draft-ietf-rpp-data-objects-01, 3 July 2026,
+              <https://datatracker.ietf.org/doc/html/draft-ietf-rpp-
+              data-objects-01>.
 
    [ISO3166-1]
               International Organization for Standardization, "Codes for
