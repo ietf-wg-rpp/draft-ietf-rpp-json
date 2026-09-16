@@ -489,14 +489,14 @@ The following rules apply for partial updates:
 - Rule 25: JSON Patch operations other than "add", "remove" and "replace" MUST NOT be used.
 - Rule 26: If a JSONPointer path points to field using a JSON simple data type (e.g. string or number) then the "value" property MUST be provided and its type MUST match the type of the target field.
 - Rule 27: If a JSONPointer path points to an object, then the "value" property MUST be provided and contain a valid object, the new object's "@type" property MUST match the "@type" of the target object.
-- Rule 28: If a JSONPointer path points to an array, then:
-  - The "match" property MUST be provided to identify the specific element to be updated.
-  - The "match" property MUST only be used for matching array elements of the same type, and the rules 26 and 27 apply.
-  - The value of the "op" property determines the action to be taken on the matched element:
-    - The "add" operation, appends the new value to the array.
-    - The "remove" operation, removes the specified value from the array.
-    - The "replace" operation, replaces the existing value at the matching array element with the specified value.
-  - If the value of the "op" property is "replace", and there is a matching element, then the element MUST be fully replaced with the new value provided in the "value" property. The new value MUST include all required fields for the object type.
+- Rule 28: If a JSONPointer path points to an array, then the presence or absence of the "match" property determines whether the operation targets a single element within the array or the array as a whole:
+  - If "match" is present, the operation targets the specific element identified by "match":
+    - The "match" property MUST only be used for matching array elements of the same type, and the rules 26 and 27 apply.
+    - The "remove" operation removes the matching element(s) from the array. The "replace" operation replaces the existing value at the matching array element with the specified value; the new value MUST include all required fields for the object type. The "add" operation MUST NOT be used together with "match".
+  - If "match" is absent, the operation targets the array property as a whole:
+    - The "add" operation appends the "value" to the array as a new element.
+    - The "replace" operation replaces the entire array with the array provided in "value"; the new array MUST satisfy the JSON Schema of the target property, including any `"minItems"` constraint.
+    - The "remove" operation removes the array property entirely, and MUST NOT be used if the property has cardinality `1+`.
 - Rule 29: If any of the JSONPointer paths in the request fail to match an existing field or element in the target resource object, the server MUST reject the complete request with an appropriate error response.
 
 <!--Question: Partial update of object element is not supported? -->
@@ -505,7 +505,9 @@ The following rules apply for partial updates:
 
 ## Schema
 
-A partial update request body MUST be a JSON array of patch operation objects. Each operation MUST include an `op` and a `path` property. The `value` property MUST be present for `add` and `replace` operations. The `match` property MUST be present when the `path` points to an array property and is used to identify the specific array element to operate on.
+A partial update request body MUST be a JSON array of patch operation objects. Each operation MUST include an `op` and a `path` property. The `value` property MUST be present for `add` and `replace` operations. The `match` property MAY be present when the `path` points to an array property, to identify a specific array element to operate on; when `match` is absent, the operation targets the array property as a whole (see Rule 28).
+
+The `value` property is intentionally left unconstrained (`{}`) in the JSON Schema below, since the JSON type it MUST hold depends on the target `path`: it can be a JSON object (e.g. when replacing a single object property or a single matched array element), a JSON array (e.g. when replacing an array property as a whole), or a simple type such as a string, number, or boolean (e.g. when replacing a scalar property).
 
 ```json
 {
@@ -637,6 +639,21 @@ Example of a partial update request for adding a additional tech contact to a do
         "id": "sh8014"
       }
     }
+  }
+]
+```
+
+Example of a partial update request replacing the entire `nameservers` array of a domain name in a single operation, with no "match" property present:
+
+```json
+[
+  {
+    "op": "replace",
+    "path": "/nameservers",
+    "value": [
+      { "@type": "host", "hostName": "ns1.example.example" },
+      { "@type": "host", "hostName": "ns3.example.example" }
+    ]
   }
 ]
 ```
