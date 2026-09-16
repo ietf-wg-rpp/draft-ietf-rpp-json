@@ -968,18 +968,7 @@ The following constraints cannot be expressed in JSON Schema and MUST be enforce
         "name": {
           "type": "object",
           "properties": {
-            "full": { "type": "string" },
-            "components": {
-              "type": "array",
-              "items": {
-                "type": "object",
-                "properties": {
-                  "kind":  { "type": "string", "enum": ["given", "surname"] },
-                  "value": { "type": "string" }
-                },
-                "required": ["kind", "value"]
-              }
-            }
+            "full": { "type": "string" }
           }
         },
         "organizations": {
@@ -1003,7 +992,7 @@ The following constraints cannot be expressed in JSON Schema and MUST be enforce
                 "items": {
                   "type": "object",
                   "properties": {
-                    "kind":  { "type": "string", "enum": ["name", "locality", "region", "postcode", "country"] },
+                    "kind":  { "type": "string", "enum": ["name", "locality", "region", "postcode"] },
                     "value": { "type": "string" }
                   },
                   "required": ["kind", "value"]
@@ -2644,11 +2633,7 @@ Example contact create request:
         "version": "2.0",
         "kind": "individual",
         "name": {
-            "full": "John Doe",
-            "components": [
-                { "kind": "given",   "value": "John" },
-                { "kind": "surname", "value": "Doe" }
-            ]
+            "full": "John Doe"
         },
         "organizations": {
             "org": { "name": "Example Inc." }
@@ -2659,8 +2644,7 @@ Example contact create request:
                     { "kind": "name",     "value": "123 Example Dr., Suite 100" },
                     { "kind": "locality", "value": "Dulles" },
                     { "kind": "region",   "value": "VA" },
-                    { "kind": "postcode", "value": "20166-6503" },
-                    { "kind": "country",  "value": "United States" }
+                    { "kind": "postcode", "value": "20166-6503" }
                 ],
                 "countryCode": "US"
             }
@@ -2702,11 +2686,7 @@ Example contact create response:
         "version": "2.0",
         "kind": "individual",
         "name": {
-            "full": "John Doe",
-            "components": [
-                { "kind": "given",   "value": "John" },
-                { "kind": "surname", "value": "Doe" }
-            ]
+            "full": "John Doe"
         },
         "organizations": {
             "org": { "name": "Example Inc." }
@@ -2717,8 +2697,7 @@ Example contact create response:
                     { "kind": "name",     "value": "123 Example Dr., Suite 100" },
                     { "kind": "locality", "value": "Dulles" },
                     { "kind": "region",   "value": "VA" },
-                    { "kind": "postcode", "value": "20166-6503" },
-                    { "kind": "country",  "value": "United States" }
+                    { "kind": "postcode", "value": "20166-6503" }
                 ],
                 "countryCode": "US"
             }
@@ -2759,11 +2738,7 @@ Example contact read response:
         "version": "2.0",
         "kind": "individual",
         "name": {
-            "full": "John Doe",
-            "components": [
-                { "kind": "given",   "value": "John" },
-                { "kind": "surname", "value": "Doe" }
-            ]
+            "full": "John Doe"
         },
         "organizations": {
             "org": { "name": "Example Inc." }
@@ -2774,8 +2749,7 @@ Example contact read response:
                     { "kind": "name",     "value": "123 Example Dr., Suite 100" },
                     { "kind": "locality", "value": "Dulles" },
                     { "kind": "region",   "value": "VA" },
-                    { "kind": "postcode", "value": "20166-6503" },
-                    { "kind": "country",  "value": "United States" }
+                    { "kind": "postcode", "value": "20166-6503" }
                 ],
                 "countryCode": "US"
             }
@@ -2806,8 +2780,7 @@ Example contact update request:
                     { "kind": "name",     "value": "456 New Street, Suite 200" },
                     { "kind": "locality", "value": "Reston" },
                     { "kind": "region",   "value": "VA" },
-                    { "kind": "postcode", "value": "20190" },
-                    { "kind": "country",  "value": "United States" }
+                    { "kind": "postcode", "value": "20190" }
                 ],
                 "countryCode": "US"
             }
@@ -2845,11 +2818,7 @@ Example contact update response:
         "version": "2.0",
         "kind": "individual",
         "name": {
-            "full": "John Doe",
-            "components": [
-                { "kind": "given",   "value": "John" },
-                { "kind": "surname", "value": "Doe" }
-            ]
+            "full": "John Doe"
         },
         "organizations": {
             "org": { "name": "Example Inc." }
@@ -2860,8 +2829,7 @@ Example contact update response:
                     { "kind": "name",     "value": "456 New Street, Suite 200" },
                     { "kind": "locality", "value": "Reston" },
                     { "kind": "region",   "value": "VA" },
-                    { "kind": "postcode", "value": "20190" },
-                    { "kind": "country",  "value": "United States" }
+                    { "kind": "postcode", "value": "20190" }
                 ],
                 "countryCode": "US"
             }
@@ -3229,8 +3197,7 @@ Example organisation create request:
                     { "kind": "name",     "value": "Meander 501" },
                     { "kind": "locality", "value": "Arnhem" },
                     { "kind": "region",   "value": "Gelderland" },
-                    { "kind": "postcode", "value": "6825MD" },
-                    { "kind": "country",  "value": "Netherlands" }
+                    { "kind": "postcode", "value": "6825MD" }
                 ],
                 "countryCode": "NL"
             }
@@ -3283,8 +3250,7 @@ Example organisation create response:
                     { "kind": "name",     "value": "Meander 501" },
                     { "kind": "locality", "value": "Arnhem" },
                     { "kind": "region",   "value": "Gelderland" },
-                    { "kind": "postcode", "value": "6825MD" },
-                    { "kind": "country",  "value": "Netherlands" }
+                    { "kind": "postcode", "value": "6825MD" }
                 ],
                 "countryCode": "NL"
             }
@@ -3344,8 +3310,7 @@ Example organisation read response:
                     { "kind": "name",     "value": "Meander 501" },
                     { "kind": "locality", "value": "Arnhem" },
                     { "kind": "region",   "value": "Gelderland" },
-                    { "kind": "postcode", "value": "6825MD" },
-                    { "kind": "country",  "value": "Netherlands" }
+                    { "kind": "postcode", "value": "6825MD" }
                 ],
                 "countryCode": "NL"
             }
