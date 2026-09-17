@@ -825,6 +825,48 @@ The following constraints cannot be expressed in JSON Schema and MUST be enforce
 }
 ```
 
+### Message Status Object
+
+The following constraints cannot be expressed in JSON Schema and MUST be enforced by implementations:
+
+- `label` MUST be one of `queued`, `delivered`, or `removed`.
+
+```json
+{
+  "$defs": {
+    "msgStatus": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "msgStatus" },
+        "label": { "type": "string", "enum": ["queued", "delivered", "removed"] }
+      },
+      "required": ["@type", "label"]
+    }
+  }
+}
+```
+
+### Message Type Object
+
+The following constraints cannot be expressed in JSON Schema and MUST be enforced by implementations:
+
+- `label` MUST be a valid RPP message type, either registered in the IANA "RPP Message Type" registry.
+
+```json
+{
+  "$defs": {
+    "msgType": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "msgType" },
+        "label": { "type": "string" }
+      },
+      "required": ["@type", "label"]
+    }
+  }
+}
+```
+
 ### DNS Resource Record Object
 
 The following constraints cannot be expressed in JSON Schema and MUST be enforced by implementations:
@@ -2078,6 +2120,79 @@ Reference schema (identifier only):
       "type": "object",
       "properties": {
         "@type": { "type": "string", "const": "organisation", "readOnly": true },
+        "id":    { "$ref": "#/$defs/identifier", "readOnly": true }
+      },
+      "required": ["@type", "id"]
+    }
+  }
+}
+```
+
+## Message Data Object
+
+The following constraints cannot be expressed in JSON Schema and MUST be enforced by implementations:
+
+- `text` MAY be absent, in which case the message content MUST be provided by other data elements defined by an extension.
+
+### Create
+
+Create request schema (create-only and read-write properties):
+
+```json
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$ref": "#/$defs/messageObject.create",
+  "$defs": {
+    "messageObject.create": {
+      "type": "object",
+      "properties": {
+        "@type":  { "type": "string", "const": "message" },
+        "owner":  { "$ref": "#/$defs/organisationObject.reference" },
+        "type":   { "$ref": "#/$defs/msgType" },
+        "text":   { "type": "string" }
+      },
+      "required": ["@type", "owner", "type"]
+    }
+  }
+}
+```
+
+### Read
+
+```json
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$ref": "#/$defs/messageObject.read",
+  "$defs": {
+    "messageObject.read": {
+      "type": "object",
+      "properties": {
+        "@type":        { "type": "string", "const": "message", "readOnly": true },
+        "id":           { "$ref": "#/$defs/identifier", "readOnly": true },
+        "creationDate": { "type": "string", "format": "date-time", "readOnly": true },
+        "status":       { "$ref": "#/$defs/msgStatus" },
+        "type":         { "$ref": "#/$defs/msgType", "readOnly": true },
+        "text":         { "type": "string", "readOnly": true }
+      },
+      "required": ["@type", "id", "creationDate", "status", "type"]
+    }
+  }
+}
+```
+
+### Reference
+
+Reference schema (identifier only):
+
+```json
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$ref": "#/$defs/messageObject.reference",
+  "$defs": {
+    "messageObject.reference": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "message", "readOnly": true },
         "id":    { "$ref": "#/$defs/identifier", "readOnly": true }
       },
       "required": ["@type", "id"]
@@ -3468,6 +3583,49 @@ Example user reference (used when referencing a user from an organisation object
 }
 ```
 
+## Message
+
+### Create
+
+Example message create request (server-internal representation, inserted into the queue of the owning organisation):
+
+```json
+{
+    "@type": "message",
+    "owner": { "@type": "organisation", "id": "ORG-12345" },
+    "type": { "@type": "msgType", "label": "maintenance" },
+    "text": "Scheduled maintenance will occur on 2026-10-01T02:00:00Z."
+}
+```
+
+Example message create response:
+
+```json
+{
+    "@type": "message",
+    "id": "MSG-98765",
+    "status": { "@type": "msgStatus", "label": "queued" },
+    "owner": { "@type": "organisation", "id": "ORG-12345" },
+    "type": { "@type": "msgType", "label": "maintenance" },
+    "text": "Scheduled maintenance will occur on 2026-10-01T02:00:00Z."
+}
+```
+
+### Read
+
+Example message read response. Note that `owner` is not included in the response:
+
+```json
+{
+    "@type": "message",
+    "id": "MSG-98765",
+    "creationDate": "2026-09-17T09:00:00.0Z",
+    "status": { "@type": "msgStatus", "label": "delivered" },
+    "type": { "@type": "msgType", "label": "maintenance" },
+    "text": "Scheduled maintenance will occur on 2026-10-01T02:00:00Z."
+}
+```
+
 # IANA Considerations
 
 TODO
@@ -3485,6 +3643,10 @@ TODO
 TODO
 
 # Change History
+
+## Version ietf-rpp-json-00 to draft-ietf-rpp-json-01
+
+- Added Message Object and Message Status Object JSON schema and examples. (Issue #82)
 
 ## Version draft-wullink-rpp-json-02 to draft-ietf-rpp-json-00
 
