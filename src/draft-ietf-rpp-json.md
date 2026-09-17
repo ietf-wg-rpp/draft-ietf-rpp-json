@@ -846,6 +846,27 @@ The following constraints cannot be expressed in JSON Schema and MUST be enforce
 }
 ```
 
+### Message Type Object
+
+The following constraints cannot be expressed in JSON Schema and MUST be enforced by implementations:
+
+- `label` MUST be a valid RPP message type, either registered in the IANA "RPP Message Type" registry.
+
+```json
+{
+  "$defs": {
+    "msgType": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "msgType" },
+        "label": { "type": "string" }
+      },
+      "required": ["@type", "label"]
+    }
+  }
+}
+```
+
 ### DNS Resource Record Object
 
 The following constraints cannot be expressed in JSON Schema and MUST be enforced by implementations:
@@ -2127,9 +2148,10 @@ Create request schema (create-only and read-write properties):
       "properties": {
         "@type":  { "type": "string", "const": "message" },
         "owner":  { "$ref": "#/$defs/organisationObject.reference" },
+        "type":   { "$ref": "#/$defs/msgType" },
         "text":   { "type": "string" }
       },
-      "required": ["@type", "owner"]
+      "required": ["@type", "owner", "type"]
     }
   }
 }
@@ -2149,9 +2171,10 @@ Create request schema (create-only and read-write properties):
         "id":           { "$ref": "#/$defs/identifier", "readOnly": true },
         "creationDate": { "type": "string", "format": "date-time", "readOnly": true },
         "status":       { "$ref": "#/$defs/msgStatus" },
+        "type":         { "$ref": "#/$defs/msgType", "readOnly": true },
         "text":         { "type": "string", "readOnly": true }
       },
-      "required": ["@type", "id", "creationDate", "status"]
+      "required": ["@type", "id", "creationDate", "status", "type"]
     }
   }
 }
@@ -3570,6 +3593,7 @@ Example message create request (server-internal representation, inserted into th
 {
     "@type": "message",
     "owner": { "@type": "organisation", "id": "ORG-12345" },
+    "type": { "@type": "msgType", "label": "maintenance" },
     "text": "Scheduled maintenance will occur on 2026-10-01T02:00:00Z."
 }
 ```
@@ -3580,8 +3604,9 @@ Example message create response:
 {
     "@type": "message",
     "id": "MSG-98765",
-    "status": { "@type": "status", "label": "queued" },
+    "status": { "@type": "msgStatus", "label": "queued" },
     "owner": { "@type": "organisation", "id": "ORG-12345" },
+    "type": { "@type": "msgType", "label": "maintenance" },
     "text": "Scheduled maintenance will occur on 2026-10-01T02:00:00Z."
 }
 ```
@@ -3595,7 +3620,8 @@ Example message read response. Note that `owner` is not included in the response
     "@type": "message",
     "id": "MSG-98765",
     "creationDate": "2026-09-17T09:00:00.0Z",
-    "status": { "@type": "status", "label": "delivered" },
+    "status": { "@type": "msgStatus", "label": "delivered" },
+    "type": { "@type": "msgType", "label": "maintenance" },
     "text": "Scheduled maintenance will occur on 2026-10-01T02:00:00Z."
 }
 ```
