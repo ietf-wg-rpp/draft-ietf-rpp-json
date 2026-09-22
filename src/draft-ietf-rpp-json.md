@@ -838,7 +838,7 @@ The following constraints cannot be expressed in JSON Schema and MUST be enforce
       "type": "object",
       "properties": {
         "@type": { "type": "string", "const": "msgStatus" },
-        "label": { "type": "string", "enum": ["queued", "delivered", "removed"] }
+        "label": { "enum": ["queued", "delivered", "removed"] }
       },
       "required": ["@type", "label"]
     }
