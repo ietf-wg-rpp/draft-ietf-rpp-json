@@ -3470,7 +3470,39 @@ Example user reference (used when referencing a user from an organisation object
 
 # IANA Considerations
 
-TODO
+## RPP Media Type (application/rpp+json)
+
+The IANA is requested to add the "application/rpp+json" media type to the "Media Types" registry, following the template in [@!RFC6838]
+
+```text
+Type name: application
+Subtype name: rpp+json
+Required parameters: "N/A"
+Optional parameters: profile, version
+Encoding considerations: "N/A"
+Security considerations: This type has all of the security
+               considerations described in [@!RFC8259] plus the
+               considerations specified in the Security Considerations
+               section of this document.
+               The usage scenarios of the RPP media type do not foresee any
+               code execution originating from the content of this media type.
+Interoperability considerations: "N/A"
+Published specification: This document
+Applications that use this media type: RPP protocol and extensions
+Fragment identifier considerations: "N/A"
+Additional information:
+   Deprecated alias names for this type: "N/A"
+   Magic number(s): "N/A"
+   File extension(s): "N/A"
+   Macintosh file type code(s): "N/A"
+Person & email address to contact for further information: Author's email address
+Intended usage: COMMON
+Restrictions on usage: "N/A"
+Author: Document authors
+Change controller: Document authors
+Provisional registration: No
+```
+
 
 # Internationalization Considerations
 
@@ -3485,6 +3517,10 @@ TODO
 TODO
 
 # Change History
+
+## Version draft-ietf-rpp-json-00 to draft-ietf-rpp-json-01
+
+- Added IANA registration for the "application/rpp+json" media type (Issue #84)
 
 ## Version draft-wullink-rpp-json-02 to draft-ietf-rpp-json-00
 
