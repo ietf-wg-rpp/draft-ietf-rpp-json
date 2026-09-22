@@ -2214,16 +2214,18 @@ An extension schema MUST define a unique identifier using a toplevel `$id` to en
 
 An IANA registry for RPP JSON extensions is requested in this document, standardized JSON extensions SHALL be registered in this registry. Ensuring that each extension has a unique and stable identifier that can be referenced reliably across different implementations. This also promotes the reuse of common extensions and reduces duplication of effort.
 
+It is RECOMMENDED to use the prefix "ext." for every extension sub-schema defined, for example `#/$defs/ext.domainFoo`.
+
 **TODO** what objects are eligible for extensions?
 
 ## Extension Mapping
 
-Each extension MUST define a mapping to every base object it applies to, this is done by using a special `rpp:extends` property within the extension schema. For example, this mapping where the base object `https://rpp.example/rpp/schema.json#/$defs/domainObject.create` is extended by the local definition `#/$defs/domainFoo`:
+Each extension MUST define a mapping to every base object it applies to, this is done by using a special `rpp:extends` property within the extension schema. For example, this mapping where the base object `https://rpp.example/rpp/schema.json#/$defs/domainObject.create` is extended by the local definition `#/$defs/ext.domainFoo`:
 
 ```json
  "rpp:extends": {
     "https://rpp.example/rpp/schema.json#/$defs/domainObject.create":
-      "#/$defs/domainFoo"
+      "#/$defs/ext.domainFoo"
   },
 ```
 
@@ -2242,14 +2244,14 @@ The following is an example of an extension JSON Schema, which adds new properti
 
   "rpp:extends": {
     "https://rpp.example/rpp/schema.json#/$defs/domainObject.create":
-      "#/$defs/domain.extension",
+      "#/$defs/ext.domain",
 
     "https://rpp.example/rpp/schema.json#/$defs/contactObject.create":
-      "#/$defs/contact.extension"
+      "#/$defs/ext.contact"
   },
 
   "$defs": {
-    "domain.extension": {
+    "ext.domain": {
       "type": "object",
       "properties": {
         "foo": { "type": "string" },
@@ -2258,7 +2260,7 @@ The following is an example of an extension JSON Schema, which adds new properti
       "required": ["foo"]
     },
 
-    "contact.extension": {
+    "ext.contact": {
       "type": "object",
       "properties": {
         "fooContact": { "type": "string" }
@@ -2268,7 +2270,8 @@ The following is an example of an extension JSON Schema, which adds new properti
 }
 ```
 
-The effective schema is a distinct schema resource from the base schema it composes and therefore MUST be assigned its own `$id`, different from the `$id` of the base schema and of any other effective schema, to avoid ambiguous or circular references.
+The effective schema is a distinct schema resource from the base schema it composes and therefore MUST be assigned its own `$id`, different from the `$id` of the base schema and of any other effective schema, to avoid ambiguous or circular references. It is RECOMMENDED to use the prefix "effective." for every effective sub-schema defined, for example `#/$defs/effective.domainFoo`.
+
 
 Domain Name effective schema, which includes the full schema of the base domain object along with any applicable extensions:
 
@@ -2277,30 +2280,20 @@ Domain Name effective schema, which includes the full schema of the base domain 
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://rpp.example/rpp/effective/domain.json",
 
-  "$ref": "#/$defs/domainObject.create",
+  "$ref": "#/$defs/effective.domainObject.create",
   "$defs": {
-    "domainObject.create": {
+    "effective.domainObject.create": {
       "allOf": [
         {
-          "type": "object",
-          "properties": {
-            "@type": {
-              "type": "string",
-              "const": "domainName"
-            },
-            "name": {
-              "type": "string"
-            }
-          },
-          "required": ["@type", "name"]
+          "$ref": "https://rpp.example/rpp/schema.json#/$defs/domainObject.create"
         },
         {
-          "$ref": "#/$defs/domain.extension"
+          "$ref": "#/$defs/ext.domain"
         }
       ]
     },
 
-    "domain.extension": {
+    "ext.domain": {
       "type": "object",
       "properties": {
         "foo": {
