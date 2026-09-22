@@ -2202,6 +2202,110 @@ Reference schema (identifier only):
 }
 ```
 
+# Extension Framework {#extension-framework}
+
+Extensions MUST employ an additive schema composition method, allowing new optional or required properties to be added to an existing base object schema. New properties MUST not conflict with existing definitions and MUST NOT redefine existing properties from the base schema.
+
+To support multiple extensions, a mechanism for mapping extensions to their respective base objects is defined using the `rpp:extends` property within the extension schema.
+
+Extensions SHOULD be independent of one another, meaning that an extension should not rely on the presence of another extension to function correctly. This ensures modularity and reduces the risk of conflicts between extensions.
+
+An extension schema MUST define a unique identifier using a toplevel `$id` to ensure that references to the schema are unambiguous and correctly resolved. For IETF standardized extensions, using a stable and unique URI as the `$id` is RECOMMENDED.
+
+An IANA registry for RPP JSON extensions is requested in this document, standardized JSON extensions SHALL be registered in this registry. Ensuring that each extension has a unique and stable identifier that can be referenced reliably across different implementations. This also promotes the reuse of common extensions and reduces duplication of effort.
+
+It is RECOMMENDED to use the prefix "ext." for every extension sub-schema defined, for example `#/$defs/ext.domainFoo`.
+
+**TODO** what objects are eligible for extensions?
+
+## Extension Mapping
+
+Each extension MUST define a mapping to every base object it applies to, this is done by using a special `rpp:extends` property within the extension schema. For example, this mapping where the base object `https://rpp.example/rpp/schema.json#/$defs/domainObject.create` is extended by the local definition `#/$defs/ext.domainFoo`:
+
+```json
+ "rpp:extends": {
+    "https://rpp.example/rpp/schema.json#/$defs/domainObject.create":
+      "#/$defs/ext.domainFoo"
+  },
+```
+
+## Effective Schema
+
+Extensions are additive and independent, the effective schema for a base object MUST account for all applicable extensions to ensure that a validator can determine whether an object fully conforms to the combined set of constraints. When one or more extensions are applied to a base object, the effective schema for that object is obtained by composing the base object's schema with the schemas contributed by each extension using the `allOf` keyword, the server uses the `rpp:extends` metadata property to resolve the mapping between the base object and its extensions correctly.
+
+The resulting schema is a self contained schema that includes everything from both the base specification and the extensions, allowing clients to validate objects against a single comprehensive schema.
+
+The following is an example of an extension JSON Schema, which adds new properties to both the domain and contact base objects:
+
+```json
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://rpp.example/schemas/extension1.json",
+
+  "rpp:extends": {
+    "https://rpp.example/rpp/schema.json#/$defs/domainObject.create":
+      "#/$defs/ext.domain",
+
+    "https://rpp.example/rpp/schema.json#/$defs/contactObject.create":
+      "#/$defs/ext.contact"
+  },
+
+  "$defs": {
+    "ext.domain": {
+      "type": "object",
+      "properties": {
+        "foo": { "type": "string" },
+        "bar": { "type": "boolean" }
+      },
+      "required": ["foo"]
+    },
+
+    "ext.contact": {
+      "type": "object",
+      "properties": {
+        "fooContact": { "type": "string" }
+      }
+    }
+  }
+}
+```
+
+The effective schema is a distinct schema resource from the base schema it composes and therefore MUST be assigned its own `$id`, different from the `$id` of the base schema and of any other effective schema, to avoid ambiguous or circular references. It is RECOMMENDED to use the prefix "effective." for every effective sub-schema defined, for example `#/$defs/effective.domainFoo`.
+
+
+Domain Name effective schema, which includes the full schema of the base domain object along with any applicable extensions:
+
+```json
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://rpp.example/rpp/effective/domain.json",
+
+  "$ref": "#/$defs/effective.domainObject.create",
+  "$defs": {
+    "effective.domainObject.create": {
+      "allOf": [
+        {
+          "$ref": "https://rpp.example/rpp/schema.json#/$defs/domainObject.create"
+        },
+        {
+          "$ref": "#/$defs/ext.domain"
+        }
+      ]
+    },
+
+    "ext.domain": {
+      "type": "object",
+      "properties": {
+        "foo": {
+          "type": "string"
+        }
+      },
+      "required": ["foo"]
+    }
+  }
+}
+```
+
 # Examples
 
 This section provides examples that follow the JSON representation rules and JSON Schema definitions specified in the previous sections. The examples illustrate typical request and response messages for domain name, contact, and host resources.
@@ -3470,7 +3574,27 @@ Example user reference (used when referencing a user from an organisation object
 
 # IANA Considerations
 
-TODO
+## RPP JSON Schema Extensions registry
+
+The IANA is requested to create a new registry for RPP JSON Schema extensions, this registry will be used to register standardized JSON Schema extensions to the JSON representation of RPP JSON objects, as defined in the (#extension-framework) of this document.
+
+```text
+Name of the registry: RPP JSON Schema Extensions
+Registry group: RESTful Provisioning Protocol (RPP)
+Registration procedure: Expert Review
+```
+
+Fields to be registered:
+
+- `name`: The name of the extension, for example "RPP example JSON extension".
+- `id`: The unique `$id` URI of the extension JSON Schema, for example "https://www.iana.org/assignments/rpp-json-extensions/example-extension.json".
+- `version`: The version of the extension, for example "1.0".
+- `RFC`: The RFC number for the extension specification, for example "RFC 1234".
+- `description`: A human-readable description of the extension and its intended use.
+
+The "RESTful Provisioning Protocol (RPP)" registry group is defined in [@!I-D.ietf-rpp-core].
+
+**TODO** there already exists a registry for RPP extensions, defined in the rpp-core document, consider whether this new registry is necessary or if it should be merged with the existing one.
 
 # Internationalization Considerations
 
@@ -3485,6 +3609,10 @@ TODO
 TODO
 
 # Change History
+
+## Version ietf-rpp-json-00 to ietf-rpp-json-01
+
+- Added extension framework section, describing how extensions should be defined and integrated with the base schema. (Issue #78)
 
 ## Version draft-wullink-rpp-json-02 to draft-ietf-rpp-json-00
 
