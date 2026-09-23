@@ -825,48 +825,6 @@ The following constraints cannot be expressed in JSON Schema and MUST be enforce
 }
 ```
 
-### Message Status Object
-
-The following constraints cannot be expressed in JSON Schema and MUST be enforced by implementations:
-
-- `label` MUST be one of `queued`, `delivered`, or `removed`.
-
-```json
-{
-  "$defs": {
-    "msgStatus": {
-      "type": "object",
-      "properties": {
-        "@type": { "type": "string", "const": "msgStatus" },
-        "label": { "enum": ["queued", "delivered", "removed"] }
-      },
-      "required": ["@type", "label"]
-    }
-  }
-}
-```
-
-### Message Type Object
-
-The following constraints cannot be expressed in JSON Schema and MUST be enforced by implementations:
-
-- `label` MUST be a valid RPP message type, either registered in the IANA "RPP Message Type" registry.
-
-```json
-{
-  "$defs": {
-    "msgType": {
-      "type": "object",
-      "properties": {
-        "@type": { "type": "string", "const": "msgType" },
-        "label": { "type": "string" }
-      },
-      "required": ["@type", "label"]
-    }
-  }
-}
-```
-
 ### DNS Resource Record Object
 
 The following constraints cannot be expressed in JSON Schema and MUST be enforced by implementations:
@@ -2132,6 +2090,7 @@ Reference schema (identifier only):
 
 The following constraints cannot be expressed in JSON Schema and MUST be enforced by implementations:
 
+- `type` must be a valid message type registered in the IANA message type registry.
 - `text` MAY be absent, in which case the message content MUST be provided by other data elements defined by an extension.
 
 ### Create
@@ -2148,7 +2107,8 @@ Create request schema (create-only and read-write properties):
       "properties": {
         "@type":  { "type": "string", "const": "message" },
         "owner":  { "$ref": "#/$defs/organisationObject.reference" },
-        "type":   { "$ref": "#/$defs/msgType" },
+        "status": { "type": "string", "enum": ["queued", "delivered", "removed"] },
+        "type":   { "type": "string" },
         "text":   { "type": "string" }
       },
       "required": ["@type", "owner", "type"]
@@ -2170,8 +2130,8 @@ Create request schema (create-only and read-write properties):
         "@type":        { "type": "string", "const": "message", "readOnly": true },
         "id":           { "$ref": "#/$defs/identifier", "readOnly": true },
         "creationDate": { "type": "string", "format": "date-time", "readOnly": true },
-        "status":       { "$ref": "#/$defs/msgStatus" },
-        "type":         { "$ref": "#/$defs/msgType", "readOnly": true },
+        "status":       { "type": "string", "enum": ["queued", "delivered", "removed"] },
+        "type":         { "type": "string" },
         "text":         { "type": "string", "readOnly": true }
       },
       "required": ["@type", "id", "creationDate", "status", "type"]
@@ -3593,7 +3553,7 @@ Example message create request (server-internal representation, inserted into th
 {
     "@type": "message",
     "owner": { "@type": "organisation", "id": "ORG-12345" },
-    "type": { "@type": "msgType", "label": "maintenance" },
+    "type": "maintenance",
     "text": "Scheduled maintenance will occur on 2026-10-01T02:00:00Z."
 }
 ```
@@ -3604,9 +3564,9 @@ Example message create response:
 {
     "@type": "message",
     "id": "MSG-98765",
-    "status": { "@type": "msgStatus", "label": "queued" },
     "owner": { "@type": "organisation", "id": "ORG-12345" },
-    "type": { "@type": "msgType", "label": "maintenance" },
+    "status": "queued",
+    "type": "maintenance",
     "text": "Scheduled maintenance will occur on 2026-10-01T02:00:00Z."
 }
 ```
@@ -3620,8 +3580,8 @@ Example message read response. Note that `owner` is not included in the response
     "@type": "message",
     "id": "MSG-98765",
     "creationDate": "2026-09-17T09:00:00.0Z",
-    "status": { "@type": "msgStatus", "label": "delivered" },
-    "type": { "@type": "msgType", "label": "maintenance" },
+    "status": "delivered",
+    "type": "maintenance",
     "text": "Scheduled maintenance will occur on 2026-10-01T02:00:00Z."
 }
 ```
