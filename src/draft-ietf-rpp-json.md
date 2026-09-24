@@ -1429,6 +1429,9 @@ The Domain Name Data Object represents a domain name and its associated provisio
 The following constraints cannot be expressed in JSON Schema and MUST be enforced by implementations:
 
 - `name` MUST be a fully qualified domain name conforming to the syntax described in [@!RFC1035]. Servers MAY restrict allowable domain names to a specific namespace for which they are authoritative. The implicit trailing dot MUST NOT be included.
+- `name` MUST use the ASCII Compatible Encoding (ACE) A-label form when the domain name is internationalized, as defined in [@!RFC5890].
+- `uName`, when present, MUST be normalized to Unicode Normalization Form C (NFC) as defined in [@!UNICODE.NFC], and MUST convert to the exact value of `name` using the procedure described in [@!RFC5891, Section 4.4].
+- `uTable`, when present, MUST identify a valid IDN table registered in the [@!IDN-Tables] registry, and MUST be present whenever `uName` is present.
 
 ### Create
 
@@ -1444,6 +1447,8 @@ Create request schema (create-only and read-write properties):
       "properties": {
         "@type": { "type": "string", "const": "domainName" },
         "name": { "type": "string", "writeOnly": true },
+        "uName": { "type": "string", "writeOnly": true },
+        "uTable": { "type": "string", "writeOnly": true },
         "registrant": { "$ref": "#/$defs/contactObject.reference" },
         "contacts": {
           "type": "array",
@@ -1495,6 +1500,8 @@ Read response schema (read-write and read-only properties):
       "properties": {
         "@type":       { "type": "string", "const": "domainName", "readOnly": true },
         "name":        { "type": "string", "readOnly": true },
+        "uName":       { "type": "string", "readOnly": true },
+        "uTable":      { "type": "string", "readOnly": true },
         "provMetadata": { "$ref": "#/$defs/provMetadata" },
         "status": {
           "type": "array",
@@ -2347,6 +2354,24 @@ Example domain read response:
                 }
             }
         ]
+    }
+}
+```
+
+Example Read response for an internationalized domain name, showing the ACE `name`, the corresponding `uName`, and the `uTable` identifying the IDN table used for validation:
+
+```json
+{
+    "@type": "domainName",
+    "name": "xn--bcher-kva.example",
+    "uName": "bücher.example",
+    "uTable": "latn-1.0",
+    "provMetadata": {
+        "@type": "provMetadata",
+        "repositoryId": "BUCHER1-REP",
+        "spClientId": "ClientX",
+        "crClientId": "ClientX",
+        "crDate": "1999-04-03T22:00:00.0Z"
     }
 }
 ```
@@ -3472,19 +3497,33 @@ Example user reference (used when referencing a user from an organisation object
 
 TODO
 
-# Internationalization Considerations
+# Internationalization Considerations {#internationalization-considerations}
 
-TODO
+Internationalized Domain Names (IDN) are represented using the paired `name`/`uName` data elements described in the Domain Name Data Object in [@!I-D.ietf-rpp-data-objects]. The `name` property, which addresses the resource and is used for object identity, MUST always contain the ACE A-label form; the `uName` property carries the Unicode U-label form for display and MUST be Unicode Normalization Form C (NFC) as defined in [UNICODE.NFC].
+
+Because JSON strings are Unicode character sequences, implementations MUST take the following precautions to avoid producing or misinterpreting `uName` (and any other Unicode-bearing string value) in a way that breaks common JSON consumers, in particular JavaScript, whose native strings are sequences of UTF-16 code units rather than Unicode code points:
+
+- A string value MUST NOT contain an unpaired (lone) UTF-16 surrogate code point. Although [@!RFC8259], Section 8.2, permits such values in JSON text, they do not represent a well-formed Unicode scalar value and MAY fail to round-trip when re-encoded as UTF-8 by non-JavaScript consumers.
+- Consumers MUST NOT use a UTF-16 code-unit count (such as JavaScript's `String.prototype.length`) to validate or enforce length constraints on `uName`. Domain name label length restrictions are defined in terms of the `name` (A-label) octet count; scripts using supplementary-plane code points are represented as surrogate pairs in UTF-16, so a code-unit count over-counts the number of Unicode code points.
+- Consumers MUST NOT rely on native string equality (e.g. JavaScript's `===`) to compare `uName` values for identity purposes, since two strings that differ only in Unicode normalization form compare unequal even though they represent the same name; `name` MUST be used instead for identity comparison.
+- Servers MUST emit `name` in lowercase. Because ACE (A-label) domain names are case-insensitive per DNS comparison rules but JSON/JavaScript string comparison is case-sensitive, clients performing equality checks on `name` MUST lowercase both operands first rather than relying on native string equality.
 
 # Security Considerations
 
-TODO
+If a server accepts a `uName` value without strictly verifying both that it is already Unicode Normalization Form C (NFC) and that it converts, via the ToASCII procedure of [@!RFC5891, Section 4.2], to the exact supplied `name` value, an attacker could cause a displayed `uName` to diverge from the name actually resolved in the DNS. Servers MUST reject any create or update request where `uName` is not already NFC-normalized or does not convert to the supplied `name`; servers MUST NOT silently normalize or correct the value on the client's behalf.
+
+<!-- Does the above security consideration belong here or in rpp-dataobjects? -->
+**TODO**
 
 # Acknowledgments
 
 TODO
 
 # Change History
+
+## Version draft-ietf-rpp-json-00 to draft-ietf-rpp-json-01
+
+- Added support for Internationalized Domain Names (IDN). (Issue #86)
 
 ## Version draft-wullink-rpp-json-02 to draft-ietf-rpp-json-00
 
@@ -3548,4 +3587,43 @@ TODO
   </front>
   <seriesInfo name="RFC" value="3915"/>
   <seriesInfo name="DOI" value="10.17487/RFC3915"/>
+</reference>
+
+<reference anchor="UNICODE.NFC" target="https://www.unicode.org/reports/tr15/">
+  <front>
+    <title>Unicode Normalization Forms</title>
+    <author>
+      <organization>Unicode Consortium</organization>
+    </author>
+    <date year="2026" month="08"/>
+  </front>
+</reference>
+
+<reference anchor="UTS39" target="https://www.unicode.org/reports/tr39/">
+  <front>
+    <title>Unicode Security Mechanisms</title>
+    <author>
+      <organization>Unicode Consortium</organization>
+    </author>
+    <date year="2026" month="08"/>
+  </front>
+</reference>
+
+<reference anchor="IDN-Tables" target="https://www.iana.org/assignments/idn-tables">
+  <front>
+    <title>Repository of IDN Practices</title>
+    <author>
+      <organization>Internet Assigned Numbers Authority (IANA)</organization>
+    </author>
+  </front>
+</reference>
+
+<reference anchor="UNICODE.IDNA" target="https://www.unicode.org/reports/tr36/tr36-15.html">
+  <front>
+    <title>Unicode IDNA Compatibility Processing</title>
+    <author>
+      <organization>Unicode Consortium</organization>
+    </author>
+    <date year="2026" month="08"/>
+  </front>
 </reference>
