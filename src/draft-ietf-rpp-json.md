@@ -1162,6 +1162,61 @@ The Processes Object is a read-only container grouping the currently active Proc
 }
 ```
 
+### Domain Name Variant Object
+
+The Domain Name Variant Object is a read-only representation of a single Internationalized Domain Name (IDN) variant, as defined in [@!I-D.ietf-rpp-data-objects].
+
+```json
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$ref": "#/$defs/domainVariant",
+  "$defs": {
+    "domainVariant": {
+      "type": "object",
+      "properties": {
+        "@type":  { "type": "string", "const": "domainVariant", "readOnly": true },
+        "name":   { "type": "string", "readOnly": true },
+        "uName":  { "type": "string", "readOnly": true },
+        "status": {
+          "type": "string",
+          "enum": ["registered", "available"],
+          "readOnly": true
+        }
+      },
+      "required": ["@type", "name", "uName", "status"]
+    }
+  }
+}
+```
+
+### Domain Name Variants Object
+
+The Domain Name Variants Object is the read-only response returned by the Domain Name Variants Object Read operation defined in [@!I-D.ietf-rpp-data-objects], listing all possible Domain Name Variant Object instances for a domain name, using the provided IDN Label Generation Ruleset (LGR).
+
+```json
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$ref": "#/$defs/domainVariants",
+  "$defs": {
+    "domainVariants": {
+      "type": "object",
+      "properties": {
+        "@type":    { "type": "string", "const": "domainVariants", "readOnly": true },
+        "svrTrId":  { "type": "string", "readOnly": true },
+        "clTrId":   { "type": "string", "readOnly": true },
+        "lgr":     { "type": "string", "readOnly": true },
+        "variants": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/domainVariant" },
+          "readOnly": true
+        }
+      },
+      "required": ["@type", "svrTrId", "variants"]
+    }
+  }
+}
+```
+
 ## Process Object Schemas
 
 ### Create Process Object
@@ -1532,7 +1587,8 @@ Read response schema (read-write and read-only properties):
         },
         "expiryDate": { "type": "string", "format": "date-time", "readOnly": true },
         "authInfo":  { "$ref": "#/$defs/authInfo" },
-        "processes": { "$ref": "#/$defs/processes", "readOnly": true }
+        "processes": { "$ref": "#/$defs/processes", "readOnly": true },
+        "variants": { "$ref": "#/$defs/domainVariants", "readOnly": true }
       },
       "required": ["@type", "name", "provMetadata"]
     }
@@ -2365,7 +2421,7 @@ Example Read response for an internationalized domain name, showing the ACE `nam
     "@type": "domainName",
     "name": "xn--bcher-kva.example",
     "uName": "bücher.example",
-    "uTable": "latn-1.0",
+    "lgr": "latn-1.0",
     "provMetadata": {
         "@type": "provMetadata",
         "repositoryId": "BUCHER1-REP",
@@ -2375,6 +2431,45 @@ Example Read response for an internationalized domain name, showing the ACE `nam
     }
 }
 ```
+
+Example domain read response for the internationalized domain name "xn--bcher-kva.example", which is already registered, the response contains the registration details along with its variants:
+
+```json
+{
+    "@type": "domainName",
+    "name": "xn--bcher-kva.example",
+    "uName": "bücher.example",
+    "lgr": "latn-1.0",
+    "provMetadata": {
+        "@type": "provMetadata",
+        "repositoryId": "BUCHER1-REP",
+        "spClientId": "ClientX",
+        "crClientId": "ClientX",
+        "crDate": "1999-04-03T22:00:00.0Z"
+    },
+    "variants": {
+        "@type": "domainVariants",
+        "svrTrId": "54322-XYZ",
+        "lgr": "latn-1.0",
+        "variants": [
+            {
+                "@type": "domainVariant",
+                "name": "buecher.example",
+                "uName": "buecher.example",
+                "status": "registered"
+            },
+            {
+                "@type": "domainVariant",
+                "name": "bucher.example",
+                "uName": "bucher.example",
+                "status": "available"
+            }
+        ]
+    }
+}
+```
+**TODO** The IDN example above needs to be refactored, the response should only contain variant info?
+<!-- How handle domain that do not exist? normally this would result in 404 and now it will cause the abose reponse? -->
 
 ### Update
 
@@ -3599,16 +3694,6 @@ TODO
   </front>
 </reference>
 
-<reference anchor="UTS39" target="https://www.unicode.org/reports/tr39/">
-  <front>
-    <title>Unicode Security Mechanisms</title>
-    <author>
-      <organization>Unicode Consortium</organization>
-    </author>
-    <date year="2026" month="08"/>
-  </front>
-</reference>
-
 <reference anchor="IDN-Tables" target="https://www.iana.org/assignments/idn-tables">
   <front>
     <title>Repository of IDN Practices</title>
@@ -3618,12 +3703,3 @@ TODO
   </front>
 </reference>
 
-<reference anchor="UNICODE.IDNA" target="https://www.unicode.org/reports/tr36/tr36-15.html">
-  <front>
-    <title>Unicode IDNA Compatibility Processing</title>
-    <author>
-      <organization>Unicode Consortium</organization>
-    </author>
-    <date year="2026" month="08"/>
-  </front>
-</reference>
