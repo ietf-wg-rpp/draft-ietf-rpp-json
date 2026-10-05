@@ -1162,61 +1162,6 @@ The Processes Object is a read-only container grouping the currently active Proc
 }
 ```
 
-### Domain Name Variant Object
-
-The Domain Name Variant Object is a read-only representation of a single Internationalized Domain Name (IDN) variant, as defined in [@!I-D.ietf-rpp-data-objects].
-
-```json
-{
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$ref": "#/$defs/domainVariant",
-  "$defs": {
-    "domainVariant": {
-      "type": "object",
-      "properties": {
-        "@type":  { "type": "string", "const": "domainVariant", "readOnly": true },
-        "name":   { "type": "string", "readOnly": true },
-        "uName":  { "type": "string", "readOnly": true },
-        "status": {
-          "type": "string",
-          "enum": ["registered", "available"],
-          "readOnly": true
-        }
-      },
-      "required": ["@type", "name", "uName", "status"]
-    }
-  }
-}
-```
-
-### Domain Name Variants Object
-
-The Domain Name Variants Object is the read-only response returned by the Domain Name Variants Object Read operation defined in [@!I-D.ietf-rpp-data-objects], listing all possible Domain Name Variant Object instances for a domain name, using the provided IDN Label Generation Ruleset (LGR).
-
-```json
-{
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$ref": "#/$defs/domainVariants",
-  "$defs": {
-    "domainVariants": {
-      "type": "object",
-      "properties": {
-        "@type":    { "type": "string", "const": "domainVariants", "readOnly": true },
-        "svrTrId":  { "type": "string", "readOnly": true },
-        "clTrId":   { "type": "string", "readOnly": true },
-        "lgr":     { "type": "string", "readOnly": true },
-        "variants": {
-          "type": "array",
-          "items": { "$ref": "#/$defs/domainVariant" },
-          "readOnly": true
-        }
-      },
-      "required": ["@type", "svrTrId", "variants"]
-    }
-  }
-}
-```
-
 ## Process Object Schemas
 
 ### Create Process Object
@@ -1486,7 +1431,7 @@ The following constraints cannot be expressed in JSON Schema and MUST be enforce
 - `name` MUST be a fully qualified domain name conforming to the syntax described in [@!RFC1035]. Servers MAY restrict allowable domain names to a specific namespace for which they are authoritative. The implicit trailing dot MUST NOT be included.
 - `name` MUST use the ASCII Compatible Encoding (ACE) A-label form when the domain name is internationalized, as defined in [@!RFC5890].
 - `uName`, when present, MUST be normalized to Unicode Normalization Form C (NFC) as defined in [@!UNICODE.NFC], and MUST convert to the exact value of `name` using the procedure described in [@!RFC5891, Section 4.4].
-- `uTable`, when present, MUST identify a valid IDN table registered in the [@!IDN-Tables] registry, and MUST be present whenever `uName` is present.
+- `lgr`, when present, MUST identify a valid Label Generation Ruleset (LGR) registered in the [@!IDN-Tables] registry, and MUST be present whenever `uName` is present.
 
 ### Create
 
@@ -1503,7 +1448,7 @@ Create request schema (create-only and read-write properties):
         "@type": { "type": "string", "const": "domainName" },
         "name": { "type": "string", "writeOnly": true },
         "uName": { "type": "string", "writeOnly": true },
-        "uTable": { "type": "string", "writeOnly": true },
+        "lgr": { "type": "string", "writeOnly": true },
         "registrant": { "$ref": "#/$defs/contactObject.reference" },
         "contacts": {
           "type": "array",
@@ -1556,7 +1501,7 @@ Read response schema (read-write and read-only properties):
         "@type":       { "type": "string", "const": "domainName", "readOnly": true },
         "name":        { "type": "string", "readOnly": true },
         "uName":       { "type": "string", "readOnly": true },
-        "uTable":      { "type": "string", "readOnly": true },
+        "lgr":         { "type": "string", "readOnly": true },
         "provMetadata": { "$ref": "#/$defs/provMetadata" },
         "status": {
           "type": "array",
@@ -1587,8 +1532,7 @@ Read response schema (read-write and read-only properties):
         },
         "expiryDate": { "type": "string", "format": "date-time", "readOnly": true },
         "authInfo":  { "$ref": "#/$defs/authInfo" },
-        "processes": { "$ref": "#/$defs/processes", "readOnly": true },
-        "variants": { "$ref": "#/$defs/domainVariants", "readOnly": true }
+        "processes": { "$ref": "#/$defs/processes", "readOnly": true }
       },
       "required": ["@type", "name", "provMetadata"]
     }
@@ -2414,7 +2358,7 @@ Example domain read response:
 }
 ```
 
-Example Read response for an internationalized domain name, showing the ACE `name`, the corresponding `uName`, and the `uTable` identifying the IDN table used for validation:
+Example Read response for an internationalized domain name, showing the ACE `name`, the corresponding `uName`, and the `lgr` identifying the Label Generation Ruleset (LGR) used for validation:
 
 ```json
 {
@@ -2431,45 +2375,7 @@ Example Read response for an internationalized domain name, showing the ACE `nam
     }
 }
 ```
-
-Example domain read response for the internationalized domain name "xn--bcher-kva.example", which is already registered, the response contains the registration details along with its variants:
-
-```json
-{
-    "@type": "domainName",
-    "name": "xn--bcher-kva.example",
-    "uName": "bücher.example",
-    "lgr": "latn-1.0",
-    "provMetadata": {
-        "@type": "provMetadata",
-        "repositoryId": "BUCHER1-REP",
-        "spClientId": "ClientX",
-        "crClientId": "ClientX",
-        "crDate": "1999-04-03T22:00:00.0Z"
-    },
-    "variants": {
-        "@type": "domainVariants",
-        "svrTrId": "54322-XYZ",
-        "lgr": "latn-1.0",
-        "variants": [
-            {
-                "@type": "domainVariant",
-                "name": "buecher.example",
-                "uName": "buecher.example",
-                "status": "registered"
-            },
-            {
-                "@type": "domainVariant",
-                "name": "bucher.example",
-                "uName": "bucher.example",
-                "status": "available"
-            }
-        ]
-    }
-}
-```
-**TODO** The IDN example above needs to be refactored, the response should only contain variant info?
-<!-- How handle domain that do not exist? normally this would result in 404 and now it will cause the abose reponse? -->
+<!-- How handle domain that do not exist? normally this would result in 404 and now it will cause the above reponse? -->
 
 ### Update
 
