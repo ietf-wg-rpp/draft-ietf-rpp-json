@@ -434,6 +434,60 @@ Example (Domain Name Data Object):
 
 Rule 26: When a transfer request or other operation requires authorization information (e.g., EPP-style authinfo), the client MUST NOT include the `authInfo` object in the JSON request body. Instead, the client MUST convey the authorization information using the `RPP-Authorization` HTTP request header as defined in [@!I-D.ietf-rpp-core]. Servers MUST reject any request that includes an `authInfo` object in the JSON body with an appropriate error response.
 
+### Inheritance
+
+RPP Data Objects and Component Objects MAY inherit the data elements and operations of another object. The JSON schema for an object must include all the inherited data elements and constraints from its base object, using a flat structure where all properties are defined at the top level of the schema, rather than nested under an `"allOf"` or `"anyOf"` construct.
+
+Example: a Shape Object with the data elements `name` (cardinality `1`) and `colour` (cardinality `0-1`), and a Circle Object that extends it with the additional data element `radius` (cardinality `1`).
+
+JSON Schema of the base Shape Object:
+
+```json
+{
+  "$defs": {
+    "shape": {
+      "type": "object",
+      "properties": {
+        "@type":  { "type": "string", "const": "shape" },
+        "name":   { "type": "string" },
+        "colour": { "type": "string" }
+      },
+      "required": ["@type", "name"]
+    }
+  }
+}
+```
+
+JSON Schema of the Circle Object, which defines the inherited `name` and `colour` properties at the top level alongside its own `radius` property, without referencing the Shape Object schema using `"allOf"`:
+
+```json
+{
+  "$defs": {
+    "circle": {
+      "type": "object",
+      "properties": {
+        "@type":  { "type": "string", "const": "circle" },
+        "name":   { "type": "string" },
+        "colour": { "type": "string" },
+        "radius": { "type": "integer" }
+      },
+      "required": ["@type", "name", "radius"]
+    }
+  }
+}
+```
+
+Example Circle Object instance:
+
+```json
+{
+    "@type": "circle",
+    "name": "my-circle",
+    "colour": "red",
+    "radius": 10
+}
+```
+
 ### RPP Profiles and Validation
 
 RPP profiles, such as the EPP Compatibility Profile defined in [@!I-D.ietf-rpp-data-objects], may impose additional constraints on top of the base RPP data model. These additional constraints MUST be enforced by implementations through validation rules that go beyond what can be expressed in JSON Schema. Such validation rules MUST be clearly documented in the profile specification and implemented by both clients and servers when operating under that profile. For example, the EPP Compatibility Profile requires that certain fields be present in specific object types, and that certain identifier fields conform to EPP syntax rules. These constraints cannot be fully captured in JSON Schema and therefore require additional validation logic in implementations.
@@ -3485,6 +3539,10 @@ TODO
 TODO
 
 # Change History
+
+## Version draft-ietf-rpp-json-00 to draft-ietf-rpp-json-01
+
+- Added "inheritance" section (Issue #88)
 
 ## Version draft-wullink-rpp-json-02 to draft-ietf-rpp-json-00
 
