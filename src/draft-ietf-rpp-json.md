@@ -2500,7 +2500,20 @@ Read response schema (read-only properties):
 
 ### Query
 
-The Query operation retrieves a single Message Data Object instances, there is no request schema and the response schema matches the Read response schema.
+Query response schema (array of message read representations):
+
+```json
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$ref": "#/$defs/messageObject.query",
+  "$defs": {
+    "messageObject.query": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/messageObject.read" }
+    }
+  }
+}
+```
 
 ### Reference
 
