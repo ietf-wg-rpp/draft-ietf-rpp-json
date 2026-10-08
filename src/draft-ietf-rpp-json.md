@@ -1235,7 +1235,7 @@ The Base Message Object contains the data elements common to all message objects
 The following constraints cannot be expressed in JSON Schema and MUST be enforced by implementations:
 
 - `objectType` MUST only be used when `objectId` is present.
-- `objectId` MUST be a valid identifier for the object type specified in `objectType` or empty when `objectType` is not present or empty.
+- `objectId` MUST be a valid unique identifier for the object type specified in `objectType` or empty when `objectType` is not present or empty.
 
 ```json
 {
