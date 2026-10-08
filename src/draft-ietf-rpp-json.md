@@ -434,6 +434,60 @@ Example (Domain Name Data Object):
 
 Rule 26: When a transfer request or other operation requires authorization information (e.g., EPP-style authinfo), the client MUST NOT include the `authInfo` object in the JSON request body. Instead, the client MUST convey the authorization information using the `RPP-Authorization` HTTP request header as defined in [@!I-D.ietf-rpp-core]. Servers MUST reject any request that includes an `authInfo` object in the JSON body with an appropriate error response.
 
+### Inheritance
+
+RPP Data Objects and Component Objects MAY inherit the data elements and operations of another object. The JSON schema for an object must include all the inherited data elements and constraints from its base object, using a flat structure where all properties are defined at the top level of the schema, rather than nested under an `"allOf"` or `"anyOf"` construct.
+
+Example: a Shape Object with the data elements `name` (cardinality `1`) and `colour` (cardinality `0-1`), and a Circle Object that extends it with the additional data element `radius` (cardinality `1`).
+
+JSON Schema of the base Shape Object:
+
+```json
+{
+  "$defs": {
+    "shape": {
+      "type": "object",
+      "properties": {
+        "@type":  { "type": "string", "const": "shape" },
+        "name":   { "type": "string" },
+        "colour": { "type": "string" }
+      },
+      "required": ["@type", "name"]
+    }
+  }
+}
+```
+
+JSON Schema of the Circle Object, which defines the inherited `name` and `colour` properties at the top level alongside its own `radius` property, without referencing the Shape Object schema using `"allOf"`:
+
+```json
+{
+  "$defs": {
+    "circle": {
+      "type": "object",
+      "properties": {
+        "@type":  { "type": "string", "const": "circle" },
+        "name":   { "type": "string" },
+        "colour": { "type": "string" },
+        "radius": { "type": "integer" }
+      },
+      "required": ["@type", "name", "radius"]
+    }
+  }
+}
+```
+
+Example Circle Object instance:
+
+```json
+{
+    "@type": "circle",
+    "name": "my-circle",
+    "colour": "red",
+    "radius": 10
+}
+```
+
 ### RPP Profiles and Validation
 
 RPP profiles, such as the EPP Compatibility Profile defined in [@!I-D.ietf-rpp-data-objects], may impose additional constraints on top of the base RPP data model. These additional constraints MUST be enforced by implementations through validation rules that go beyond what can be expressed in JSON Schema. Such validation rules MUST be clearly documented in the profile specification and implemented by both clients and servers when operating under that profile. For example, the EPP Compatibility Profile requires that certain fields be present in specific object types, and that certain identifier fields conform to EPP syntax rules. These constraints cannot be fully captured in JSON Schema and therefore require additional validation logic in implementations.
@@ -968,18 +1022,7 @@ The following constraints cannot be expressed in JSON Schema and MUST be enforce
         "name": {
           "type": "object",
           "properties": {
-            "full": { "type": "string" },
-            "components": {
-              "type": "array",
-              "items": {
-                "type": "object",
-                "properties": {
-                  "kind":  { "type": "string", "enum": ["given", "surname"] },
-                  "value": { "type": "string" }
-                },
-                "required": ["kind", "value"]
-              }
-            }
+            "full": { "type": "string" }
           }
         },
         "organizations": {
@@ -1003,7 +1046,7 @@ The following constraints cannot be expressed in JSON Schema and MUST be enforce
                 "items": {
                   "type": "object",
                   "properties": {
-                    "kind":  { "type": "string", "enum": ["name", "locality", "region", "postcode", "country"] },
+                    "kind":  { "type": "string", "enum": ["name", "locality", "region", "postcode"] },
                     "value": { "type": "string" }
                   },
                   "required": ["kind", "value"]
@@ -1429,6 +1472,9 @@ The Domain Name Data Object represents a domain name and its associated provisio
 The following constraints cannot be expressed in JSON Schema and MUST be enforced by implementations:
 
 - `name` MUST be a fully qualified domain name conforming to the syntax described in [@!RFC1035]. Servers MAY restrict allowable domain names to a specific namespace for which they are authoritative. The implicit trailing dot MUST NOT be included.
+- `name` MUST use the ASCII Compatible Encoding (ACE) A-label form when the domain name is internationalized, as defined in [@!RFC5890].
+- `uName`, when present, MUST be normalized to Unicode Normalization Form C (NFC) as defined in [@!UNICODE.NFC], and MUST convert to the exact value of `name` using the procedure described in [@!RFC5891, Section 4.4].
+- `lgr`, when present, MUST identify a valid Label Generation Ruleset (LGR) registered in the [@!IDN-Tables] registry, and MUST be present whenever `uName` is present.
 
 ### Create
 
@@ -1444,6 +1490,8 @@ Create request schema (create-only and read-write properties):
       "properties": {
         "@type": { "type": "string", "const": "domainName" },
         "name": { "type": "string", "writeOnly": true },
+        "uName": { "type": "string", "writeOnly": true },
+        "lgr": { "type": "string", "writeOnly": true },
         "registrant": { "$ref": "#/$defs/contactObject.reference" },
         "contacts": {
           "type": "array",
@@ -1495,6 +1543,8 @@ Read response schema (read-write and read-only properties):
       "properties": {
         "@type":       { "type": "string", "const": "domainName", "readOnly": true },
         "name":        { "type": "string", "readOnly": true },
+        "uName":       { "type": "string", "readOnly": true },
+        "lgr":         { "type": "string", "readOnly": true },
         "provMetadata": { "$ref": "#/$defs/provMetadata" },
         "status": {
           "type": "array",
@@ -2455,6 +2505,25 @@ Example domain read response:
 }
 ```
 
+Example Read response for an internationalized domain name, showing the ACE `name`, the corresponding `uName`, and the `lgr` identifying the Label Generation Ruleset (LGR) used for validation:
+
+```json
+{
+    "@type": "domainName",
+    "name": "xn--bcher-kva.example",
+    "uName": "bücher.example",
+    "lgr": "latn-1.0",
+    "provMetadata": {
+        "@type": "provMetadata",
+        "repositoryId": "BUCHER1-REP",
+        "spClientId": "ClientX",
+        "crClientId": "ClientX",
+        "crDate": "1999-04-03T22:00:00.0Z"
+    }
+}
+```
+<!-- How handle domain that do not exist? normally this would result in 404 and now it will cause the above reponse? -->
+
 ### Update
 
 Example domain update request (read-write properties):
@@ -2748,11 +2817,7 @@ Example contact create request:
         "version": "2.0",
         "kind": "individual",
         "name": {
-            "full": "John Doe",
-            "components": [
-                { "kind": "given",   "value": "John" },
-                { "kind": "surname", "value": "Doe" }
-            ]
+            "full": "John Doe"
         },
         "organizations": {
             "org": { "name": "Example Inc." }
@@ -2763,8 +2828,7 @@ Example contact create request:
                     { "kind": "name",     "value": "123 Example Dr., Suite 100" },
                     { "kind": "locality", "value": "Dulles" },
                     { "kind": "region",   "value": "VA" },
-                    { "kind": "postcode", "value": "20166-6503" },
-                    { "kind": "country",  "value": "United States" }
+                    { "kind": "postcode", "value": "20166-6503" }
                 ],
                 "countryCode": "US"
             }
@@ -2806,11 +2870,7 @@ Example contact create response:
         "version": "2.0",
         "kind": "individual",
         "name": {
-            "full": "John Doe",
-            "components": [
-                { "kind": "given",   "value": "John" },
-                { "kind": "surname", "value": "Doe" }
-            ]
+            "full": "John Doe"
         },
         "organizations": {
             "org": { "name": "Example Inc." }
@@ -2821,8 +2881,7 @@ Example contact create response:
                     { "kind": "name",     "value": "123 Example Dr., Suite 100" },
                     { "kind": "locality", "value": "Dulles" },
                     { "kind": "region",   "value": "VA" },
-                    { "kind": "postcode", "value": "20166-6503" },
-                    { "kind": "country",  "value": "United States" }
+                    { "kind": "postcode", "value": "20166-6503" }
                 ],
                 "countryCode": "US"
             }
@@ -2863,11 +2922,7 @@ Example contact read response:
         "version": "2.0",
         "kind": "individual",
         "name": {
-            "full": "John Doe",
-            "components": [
-                { "kind": "given",   "value": "John" },
-                { "kind": "surname", "value": "Doe" }
-            ]
+            "full": "John Doe"
         },
         "organizations": {
             "org": { "name": "Example Inc." }
@@ -2878,8 +2933,7 @@ Example contact read response:
                     { "kind": "name",     "value": "123 Example Dr., Suite 100" },
                     { "kind": "locality", "value": "Dulles" },
                     { "kind": "region",   "value": "VA" },
-                    { "kind": "postcode", "value": "20166-6503" },
-                    { "kind": "country",  "value": "United States" }
+                    { "kind": "postcode", "value": "20166-6503" }
                 ],
                 "countryCode": "US"
             }
@@ -2910,8 +2964,7 @@ Example contact update request:
                     { "kind": "name",     "value": "456 New Street, Suite 200" },
                     { "kind": "locality", "value": "Reston" },
                     { "kind": "region",   "value": "VA" },
-                    { "kind": "postcode", "value": "20190" },
-                    { "kind": "country",  "value": "United States" }
+                    { "kind": "postcode", "value": "20190" }
                 ],
                 "countryCode": "US"
             }
@@ -2949,11 +3002,7 @@ Example contact update response:
         "version": "2.0",
         "kind": "individual",
         "name": {
-            "full": "John Doe",
-            "components": [
-                { "kind": "given",   "value": "John" },
-                { "kind": "surname", "value": "Doe" }
-            ]
+            "full": "John Doe"
         },
         "organizations": {
             "org": { "name": "Example Inc." }
@@ -2964,8 +3013,7 @@ Example contact update response:
                     { "kind": "name",     "value": "456 New Street, Suite 200" },
                     { "kind": "locality", "value": "Reston" },
                     { "kind": "region",   "value": "VA" },
-                    { "kind": "postcode", "value": "20190" },
-                    { "kind": "country",  "value": "United States" }
+                    { "kind": "postcode", "value": "20190" }
                 ],
                 "countryCode": "US"
             }
@@ -3333,8 +3381,7 @@ Example organisation create request:
                     { "kind": "name",     "value": "Meander 501" },
                     { "kind": "locality", "value": "Arnhem" },
                     { "kind": "region",   "value": "Gelderland" },
-                    { "kind": "postcode", "value": "6825MD" },
-                    { "kind": "country",  "value": "Netherlands" }
+                    { "kind": "postcode", "value": "6825MD" }
                 ],
                 "countryCode": "NL"
             }
@@ -3387,8 +3434,7 @@ Example organisation create response:
                     { "kind": "name",     "value": "Meander 501" },
                     { "kind": "locality", "value": "Arnhem" },
                     { "kind": "region",   "value": "Gelderland" },
-                    { "kind": "postcode", "value": "6825MD" },
-                    { "kind": "country",  "value": "Netherlands" }
+                    { "kind": "postcode", "value": "6825MD" }
                 ],
                 "countryCode": "NL"
             }
@@ -3448,8 +3494,7 @@ Example organisation read response:
                     { "kind": "name",     "value": "Meander 501" },
                     { "kind": "locality", "value": "Arnhem" },
                     { "kind": "region",   "value": "Gelderland" },
-                    { "kind": "postcode", "value": "6825MD" },
-                    { "kind": "country",  "value": "Netherlands" }
+                    { "kind": "postcode", "value": "6825MD" }
                 ],
                 "countryCode": "NL"
             }
@@ -3596,13 +3641,23 @@ The "RESTful Provisioning Protocol (RPP)" registry group is defined in [@!I-D.ie
 
 **TODO** there already exists a registry for RPP extensions, defined in the rpp-core document, consider whether this new registry is necessary or if it should be merged with the existing one.
 
-# Internationalization Considerations
+# Internationalization Considerations {#internationalization-considerations}
 
-TODO
+Internationalized Domain Names (IDN) are represented using the paired `name`/`uName` data elements described in the Domain Name Data Object in [@!I-D.ietf-rpp-data-objects]. The `name` property, which addresses the resource and is used for object identity, MUST always contain the ACE A-label form; the `uName` property carries the Unicode U-label form for display and MUST be Unicode Normalization Form C (NFC) as defined in [UNICODE.NFC].
+
+Because JSON strings are Unicode character sequences, implementations MUST take the following precautions to avoid producing or misinterpreting `uName` (and any other Unicode-bearing string value) in a way that breaks common JSON consumers, in particular JavaScript, whose native strings are sequences of UTF-16 code units rather than Unicode code points:
+
+- A string value MUST NOT contain an unpaired (lone) UTF-16 surrogate code point. Although [@!RFC8259], Section 8.2, permits such values in JSON text, they do not represent a well-formed Unicode scalar value and MAY fail to round-trip when re-encoded as UTF-8 by non-JavaScript consumers.
+- Consumers MUST NOT use a UTF-16 code-unit count (such as JavaScript's `String.prototype.length`) to validate or enforce length constraints on `uName`. Domain name label length restrictions are defined in terms of the `name` (A-label) octet count; scripts using supplementary-plane code points are represented as surrogate pairs in UTF-16, so a code-unit count over-counts the number of Unicode code points.
+- Consumers MUST NOT rely on native string equality (e.g. JavaScript's `===`) to compare `uName` values for identity purposes, since two strings that differ only in Unicode normalization form compare unequal even though they represent the same name; `name` MUST be used instead for identity comparison.
+- Servers MUST emit `name` in lowercase. Because ACE (A-label) domain names are case-insensitive per DNS comparison rules but JSON/JavaScript string comparison is case-sensitive, clients performing equality checks on `name` MUST lowercase both operands first rather than relying on native string equality.
 
 # Security Considerations
 
-TODO
+If a server accepts a `uName` value without strictly verifying both that it is already Unicode Normalization Form C (NFC) and that it converts, via the ToASCII procedure of [@!RFC5891, Section 4.2], to the exact supplied `name` value, an attacker could cause a displayed `uName` to diverge from the name actually resolved in the DNS. Servers MUST reject any create or update request where `uName` is not already NFC-normalized or does not convert to the supplied `name`; servers MUST NOT silently normalize or correct the value on the client's behalf.
+
+<!-- Does the above security consideration belong here or in rpp-dataobjects? -->
+**TODO**
 
 # Acknowledgments
 
@@ -3610,9 +3665,11 @@ TODO
 
 # Change History
 
-## Version ietf-rpp-json-00 to ietf-rpp-json-01
+## Version draft-ietf-rpp-json-00 to draft-ietf-rpp-json-01
 
-- Added extension framework section, describing how extensions should be defined and integrated with the base schema. (Issue #78)
+- Added extension framework section, describing how extensions should be defined. (Issue #78)
+- Added support for Internationalized Domain Names (IDN). (Issue #86)
+- Added "inheritance" section (Issue #88)
 
 ## Version draft-wullink-rpp-json-02 to draft-ietf-rpp-json-00
 
@@ -3677,3 +3734,23 @@ TODO
   <seriesInfo name="RFC" value="3915"/>
   <seriesInfo name="DOI" value="10.17487/RFC3915"/>
 </reference>
+
+<reference anchor="UNICODE.NFC" target="https://www.unicode.org/reports/tr15/">
+  <front>
+    <title>Unicode Normalization Forms</title>
+    <author>
+      <organization>Unicode Consortium</organization>
+    </author>
+    <date year="2026" month="08"/>
+  </front>
+</reference>
+
+<reference anchor="IDN-Tables" target="https://www.iana.org/assignments/idn-tables">
+  <front>
+    <title>Repository of IDN Practices</title>
+    <author>
+      <organization>Internet Assigned Numbers Authority (IANA)</organization>
+    </author>
+  </front>
+</reference>
+
