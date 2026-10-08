@@ -434,6 +434,60 @@ Example (Domain Name Data Object):
 
 Rule 26: When a transfer request or other operation requires authorization information (e.g., EPP-style authinfo), the client MUST NOT include the `authInfo` object in the JSON request body. Instead, the client MUST convey the authorization information using the `RPP-Authorization` HTTP request header as defined in [@!I-D.ietf-rpp-core]. Servers MUST reject any request that includes an `authInfo` object in the JSON body with an appropriate error response.
 
+### Inheritance
+
+RPP Data Objects and Component Objects MAY inherit the data elements and operations of another object. The JSON schema for an object must include all the inherited data elements and constraints from its base object, using a flat structure where all properties are defined at the top level of the schema, rather than nested under an `"allOf"` or `"anyOf"` construct.
+
+Example: a Shape Object with the data elements `name` (cardinality `1`) and `colour` (cardinality `0-1`), and a Circle Object that extends it with the additional data element `radius` (cardinality `1`).
+
+JSON Schema of the base Shape Object:
+
+```json
+{
+  "$defs": {
+    "shape": {
+      "type": "object",
+      "properties": {
+        "@type":  { "type": "string", "const": "shape" },
+        "name":   { "type": "string" },
+        "colour": { "type": "string" }
+      },
+      "required": ["@type", "name"]
+    }
+  }
+}
+```
+
+JSON Schema of the Circle Object, which defines the inherited `name` and `colour` properties at the top level alongside its own `radius` property, without referencing the Shape Object schema using `"allOf"`:
+
+```json
+{
+  "$defs": {
+    "circle": {
+      "type": "object",
+      "properties": {
+        "@type":  { "type": "string", "const": "circle" },
+        "name":   { "type": "string" },
+        "colour": { "type": "string" },
+        "radius": { "type": "integer" }
+      },
+      "required": ["@type", "name", "radius"]
+    }
+  }
+}
+```
+
+Example Circle Object instance:
+
+```json
+{
+    "@type": "circle",
+    "name": "my-circle",
+    "colour": "red",
+    "radius": 10
+}
+```
+
 ### RPP Profiles and Validation
 
 RPP profiles, such as the EPP Compatibility Profile defined in [@!I-D.ietf-rpp-data-objects], may impose additional constraints on top of the base RPP data model. These additional constraints MUST be enforced by implementations through validation rules that go beyond what can be expressed in JSON Schema. Such validation rules MUST be clearly documented in the profile specification and implemented by both clients and servers when operating under that profile. For example, the EPP Compatibility Profile requires that certain fields be present in specific object types, and that certain identifier fields conform to EPP syntax rules. These constraints cannot be fully captured in JSON Schema and therefore require additional validation logic in implementations.
@@ -489,14 +543,14 @@ The following rules apply for partial updates:
 - Rule 25: JSON Patch operations other than "add", "remove" and "replace" MUST NOT be used.
 - Rule 26: If a JSONPointer path points to field using a JSON simple data type (e.g. string or number) then the "value" property MUST be provided and its type MUST match the type of the target field.
 - Rule 27: If a JSONPointer path points to an object, then the "value" property MUST be provided and contain a valid object, the new object's "@type" property MUST match the "@type" of the target object.
-- Rule 28: If a JSONPointer path points to an array, then:
-  - The "match" property MUST be provided to identify the specific element to be updated.
-  - The "match" property MUST only be used for matching array elements of the same type, and the rules 26 and 27 apply.
-  - The value of the "op" property determines the action to be taken on the matched element:
-    - The "add" operation, appends the new value to the array.
-    - The "remove" operation, removes the specified value from the array.
-    - The "replace" operation, replaces the existing value at the matching array element with the specified value.
-  - If the value of the "op" property is "replace", and there is a matching element, then the element MUST be fully replaced with the new value provided in the "value" property. The new value MUST include all required fields for the object type.
+- Rule 28: If a JSONPointer path points to an array, then the presence or absence of the "match" property determines whether the operation targets a single element within the array or the array as a whole:
+  - If "match" is present, the operation targets the specific element identified by "match":
+    - The "match" property MUST only be used for matching array elements of the same type, and the rules 26 and 27 apply.
+    - The "remove" operation removes the matching element(s) from the array. The "replace" operation replaces the existing value at the matching array element with the specified value; the new value MUST include all required fields for the object type. The "add" operation MUST NOT be used together with "match".
+  - If "match" is absent, the operation targets the array property as a whole:
+    - The "add" operation appends the "value" to the array as a new element.
+    - The "replace" operation replaces the entire array with the array provided in "value"; the new array MUST satisfy the JSON Schema of the target property, including any `"minItems"` constraint.
+    - The "remove" operation removes the array property entirely, and MUST NOT be used if the property has cardinality `1+`.
 - Rule 29: If any of the JSONPointer paths in the request fail to match an existing field or element in the target resource object, the server MUST reject the complete request with an appropriate error response.
 
 <!--Question: Partial update of object element is not supported? -->
@@ -505,7 +559,9 @@ The following rules apply for partial updates:
 
 ## Schema
 
-A partial update request body MUST be a JSON array of patch operation objects. Each operation MUST include an `op` and a `path` property. The `value` property MUST be present for `add` and `replace` operations. The `match` property MUST be present when the `path` points to an array property and is used to identify the specific array element to operate on.
+A partial update request body MUST be a JSON array of patch operation objects. Each operation MUST include an `op` and a `path` property. The `value` property MUST be present for `add` and `replace` operations. The `match` property MAY be present when the `path` points to an array property, to identify a specific array element to operate on; when `match` is absent, the operation targets the array property as a whole (see Rule 28).
+
+The `value` property is intentionally left unconstrained (`{}`) in the JSON Schema below, since the JSON type it MUST hold depends on the target `path`: it can be a JSON object (e.g. when replacing a single object property or a single matched array element), a JSON array (e.g. when replacing an array property as a whole), or a simple type such as a string, number, or boolean (e.g. when replacing a scalar property).
 
 ```json
 {
@@ -637,6 +693,21 @@ Example of a partial update request for adding a additional tech contact to a do
         "id": "sh8014"
       }
     }
+  }
+]
+```
+
+Example of a partial update request replacing the entire `nameservers` array of a domain name in a single operation, with no "match" property present:
+
+```json
+[
+  {
+    "op": "replace",
+    "path": "/nameservers",
+    "value": [
+      { "@type": "host", "hostName": "ns1.example.example" },
+      { "@type": "host", "hostName": "ns3.example.example" }
+    ]
   }
 ]
 ```
@@ -968,18 +1039,7 @@ The following constraints cannot be expressed in JSON Schema and MUST be enforce
         "name": {
           "type": "object",
           "properties": {
-            "full": { "type": "string" },
-            "components": {
-              "type": "array",
-              "items": {
-                "type": "object",
-                "properties": {
-                  "kind":  { "type": "string", "enum": ["given", "surname"] },
-                  "value": { "type": "string" }
-                },
-                "required": ["kind", "value"]
-              }
-            }
+            "full": { "type": "string" }
           }
         },
         "organizations": {
@@ -1003,7 +1063,7 @@ The following constraints cannot be expressed in JSON Schema and MUST be enforce
                 "items": {
                   "type": "object",
                   "properties": {
-                    "kind":  { "type": "string", "enum": ["name", "locality", "region", "postcode", "country"] },
+                    "kind":  { "type": "string", "enum": ["name", "locality", "region", "postcode"] },
                     "value": { "type": "string" }
                   },
                   "required": ["kind", "value"]
@@ -1699,6 +1759,9 @@ The Domain Name Data Object represents a domain name and its associated provisio
 The following constraints cannot be expressed in JSON Schema and MUST be enforced by implementations:
 
 - `name` MUST be a fully qualified domain name conforming to the syntax described in [@!RFC1035]. Servers MAY restrict allowable domain names to a specific namespace for which they are authoritative. The implicit trailing dot MUST NOT be included.
+- `name` MUST use the ASCII Compatible Encoding (ACE) A-label form when the domain name is internationalized, as defined in [@!RFC5890].
+- `uName`, when present, MUST be normalized to Unicode Normalization Form C (NFC) as defined in [@!UNICODE.NFC], and MUST convert to the exact value of `name` using the procedure described in [@!RFC5891, Section 4.4].
+- `lgr`, when present, MUST identify a valid Label Generation Ruleset (LGR) registered in the [@!IDN-Tables] registry, and MUST be present whenever `uName` is present.
 
 ### Create
 
@@ -1714,6 +1777,8 @@ Create request schema (create-only and read-write properties):
       "properties": {
         "@type": { "type": "string", "const": "domainName" },
         "name": { "type": "string", "writeOnly": true },
+        "uName": { "type": "string", "writeOnly": true },
+        "lgr": { "type": "string", "writeOnly": true },
         "registrant": { "$ref": "#/$defs/contactObject.reference" },
         "contacts": {
           "type": "array",
@@ -1765,6 +1830,8 @@ Read response schema (read-write and read-only properties):
       "properties": {
         "@type":       { "type": "string", "const": "domainName", "readOnly": true },
         "name":        { "type": "string", "readOnly": true },
+        "uName":       { "type": "string", "readOnly": true },
+        "lgr":         { "type": "string", "readOnly": true },
         "provMetadata": { "$ref": "#/$defs/provMetadata" },
         "status": {
           "type": "array",
@@ -2572,6 +2639,110 @@ Reference schema (identifier only):
 }
 ```
 
+# Extension Framework {#extension-framework}
+
+Extensions MUST employ an additive schema composition method, allowing new optional or required properties to be added to an existing base object schema. New properties MUST not conflict with existing definitions and MUST NOT redefine existing properties from the base schema.
+
+To support multiple extensions, a mechanism for mapping extensions to their respective base objects is defined using the `rpp:extends` property within the extension schema.
+
+Extensions SHOULD be independent of one another, meaning that an extension should not rely on the presence of another extension to function correctly. This ensures modularity and reduces the risk of conflicts between extensions.
+
+An extension schema MUST define a unique identifier using a toplevel `$id` to ensure that references to the schema are unambiguous and correctly resolved. For IETF standardized extensions, using a stable and unique URI as the `$id` is RECOMMENDED.
+
+An IANA registry for RPP JSON extensions is requested in this document, standardized JSON extensions SHALL be registered in this registry. Ensuring that each extension has a unique and stable identifier that can be referenced reliably across different implementations. This also promotes the reuse of common extensions and reduces duplication of effort.
+
+It is RECOMMENDED to use the prefix "ext." for every extension sub-schema defined, for example `#/$defs/ext.domainFoo`.
+
+**TODO** what objects are eligible for extensions?
+
+## Extension Mapping
+
+Each extension MUST define a mapping to every base object it applies to, this is done by using a special `rpp:extends` property within the extension schema. For example, this mapping where the base object `https://rpp.example/rpp/schema.json#/$defs/domainObject.create` is extended by the local definition `#/$defs/ext.domainFoo`:
+
+```json
+ "rpp:extends": {
+    "https://rpp.example/rpp/schema.json#/$defs/domainObject.create":
+      "#/$defs/ext.domainFoo"
+  },
+```
+
+## Effective Schema
+
+Extensions are additive and independent, the effective schema for a base object MUST account for all applicable extensions to ensure that a validator can determine whether an object fully conforms to the combined set of constraints. When one or more extensions are applied to a base object, the effective schema for that object is obtained by composing the base object's schema with the schemas contributed by each extension using the `allOf` keyword, the server uses the `rpp:extends` metadata property to resolve the mapping between the base object and its extensions correctly.
+
+The resulting schema is a self contained schema that includes everything from both the base specification and the extensions, allowing clients to validate objects against a single comprehensive schema.
+
+The following is an example of an extension JSON Schema, which adds new properties to both the domain and contact base objects:
+
+```json
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://rpp.example/schemas/extension1.json",
+
+  "rpp:extends": {
+    "https://rpp.example/rpp/schema.json#/$defs/domainObject.create":
+      "#/$defs/ext.domain",
+
+    "https://rpp.example/rpp/schema.json#/$defs/contactObject.create":
+      "#/$defs/ext.contact"
+  },
+
+  "$defs": {
+    "ext.domain": {
+      "type": "object",
+      "properties": {
+        "foo": { "type": "string" },
+        "bar": { "type": "boolean" }
+      },
+      "required": ["foo"]
+    },
+
+    "ext.contact": {
+      "type": "object",
+      "properties": {
+        "fooContact": { "type": "string" }
+      }
+    }
+  }
+}
+```
+
+The effective schema is a distinct schema resource from the base schema it composes and therefore MUST be assigned its own `$id`, different from the `$id` of the base schema and of any other effective schema, to avoid ambiguous or circular references. It is RECOMMENDED to use the prefix "effective." for every effective sub-schema defined, for example `#/$defs/effective.domainFoo`.
+
+
+Domain Name effective schema, which includes the full schema of the base domain object along with any applicable extensions:
+
+```json
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://rpp.example/rpp/effective/domain.json",
+
+  "$ref": "#/$defs/effective.domainObject.create",
+  "$defs": {
+    "effective.domainObject.create": {
+      "allOf": [
+        {
+          "$ref": "https://rpp.example/rpp/schema.json#/$defs/domainObject.create"
+        },
+        {
+          "$ref": "#/$defs/ext.domain"
+        }
+      ]
+    },
+
+    "ext.domain": {
+      "type": "object",
+      "properties": {
+        "foo": {
+          "type": "string"
+        }
+      },
+      "required": ["foo"]
+    }
+  }
+}
+```
+
 # Examples
 
 This section provides examples that follow the JSON representation rules and JSON Schema definitions specified in the previous sections. The examples illustrate typical request and response messages for domain name, contact, and host resources.
@@ -2720,6 +2891,25 @@ Example domain read response:
     }
 }
 ```
+
+Example Read response for an internationalized domain name, showing the ACE `name`, the corresponding `uName`, and the `lgr` identifying the Label Generation Ruleset (LGR) used for validation:
+
+```json
+{
+    "@type": "domainName",
+    "name": "xn--bcher-kva.example",
+    "uName": "bücher.example",
+    "lgr": "latn-1.0",
+    "provMetadata": {
+        "@type": "provMetadata",
+        "repositoryId": "BUCHER1-REP",
+        "spClientId": "ClientX",
+        "crClientId": "ClientX",
+        "crDate": "1999-04-03T22:00:00.0Z"
+    }
+}
+```
+<!-- How handle domain that do not exist? normally this would result in 404 and now it will cause the above reponse? -->
 
 ### Update
 
@@ -3014,11 +3204,7 @@ Example contact create request:
         "version": "2.0",
         "kind": "individual",
         "name": {
-            "full": "John Doe",
-            "components": [
-                { "kind": "given",   "value": "John" },
-                { "kind": "surname", "value": "Doe" }
-            ]
+            "full": "John Doe"
         },
         "organizations": {
             "org": { "name": "Example Inc." }
@@ -3029,8 +3215,7 @@ Example contact create request:
                     { "kind": "name",     "value": "123 Example Dr., Suite 100" },
                     { "kind": "locality", "value": "Dulles" },
                     { "kind": "region",   "value": "VA" },
-                    { "kind": "postcode", "value": "20166-6503" },
-                    { "kind": "country",  "value": "United States" }
+                    { "kind": "postcode", "value": "20166-6503" }
                 ],
                 "countryCode": "US"
             }
@@ -3072,11 +3257,7 @@ Example contact create response:
         "version": "2.0",
         "kind": "individual",
         "name": {
-            "full": "John Doe",
-            "components": [
-                { "kind": "given",   "value": "John" },
-                { "kind": "surname", "value": "Doe" }
-            ]
+            "full": "John Doe"
         },
         "organizations": {
             "org": { "name": "Example Inc." }
@@ -3087,8 +3268,7 @@ Example contact create response:
                     { "kind": "name",     "value": "123 Example Dr., Suite 100" },
                     { "kind": "locality", "value": "Dulles" },
                     { "kind": "region",   "value": "VA" },
-                    { "kind": "postcode", "value": "20166-6503" },
-                    { "kind": "country",  "value": "United States" }
+                    { "kind": "postcode", "value": "20166-6503" }
                 ],
                 "countryCode": "US"
             }
@@ -3129,11 +3309,7 @@ Example contact read response:
         "version": "2.0",
         "kind": "individual",
         "name": {
-            "full": "John Doe",
-            "components": [
-                { "kind": "given",   "value": "John" },
-                { "kind": "surname", "value": "Doe" }
-            ]
+            "full": "John Doe"
         },
         "organizations": {
             "org": { "name": "Example Inc." }
@@ -3144,8 +3320,7 @@ Example contact read response:
                     { "kind": "name",     "value": "123 Example Dr., Suite 100" },
                     { "kind": "locality", "value": "Dulles" },
                     { "kind": "region",   "value": "VA" },
-                    { "kind": "postcode", "value": "20166-6503" },
-                    { "kind": "country",  "value": "United States" }
+                    { "kind": "postcode", "value": "20166-6503" }
                 ],
                 "countryCode": "US"
             }
@@ -3176,8 +3351,7 @@ Example contact update request:
                     { "kind": "name",     "value": "456 New Street, Suite 200" },
                     { "kind": "locality", "value": "Reston" },
                     { "kind": "region",   "value": "VA" },
-                    { "kind": "postcode", "value": "20190" },
-                    { "kind": "country",  "value": "United States" }
+                    { "kind": "postcode", "value": "20190" }
                 ],
                 "countryCode": "US"
             }
@@ -3215,11 +3389,7 @@ Example contact update response:
         "version": "2.0",
         "kind": "individual",
         "name": {
-            "full": "John Doe",
-            "components": [
-                { "kind": "given",   "value": "John" },
-                { "kind": "surname", "value": "Doe" }
-            ]
+            "full": "John Doe"
         },
         "organizations": {
             "org": { "name": "Example Inc." }
@@ -3230,8 +3400,7 @@ Example contact update response:
                     { "kind": "name",     "value": "456 New Street, Suite 200" },
                     { "kind": "locality", "value": "Reston" },
                     { "kind": "region",   "value": "VA" },
-                    { "kind": "postcode", "value": "20190" },
-                    { "kind": "country",  "value": "United States" }
+                    { "kind": "postcode", "value": "20190" }
                 ],
                 "countryCode": "US"
             }
@@ -3599,8 +3768,7 @@ Example organisation create request:
                     { "kind": "name",     "value": "Meander 501" },
                     { "kind": "locality", "value": "Arnhem" },
                     { "kind": "region",   "value": "Gelderland" },
-                    { "kind": "postcode", "value": "6825MD" },
-                    { "kind": "country",  "value": "Netherlands" }
+                    { "kind": "postcode", "value": "6825MD" }
                 ],
                 "countryCode": "NL"
             }
@@ -3653,8 +3821,7 @@ Example organisation create response:
                     { "kind": "name",     "value": "Meander 501" },
                     { "kind": "locality", "value": "Arnhem" },
                     { "kind": "region",   "value": "Gelderland" },
-                    { "kind": "postcode", "value": "6825MD" },
-                    { "kind": "country",  "value": "Netherlands" }
+                    { "kind": "postcode", "value": "6825MD" }
                 ],
                 "countryCode": "NL"
             }
@@ -3714,8 +3881,7 @@ Example organisation read response:
                     { "kind": "name",     "value": "Meander 501" },
                     { "kind": "locality", "value": "Arnhem" },
                     { "kind": "region",   "value": "Gelderland" },
-                    { "kind": "postcode", "value": "6825MD" },
-                    { "kind": "country",  "value": "Netherlands" }
+                    { "kind": "postcode", "value": "6825MD" }
                 ],
                 "countryCode": "NL"
             }
@@ -4016,15 +4182,78 @@ Example message query response, containing a Transfer Request Message Object for
 
 # IANA Considerations
 
-TODO
+## RPP Media Type (application/rpp+json)
 
-# Internationalization Considerations
+The IANA is requested to add the "application/rpp+json" media type to the "Media Types" registry, following the template in [@!RFC6838]
 
-TODO
+```text
+Type name: application
+Subtype name: rpp+json
+Required parameters: "N/A"
+Optional parameters: profile, version
+Encoding considerations: "N/A"
+Security considerations: This type has all of the security
+               considerations described in [@!RFC8259] plus the
+               considerations specified in the Security Considerations
+               section of this document.
+               The usage scenarios of the RPP media type do not foresee any
+               code execution originating from the content of this media type.
+Interoperability considerations: "N/A"
+Published specification: This document
+Applications that use this media type: RPP protocol and extensions
+Fragment identifier considerations: "N/A"
+Additional information:
+   Deprecated alias names for this type: "N/A"
+   Magic number(s): "N/A"
+   File extension(s): "N/A"
+   Macintosh file type code(s): "N/A"
+Person & email address to contact for further information: Author's email address
+Intended usage: COMMON
+Restrictions on usage: "N/A"
+Author: Document authors
+Change controller: Document authors
+Provisional registration: No
+```
+
+## RPP JSON Schema Extensions registry
+
+The IANA is requested to create a new registry for RPP JSON Schema extensions, this registry will be used to register standardized JSON Schema extensions to the JSON representation of RPP JSON objects, as defined in the (#extension-framework) of this document.
+
+```text
+Name of the registry: RPP JSON Schema Extensions
+Registry group: RESTful Provisioning Protocol (RPP)
+Registration procedure: Expert Review
+```
+
+Fields to be registered:
+
+- `name`: The name of the extension, for example "RPP example JSON extension".
+- `id`: The unique `$id` URI of the extension JSON Schema, for example "https://www.iana.org/assignments/rpp-json-extensions/example-extension.json".
+- `version`: The version of the extension, for example "1.0".
+- `RFC`: The RFC number for the extension specification, for example "RFC 1234".
+- `description`: A human-readable description of the extension and its intended use.
+
+The "RESTful Provisioning Protocol (RPP)" registry group is defined in [@!I-D.ietf-rpp-core].
+
+**TODO** there already exists a registry for RPP extensions, defined in the rpp-core document, consider whether this new registry is necessary or if it should be merged with the existing one.
+
+# Internationalization Considerations {#internationalization-considerations}
+
+Internationalized Domain Names (IDN) are represented using the paired `name`/`uName` data elements described in the Domain Name Data Object in [@!I-D.ietf-rpp-data-objects]. The `name` property, which addresses the resource and is used for object identity, MUST always contain the ACE A-label form; the `uName` property carries the Unicode U-label form for display and MUST be Unicode Normalization Form C (NFC) as defined in [UNICODE.NFC].
+
+Because JSON strings are Unicode character sequences, implementations MUST take the following precautions to avoid producing or misinterpreting `uName` (and any other Unicode-bearing string value) in a way that breaks common JSON consumers, in particular JavaScript, whose native strings are sequences of UTF-16 code units rather than Unicode code points:
+
+- A string value MUST NOT contain an unpaired (lone) UTF-16 surrogate code point. Although [@!RFC8259], Section 8.2, permits such values in JSON text, they do not represent a well-formed Unicode scalar value and MAY fail to round-trip when re-encoded as UTF-8 by non-JavaScript consumers.
+- Consumers MUST NOT use a UTF-16 code-unit count (such as JavaScript's `String.prototype.length`) to validate or enforce length constraints on `uName`. Domain name label length restrictions are defined in terms of the `name` (A-label) octet count; scripts using supplementary-plane code points are represented as surrogate pairs in UTF-16, so a code-unit count over-counts the number of Unicode code points.
+- Consumers MUST NOT rely on native string equality (e.g. JavaScript's `===`) to compare `uName` values for identity purposes, since two strings that differ only in Unicode normalization form compare unequal even though they represent the same name; `name` MUST be used instead for identity comparison.
+- Servers MUST emit `name` in lowercase. Because ACE (A-label) domain names are case-insensitive per DNS comparison rules but JSON/JavaScript string comparison is case-sensitive, clients performing equality checks on `name` MUST lowercase both operands first rather than relying on native string equality.
 
 # Security Considerations
 
-TODO
+If a server accepts a `uName` value without strictly verifying both that it is already Unicode Normalization Form C (NFC) and that it converts, via the ToASCII procedure of [@!RFC5891, Section 4.2], to the exact supplied `name` value, an attacker could cause a displayed `uName` to diverge from the name actually resolved in the DNS. Servers MUST reject any create or update request where `uName` is not already NFC-normalized or does not convert to the supplied `name`; servers MUST NOT silently normalize or correct the value on the client's behalf.
+
+<!-- Does the above security consideration belong here or in rpp-dataobjects? -->
+**TODO**
 
 # Acknowledgments
 
@@ -4032,10 +4261,13 @@ TODO
 
 # Change History
 
-## Version ietf-rpp-json-00 to draft-ietf-rpp-json-01
+## Version draft-ietf-rpp-json-00 to draft-ietf-rpp-json-01
 
-- Added Message Object and Message Status Object JSON schema and examples. (Issue #82)
-- Aligned Message Component and Message Data Object schemas and examples with the data objects document, and applied the inheritance rule (Rule 27) by using flat schemas for message objects that extend the Base Message Object.
+- Added schemas and examples related to service messages. (Issue #82)
+- Added IANA registration for the "application/rpp+json" media type (Issue #84)
+- Added extension framework section, describing how extensions should be defined. (Issue #78)
+- Added support for Internationalized Domain Names (IDN). (Issue #86)
+- Added "inheritance" section (Issue #88)
 
 ## Version draft-wullink-rpp-json-02 to draft-ietf-rpp-json-00
 
@@ -4100,3 +4332,23 @@ TODO
   <seriesInfo name="RFC" value="3915"/>
   <seriesInfo name="DOI" value="10.17487/RFC3915"/>
 </reference>
+
+<reference anchor="UNICODE.NFC" target="https://www.unicode.org/reports/tr15/">
+  <front>
+    <title>Unicode Normalization Forms</title>
+    <author>
+      <organization>Unicode Consortium</organization>
+    </author>
+    <date year="2026" month="08"/>
+  </front>
+</reference>
+
+<reference anchor="IDN-Tables" target="https://www.iana.org/assignments/idn-tables">
+  <front>
+    <title>Repository of IDN Practices</title>
+    <author>
+      <organization>Internet Assigned Numbers Authority (IANA)</organization>
+    </author>
+  </front>
+</reference>
+
