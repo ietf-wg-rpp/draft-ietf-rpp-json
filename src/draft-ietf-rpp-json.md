@@ -494,7 +494,7 @@ RPP profiles, such as the EPP Compatibility Profile defined in [@!I-D.ietf-rpp-d
 
 # Update Rules
 
-**NOTE**: The update rules in this section are still under discussion and may be subject to change. Feedback from the community is welcome.
+JSON representations for update operations follow specific rules to ensure consistency and correctness. There are two types of update operations: full updates and partial updates.
 
 ## Full
 
@@ -503,13 +503,19 @@ A full update operation replaces the entire state of a resource object with the 
 ## Partial
 
 A partial update operation allows clients to update specific properties of a resource object, while leaving other properties unchanged.
-A partial update MUST use JSON Patch [@!RFC6902] and an RPP extension to support the `match` property for matching of array elements.
+A partial update MUST use JSON Patch [@!RFC6902], extended with a `match` property for matching array elements. The `match` property is not part of [@!RFC6902]; it is introduced and defined in this document (see (#partial-matching)).
 
-The `match` property is used to identify a specific element in an array, it is a JSON object that contains key-value pairs corresponding to the properties of the array elements. The server uses the `match` property to locate the specific element in the array that should be updated, removed, or replaced. The server MUST compare every key and corresponding value in the `match` object against the properties of each element in the array. If an element matches all key-value pairs in the `match` object, it is considered a match.
+The request body of a partial update is a JSON array of patch operations, see (#partial-schema). Each patch operation consists of an `op` (the operation), a `path` (a JSON Pointer to the property the operation targets), a `value` (the new value, for `add` and `replace`), and optionally a `match` (to select array elements).
 
-If the righthand side of the `match` property contains a complex datatype (object or array), the `match` property MUST contain a key named `object`, the value of which is a JSON object that contains the properties to be matched against. The server MUST compare the properties of the nested object against the corresponding properties of the array element. If all properties match, the element is considered a match.
+### Matching {#partial-matching}
 
-The server MUST NOT allow recursive matching of nested data structures. The `match` property is only used for matching elements in the immediate array specified by the `path` property of the JSON Patch operation. If the array elements contain nested objects or arrays, the server MUST NOT attempt to match against those nested structures.
+The `match` property is used to identify elements in an array of objects. It is a JSON object that contains key-value pairs corresponding to the properties of the array elements. The server uses the `match` property to locate the elements in the array that should be removed or replaced. The `match` property MUST NOT be used when the `path` does not point to an array, and MUST NOT be used for an array of primitive types. An array of primitive types is changed by replacing the array as a whole, or by adding a value without `match`.
+
+The following rules apply to matching and depend on the type of the property in the `match` object:
+
+- A primitive type property (e.g. string, number or boolean) matches if the target object property has the same type and the same value.
+- An object type is considered a match when the value of every property in the `match` object matches the value of the property with the same name in the target object. Properties of the target object that are not named in the `match` object are not compared.
+- The server MUST NOT match nested data structures. The `match` property is only used for matching elements in the immediate array specified by the `path` property of the JSON Patch operation.
 
 Example domain object for matching an array element with a specific key-value pair:
 
@@ -536,32 +542,199 @@ Example `match` object for matching the array element with the "tech" label and 
 }
 ```
 
-For the `remove` operation, if multiple matched elements are found, then the sever MUST remove all matched elements. For the `replace` operation, if multiple matched elements are found, then the server MUST return an error response indicating that the operation is ambiguous and cannot be performed. If a match does not have any results, then the server MUST return an error response indicating that the specified element could not be found.
+Example object for matching an array element that has a property containing an array of primitive types, here the `tld` property of the elements of the `idnLgr` array:
 
-The following rules apply for partial updates:
+```json
+{
+    "@type": "discovery",
+    "idnLgr": [
+        {
+            "@type": "discoveryIdnLgr",
+            "tld": ["example", "org"],
+            "name": "example-latn-1.0"
+        },
+        {
+            "@type": "discoveryIdnLgr",
+            "tld": ["example"],
+            "name": "example-cyrl-1.0"
+        }
+    ]
+}
+```
 
-- Rule 25: JSON Patch operations other than "add", "remove" and "replace" MUST NOT be used.
-- Rule 26: If a JSONPointer path points to field using a JSON simple data type (e.g. string or number) then the "value" property MUST be provided and its type MUST match the type of the target field.
-- Rule 27: If a JSONPointer path points to an object, then the "value" property MUST be provided and contain a valid object, the new object's "@type" property MUST match the "@type" of the target object.
-- Rule 28: If a JSONPointer path points to an array, then the presence or absence of the "match" property determines whether the operation targets a single element within the array or the array as a whole:
-  - If "match" is present, the operation targets the specific element identified by "match":
-    - The "match" property MUST only be used for matching array elements of the same type, and the rules 26 and 27 apply.
-    - The "remove" operation removes the matching element(s) from the array. The "replace" operation replaces the existing value at the matching array element with the specified value; the new value MUST include all required fields for the object type. The "add" operation MUST NOT be used together with "match".
-  - If "match" is absent, the operation targets the array property as a whole:
-    - The "add" operation appends the "value" to the array as a new element.
-    - The "replace" operation replaces the entire array with the array provided in "value"; the new array MUST satisfy the JSON Schema of the target property, including any `"minItems"` constraint.
-    - The "remove" operation removes the array property entirely, and MUST NOT be used if the property has cardinality `1+`.
-- Rule 29: If any of the JSONPointer paths in the request fail to match an existing field or element in the target resource object, the server MUST reject the complete request with an appropriate error response.
+Example `match` object for matching the elements of the `idnLgr` array above for which the `tld` array contains the value "org" and "example". The order of the values in `tld` is ignored and only the first element matches, because the second element does not contain "org":
 
-<!--Question: Partial update of object element is not supported? -->
-<!--Question: Traversing document stops at first array:  array->object->array... is not possible? -->
-<!--Question: How handle nested arrays?, is this even used in any of the data objects?  -->
+```json
+{
+"match": {
+      "tld": ["org", "example"]
+    }
+}
+```
 
-## Schema
+### Processing Steps {#partial-steps}
 
-A partial update request body MUST be a JSON array of patch operation objects. Each operation MUST include an `op` and a `path` property. The `value` property MUST be present for `add` and `replace` operations. The `match` property MAY be present when the `path` points to an array property, to identify a specific array element to operate on; when `match` is absent, the operation targets the array property as a whole (see Rule 28).
+The server MUST process the patch operations in the order in which they appear in the request body, applying each operation to a working copy of the resource object. A partial update is atomic: if any of the steps below rejects an operation, the server MUST reject the complete request with an appropriate error response and MUST NOT apply any of the patch operations.
 
-The `value` property is intentionally left unconstrained (`{}`) in the JSON Schema below, since the JSON type it MUST hold depends on the target `path`: it can be a JSON object (e.g. when replacing a single object property or a single matched array element), a JSON array (e.g. when replacing an array property as a whole), or a simple type such as a string, number, or boolean (e.g. when replacing a scalar property).
+For each patch operation the server MUST perform the following steps. (#fig-partial-update-operation) shows the steps for a single patch operation, (#fig-partial-update-simple) shows the handling of a simple value or an object, and (#fig-partial-update-array) shows the handling of an array.
+
+1. Check the operation: the `op` MUST be one of "add", "remove" or "replace". JSON Patch operations other than these MUST NOT be used.
+2. Resolve the path: the `path` MUST point to an existing field or element of the resource object.
+3. Determine the type of the target that the `path` points to:
+    - A simple value (for example a string, number or boolean), or an object: continue with step 4.
+    - An array: continue with step 5.
+4. Apply the operation to a simple value or an object:
+    - The `match` property MUST NOT be present.
+    - For "remove", the field is removed.
+    - For "add" and "replace", the `value` property MUST be present.
+      - If the target is a simple value, the type of `value` MUST match the type of the target field.
+      - If the target is an object, `value` MUST be a valid object, the `@type` property of `value` MUST match the `@type` property of the target object.
+      - The field is then set to `value`.
+5. Apply the operation to an array. The presence or absence of the `match` property determines whether the operation targets a single element within the array or the array as a whole:
+    - If `match` is present, the operation targets the elements identified by `match`:
+      - The `match` property MUST only be used for arrays of which the elements are all objects.
+      - The "add" operation MUST NOT be used together with `match`.
+      - If `match` is not a JSON object, or contains a value that cannot be compared using the rules in (#partial-matching), the operation fails.
+      - If no element matches, the operation fails.
+      - For "remove", all matching elements are removed from the array.
+      - For "replace", if more than one element matches, the operation is ambiguous and fails. If exactly one element matches, it is replaced by `value`. The `value` MUST be valid for the element type, following the value rules of step 4, and MUST include all required fields for the object type.
+    - If `match` is absent, the operation targets the array property as a whole:
+      - For "add", `value` is appended to the array as a new element.
+      - For "replace", the entire array is replaced with the array provided in `value`. The new array MUST satisfy the JSON Schema of the target property, including any `"minItems"` constraint.
+      - For "remove", the array property is removed entirely. This MUST NOT be allowed if the property has cardinality `1+`.
+6. After the last operation has been applied, the resulting resource object MUST satisfy the JSON Schema and the constraints of the resource object.
+
+If a step fails because no element matches, the server MUST return an error response indicating that the specified element could not be found. If a step fails because more than one element matches a "replace" operation, the server MUST return an error response indicating that the operation is ambiguous and cannot be performed. In all other cases of failure the server MUST return an error response that identifies the patch operation that failed.
+
+```ascii
+   +-------------------------------+
+   | Take next patch operation     |<-------------------+
+   +---------------+---------------+                    |
+                   |                                    |
+                   v                                    |
+   +-------------------------------+                    |
+   | Is op "add", "remove" or      |--- no --> REJECT   |
+   | "replace"?                    |                    |
+   +---------------+---------------+                    |
+                   | yes                                |
+                   v                                    |
+   +-------------------------------+                    |
+   | Does path point to an         |--- no --> REJECT   |
+   | existing field or element?    |                    |
+   +---------------+---------------+                    |
+                   | yes                                |
+                   v                                    |
+   +-------------------------------+                    |
+   | Does path point to an array?  |                    |
+   +-------+---------------+-------+                    |
+           | no            | yes                        |
+           v               v                            |
+   +---------------+ +---------------+                  |
+   | Simple value  | | Array         |                  |
+   | or object     | | (figure 3)    |                  |
+   | (figure 2)    | |               |                  |
+   +-------+-------+ +-------+-------+                  |
+           |                 |                          |
+           +--------+--------+                          |
+                    |                                   |
+                    v                                   |
+   +-------------------------------+                    |
+   | Another patch operation?      |--- yes ------------+
+   +---------------+---------------+
+                   | no
+                   v
+   +-------------------------------+
+   | Is the resulting object valid |--- no --> REJECT
+   | for the JSON Schema and the   |
+   | constraints?                  |
+   +---------------+---------------+
+                   | yes
+                   v
+          Apply all changes
+```
+Figure: Partial update, steps for each patch operation {#fig-partial-update-operation}
+
+```ascii
+   +-------------------------------+
+   | Is match present?             |--- yes -> REJECT
+   +---------------+---------------+
+                   | no
+                   v
+   +-------------------------------+
+   | Is op "remove"?               |--- yes --> Remove the field
+   +---------------+---------------+
+                   | no ("add" or "replace")
+                   v
+   +-------------------------------+
+   | Is value present?             |--- no ---> REJECT
+   +---------------+---------------+
+                   | yes
+                   v
+   +-------------------------------+
+   | Simple value: has value the   |
+   | same type as the target?      |--- no ---> REJECT
+   | Object: is value an object    |
+   | with the same "@type" (if the |
+   | target has one)?              |
+   +---------------+---------------+
+                   | yes
+                   v
+          Set the field to value
+```
+Figure: Partial update, simple value or object {#fig-partial-update-simple}
+
+```ascii
+   Is match present?
+   |
+   +-- yes: the matching elements are targeted
+   |   |
+   |   +-- op is "add"? ------------------------> REJECT
+   |   |
+   |   +-- match is not an object, or has a
+   |   |   value that cannot be compared? ------> REJECT
+   |   |
+   |   +-- no element matches? ------------------> REJECT
+   |   |
+   |   +-- op is "remove" -----------------------> Remove all
+   |   |                                           matching elements
+   |   |
+   |   +-- op is "replace"
+   |       |
+   |       +-- more than one element matches? ----> REJECT
+   |       |                                        (ambiguous)
+   |       |
+   |       +-- value not valid for the element? -> REJECT
+   |       |
+   |       +-- otherwise ------------------------> Replace the
+   |                                               element
+   |
+   +-- no: the array as a whole is targeted
+       |
+       +-- op is "add" --------------------------> Append value as
+       |                                           a new element
+       |
+       +-- op is "replace"
+       |   |
+       |   +-- value violates the schema of the
+       |   |   array elements -------------------> REJECT
+       |   |
+       |   +-- otherwise ------------------------> Replace the array
+       |
+       +-- op is "remove"
+           |
+           +-- cardinality of the property
+           |   is 1+? --------------------------> REJECT
+           |
+           +-- otherwise ------------------------> Remove the
+                                                   property
+```
+Figure: Partial update, array {#fig-partial-update-array}
+
+## Schema {#partial-schema}
+
+A partial update request body MUST be a JSON array of patch operation objects. Each operation MUST include an `op` and a `path` property. The `value` property MUST be present for `add` and `replace` operations. The `match` property MAY be present when the `path` points to an array property, to identify the array elements to operate on. When `match` is absent, the operation targets the array property as a whole (see step 5 in (#partial-steps)).
+
+The `value` property is intentionally left unconstrained (`{}`) in the JSON Schema below, since the JSON type it MUST hold depends on the target `path`: it can be a JSON object (e.g. when replacing a single object property or a single matched array element), a JSON array (e.g. when replacing an array property as a whole), or a primitive type such as a string, number, or boolean.
 
 ```json
 {
