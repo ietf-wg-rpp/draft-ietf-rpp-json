@@ -513,9 +513,11 @@ The `match` property is used to identify elements in an array of objects. It is 
 
 The following rules apply to matching and depend on the type of the property in the `match` object:
 
+- The ordering of elements in the target array does not affect matching.
 - A primitive type property (e.g. string, number or boolean) matches if the target object property has the same type and the same value.
 - An object type is considered a match when the value of every property in the `match` object matches the value of the property with the same name in the target object. Properties of the target object that are not named in the `match` object are not compared.
 - The server MUST NOT match nested data structures. The `match` property is only used for matching elements in the immediate array specified by the `path` property of the JSON Patch operation.
+- The server MUST reject a `match` that is not a JSON object, or that contains a value that cannot be compared using the rules above.
 
 Example domain object for matching an array element with a specific key-value pair:
 
@@ -574,37 +576,34 @@ Example `match` object for matching the elements of the `idnLgr` array above for
 
 ### Processing Steps {#partial-steps}
 
-The server MUST process the patch operations in the order in which they appear in the request body, applying each operation to a working copy of the resource object. A partial update is atomic: if any of the steps below rejects an operation, the server MUST reject the complete request with an appropriate error response and MUST NOT apply any of the patch operations.
+The server MUST process the patch operations in the order in which they appear in the request body. A partial update is atomic, meaning that if any of the operations fails or is rejected, the server MUST reject the complete request with an appropriate error response that identifies the patch operation that failed.
 
-For each patch operation the server MUST perform the following steps. (#fig-partial-update-operation) shows the steps for a single patch operation, (#fig-partial-update-simple) shows the handling of a simple value or an object, and (#fig-partial-update-array) shows the handling of an array.
+For each patch operation the server MUST perform the following steps. (#fig-partial-update-operation) shows the steps for a single patch operation, (#fig-partial-update-simple) shows the handling of a primitive type value or an object, and (#fig-partial-update-array) shows the handling of an array.
 
-1. Check the operation: the `op` MUST be one of "add", "remove" or "replace". JSON Patch operations other than these MUST NOT be used.
-2. Resolve the path: the `path` MUST point to an existing field or element of the resource object.
+1. Check the operation: the `op` must be one of "add", "remove" or "replace". JSON Patch operations other than these are not allowed.
+2. Resolve the path: the `path` must point to an existing field or element of the resource object.
 3. Determine the type of the target that the `path` points to:
-    - A simple value (for example a string, number or boolean), or an object: continue with step 4.
+    - A primitive type value (for example a string, number or boolean), or an object: continue with step 4.
     - An array: continue with step 5.
-4. Apply the operation to a simple value or an object:
-    - The `match` property MUST NOT be present.
+4. Apply the operation to a primitive type value or an object:
     - For "remove", the field is removed.
-    - For "add" and "replace", the `value` property MUST be present.
-      - If the target is a simple value, the type of `value` MUST match the type of the target field.
-      - If the target is an object, `value` MUST be a valid object, the `@type` property of `value` MUST match the `@type` property of the target object.
+    - For "add" and "replace", the `value` property must be present.
+      - If the target is a primitive type value, the type of `value` must match the type of the target field.
+      - If the target is an object, `value` must be a valid object, the `@type` property of `value` must match the `@type` property of the target object or be a supertype of the target object's `@type`.
       - The field is then set to `value`.
-5. Apply the operation to an array. The presence or absence of the `match` property determines whether the operation targets a single element within the array or the array as a whole:
+5. Apply the operation to an array:
     - If `match` is present, the operation targets the elements identified by `match`:
-      - The `match` property MUST only be used for arrays of which the elements are all objects.
-      - The "add" operation MUST NOT be used together with `match`.
-      - If `match` is not a JSON object, or contains a value that cannot be compared using the rules in (#partial-matching), the operation fails.
+      - The "add" operation is not allowed to be used together with `match`.
       - If no element matches, the operation fails.
       - For "remove", all matching elements are removed from the array.
-      - For "replace", if more than one element matches, the operation is ambiguous and fails. If exactly one element matches, it is replaced by `value`. The `value` MUST be valid for the element type, following the value rules of step 4, and MUST include all required fields for the object type.
+      - For "replace", if more than one element matches, the operation is ambiguous and fails. If exactly one element matches, it is replaced by `value`.
     - If `match` is absent, the operation targets the array property as a whole:
       - For "add", `value` is appended to the array as a new element.
-      - For "replace", the entire array is replaced with the array provided in `value`. The new array MUST satisfy the JSON Schema of the target property, including any `"minItems"` constraint.
-      - For "remove", the array property is removed entirely. This MUST NOT be allowed if the property has cardinality `1+`.
-6. After the last operation has been applied, the resulting resource object MUST satisfy the JSON Schema and the constraints of the resource object.
+      - For "replace", the entire array is replaced with the array provided in `value`.
+      - For "remove", the array property is removed entirely.
+6. After the last operation has been applied, the resulting resource object must satisfy the JSON Schema and the constraints of the resource object that cannot be enforced by the JSON Schema.
 
-If a step fails because no element matches, the server MUST return an error response indicating that the specified element could not be found. If a step fails because more than one element matches a "replace" operation, the server MUST return an error response indicating that the operation is ambiguous and cannot be performed. In all other cases of failure the server MUST return an error response that identifies the patch operation that failed.
+If a step fails because no element matches, the server MUST return an error response indicating that the specified element could not be found.
 
 ```ascii
    +-------------------------------+
@@ -669,64 +668,89 @@ Figure: Partial update, steps for each patch operation {#fig-partial-update-oper
    | Is value present?             |--- no ---> REJECT
    +---------------+---------------+
                    | yes
+                   |
+                   v
+            +---------------+    
+            | Simple value  | 
+            | and same type | --- yes ---> Set the field to value
+            |               |
+            +-------+-------+ 
+                   | no
+                   |
+                   v
+            +---------------+    
+            | Object and    | 
+            | @type matches | --- yes ---> Set the field to value
+            |               |
+            +-------+-------+ 
+                    |        
+                    | no
+                    v
+                  REJECT
+```
+Figure: Partial update, primitive type value or object {#fig-partial-update-simple}
+
+```ascii
+   +-------------------------------+
+   | Is match present?             |--- yes --> continue at (B)
+   +---------------+---------------+
+                   | no
                    v
    +-------------------------------+
-   | Simple value: has value the   |
-   | same type as the target?      |--- no ---> REJECT
-   | Object: is value an object    |
-   | with the same "@type" (if the |
-   | target has one)?              |
+   | Is op "add"?                  |--- yes --> Append value as
+   +---------------+---------------+            a new element
+                   | no
+                   v
+   +-------------------------------+
+   | Is op "remove"?               |--- yes --> Remove the property
+   +---------------+---------------+            (REJECT if the property
+                                                has cardinality 1+)
+                   | no ("replace")
+                   v
+   +-------------------------------+
+   | Does value violate the schema |
+   | of the array elements?        |--- yes --> REJECT
+   +---------------+---------------+
+                   | no
+                   v
+          Replace the array with value
+
+   (B) Match present: the matching elements are targeted
+
+   +-------------------------------+
+   | Is op "add"?                  |--- yes --> REJECT
+   +---------------+---------------+
+                   | no
+                   v
+   +-------------------------------+
+   | Is match a JSON object whose  |
+   | values can be compared?       |--- no ---> REJECT
    +---------------+---------------+
                    | yes
                    v
-          Set the field to value
-```
-Figure: Partial update, simple value or object {#fig-partial-update-simple}
-
-```ascii
-   Is match present?
-   |
-   +-- yes: the matching elements are targeted
-   |   |
-   |   +-- op is "add"? ------------------------> REJECT
-   |   |
-   |   +-- match is not an object, or has a
-   |   |   value that cannot be compared? ------> REJECT
-   |   |
-   |   +-- no element matches? ------------------> REJECT
-   |   |
-   |   +-- op is "remove" -----------------------> Remove all
-   |   |                                           matching elements
-   |   |
-   |   +-- op is "replace"
-   |       |
-   |       +-- more than one element matches? ----> REJECT
-   |       |                                        (ambiguous)
-   |       |
-   |       +-- value not valid for the element? -> REJECT
-   |       |
-   |       +-- otherwise ------------------------> Replace the
-   |                                               element
-   |
-   +-- no: the array as a whole is targeted
-       |
-       +-- op is "add" --------------------------> Append value as
-       |                                           a new element
-       |
-       +-- op is "replace"
-       |   |
-       |   +-- value violates the schema of the
-       |   |   array elements -------------------> REJECT
-       |   |
-       |   +-- otherwise ------------------------> Replace the array
-       |
-       +-- op is "remove"
-           |
-           +-- cardinality of the property
-           |   is 1+? --------------------------> REJECT
-           |
-           +-- otherwise ------------------------> Remove the
-                                                   property
+   +-------------------------------+
+   | Does any element match?       |--- no ---> REJECT
+   +---------------+---------------+
+                   | yes
+                   v
+   +-------------------------------+
+   | Is op "remove"?               |--- yes --> Remove all
+   +---------------+---------------+            matching elements
+                   | no ("replace")
+                   v
+   +-------------------------------+
+   | Does more than one element    |
+   | match?                        |--- yes --> REJECT (ambiguous)
+   +---------------+---------------+
+                   | no
+                   v
+   +-------------------------------+
+   | Is value valid for the        |
+   | element type?                 |--- no ---> REJECT
+   +---------------+---------------+
+                   | yes
+                   v
+          Replace the element with value
 ```
 Figure: Partial update, array {#fig-partial-update-array}
 
