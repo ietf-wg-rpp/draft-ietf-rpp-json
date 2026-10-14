@@ -69,7 +69,7 @@ RPP Data Objects - The abstract data model definitions for domain name, contact,
 
 RESTful Provisioning Protocol - A RESTful protocol for provisioning heterogeneous database objects.
 
-JSON Schema - A vocabulary that allows annotation and validation of JSON documents, as described in [@?JSON-SCHEMA].
+JSON Schema - A vocabulary that allows annotation and validation of JSON documents, as described in [@!I-D.ietf-jsonschema-json-schema].
 
 EPP Compatibility Profile - A set of additional constraints defined in [@!I-D.ietf-rpp-data-objects] that a server MUST adhere to when supporting both RPP and EPP concurrently.
 
@@ -81,7 +81,7 @@ document are to be interpreted as described in [@!RFC2119].
 
 JSON is case sensitive. Unless stated otherwise, JSON specifications and examples provided in this document MUST be interpreted in the character case presented. The examples in this document assume that request and response messages are properly formatted JSON documents. Indentation and white space in examples are provided only to illustrate element relationships and for improving readability, and are not REQUIRED features of the protocol.
 
-All JSON Schema definitions in this document use JSON Schema draft 2020-12 [@?JSON-SCHEMA], and where not provided with a `$schema` keyword, the following default applies:
+All JSON Schema definitions in this document use JSON Schema draft 2020-12 [@!I-D.ietf-jsonschema-json-schema], and where not provided with a `$schema` keyword, the following default applies:
 
 ```
   "$schema": "https://json-schema.org/draft/2020-12/schema"
@@ -753,7 +753,7 @@ Example of a partial update request for a organisation object to add status "lin
 
 # JSON Schema Definitions
 
-This section provides normative JSON Schema definitions for RPP component objects and resource objects. All schemas use JSON Schema draft 2020-12 [@?JSON-SCHEMA].
+This section provides normative JSON Schema definitions for RPP component objects and resource objects. All schemas use JSON Schema draft 2020-12 [@!I-D.ietf-jsonschema-json-schema].
 
 <!-- TODO: can we say normative for json schema definitions? -->
 
@@ -4303,16 +4303,6 @@ TODO
 - Updated all example domain names to use the .example TLD. (Issue #26)
 
 {backmatter}
-
-<reference anchor="JSON-SCHEMA" target="https://json-schema.org/draft/2020-12/json-schema-core">
-  <front>
-    <title>JSON Schema: A Media Type for Describing JSON Documents</title>
-    <author>
-      <organization>JSON Schema</organization>
-    </author>
-    <date year="2020"/>
-  </front>
-</reference>
 
 <reference anchor="ITU.E164.2005">
   <front>
