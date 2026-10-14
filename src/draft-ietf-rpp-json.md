@@ -1182,6 +1182,120 @@ The following constraints cannot be expressed in JSON Schema and MUST be enforce
 }
 ```
 
+### Extension Object
+
+The following constraints cannot be expressed in JSON Schema and MUST be enforced by implementations:
+
+- `version` MUST use the Semantic Versioning format.
+- `url` MUST be a valid URL and accessible to the client.
+
+```json
+{
+  "$defs": {
+    "extension": {
+      "type": "object",
+      "properties": {
+        "@type":   { "type": "string", "const": "extension", "readOnly": true },
+        "name":    { "type": "string", "readOnly": true },
+        "id":      { "type": "string", "readOnly": true },
+        "version": { "type": "string", "readOnly": true },
+        "url":     { "type": "string", "format": "uri", "readOnly": true }
+      },
+      "required": ["@type", "name", "id", "version", "url"]
+    }
+  }
+}
+```
+
+### Discovery
+
+#### Version Object
+
+The following constraints cannot be expressed in JSON Schema and MUST be enforced by implementations:
+
+- `version` MUST use the Semantic Versioning format.
+
+```json
+{
+  "$defs": {
+    "discoveryVersion": {
+      "type": "object",
+      "properties": {
+        "@type":   { "type": "string", "const": "discoveryVersion", "readOnly": true },
+        "version": { "type": "string", "readOnly": true },
+        "baseUrl": { "type": "string", "format": "uri", "readOnly": true }
+      },
+      "required": ["@type", "version", "baseUrl"]
+    }
+  }
+}
+```
+
+#### Environment Object
+
+```json
+{
+  "$defs": {
+    "discoveryEnvironment": {
+      "type": "object",
+      "properties": {
+        "@type":  { "type": "string", "const": "discoveryEnvironment", "readOnly": true },
+        "name":   { "type": "string", "readOnly": true },
+        "status": { "type": "string", "readOnly": true }
+      },
+      "required": ["@type", "name", "status"]
+    }
+  }
+}
+```
+
+#### IDN LGR Object
+
+The following constraints cannot be expressed in JSON Schema and MUST be enforced by implementations:
+
+- `name` MUST be a valid LGR name as listed in the [@!IDN-Tables] registry.
+
+```json
+{
+  "$defs": {
+    "discoveryIdnLgr": {
+      "type": "object",
+      "properties": {
+        "@type":   { "type": "string", "const": "discoveryIdnLgr", "readOnly": true },
+        "tld": {
+          "type": "array",
+          "items": { "type": "string" },
+          "minItems": 1,
+          "readOnly": true
+        },
+        "name":    { "type": "string", "readOnly": true },
+        "url":     { "type": "string", "format": "uri", "readOnly": true },
+        "default": { "type": "boolean", "readOnly": true }
+      },
+      "required": ["@type", "tld", "name", "url", "default"]
+    }
+  }
+}
+```
+
+#### Notice Object
+
+```json
+{
+  "$defs": {
+    "discoveryNotice": {
+      "type": "object",
+      "properties": {
+        "@type":   { "type": "string", "const": "discoveryNotice", "readOnly": true },
+        "pubTime": { "type": "string", "format": "date-time", "readOnly": true },
+        "text":    { "type": "string", "readOnly": true }
+      },
+      "required": ["@type", "pubTime", "text"]
+    }
+  }
+}
+```
+
 ### Processes Object
 
 The Processes Object is a read-only container grouping the currently active Process Objects on the owning resource object, keyed by process type. Each key holds an array of the corresponding Process Object's read representation, per the Aggregation rules.
@@ -2647,6 +2761,158 @@ Reference schema (identifier only):
         "id": { "$ref": "#/$defs/identifier", "readOnly": true }
       },
       "required": ["@type", "id"]
+    }
+  }
+}
+```
+
+## Discovery Data Object
+
+The Discovery Data Object describes the capabilities of an RPP server. The server provides a single Discovery Data Object, which has no Unique Identifier. All data elements are read-only, and the only supported operation is Read.
+
+The following constraints cannot be expressed in JSON Schema and MUST be enforced by implementations:
+
+- `datetime` MUST be expressed in UTC using the `Z` suffix and MUST NOT use a numeric UTC offset.
+- Each `object` value in `links` MUST be an absolute URL using the HTTPS scheme, and the document MUST be accessible to the client without authentication.
+- Each `label` in `links` MUST be a link relation type registered in the IANA "Link Relation Types" registry.
+- Each value in `objects` MUST be a valid object identifier as defined in the RPP Data Object Registry.
+
+### Read
+
+Read response schema (read-only properties).
+
+```json
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$ref": "#/$defs/discoveryObject.read",
+  "$defs": {
+    "discoveryObject.read": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "discovery", "readOnly": true },
+        "versions": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/discoveryVersion" },
+          "minItems": 1,
+          "readOnly": true
+        },
+        "environment": { "$ref": "#/$defs/discoveryEnvironment", "readOnly": true },
+        "tlds": {
+          "type": "array",
+          "items": { "type": "string" },
+          "minItems": 1,
+          "readOnly": true
+        },
+        "extensions": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/extension" },
+          "readOnly": true
+        },
+        "profiles": {
+          "type": "array",
+          "items": { "type": "string" },
+          "readOnly": true
+        },
+        "objects": {
+          "type": "array",
+          "items": { "type": "string" },
+          "minItems": 1,
+          "readOnly": true
+        },
+        "datetime": { "type": "string", "format": "date-time", "readOnly": true },
+        "links": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "label":  { "type": "string" },
+              "object": { "type": "string", "format": "uri", "pattern": "^https://" }
+            },
+            "required": ["label", "object"]
+          },
+          "readOnly": true
+        },
+        "idnLgr": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/discoveryIdnLgr" },
+          "readOnly": true
+        },
+        "notices": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/discoveryNotice" },
+          "readOnly": true
+        }
+      },
+      "required": ["@type", "versions", "environment", "tlds", "objects", "datetime"]
+    }
+  }
+}
+```
+
+## Profile Data Object
+
+The Profile Data Object represents a named set of protocol features and versions published by the server. All data elements are read-only, and the only supported operation is Read.
+
+The following constraints cannot be expressed in JSON Schema and MUST be enforced by implementations:
+
+- `name` of a standard profile MUST use the RPP URN namespace, for example `urn:ietf:params:rpp:profile:{profile_name}`. The `name` of a private profile MUST be globally unique, the use of reverse domain name notation is RECOMMENDED.
+- A profile MUST NOT list the same extension name more than once, and the server MUST support all extensions listed in the profile.
+- The profile referenced by `baseProfile` MUST NOT itself have a `baseProfile`, and a profile MUST NOT be its own base profile.
+- Only one profile MUST have `defaultProfile` set to `true`.
+
+### Read
+
+Read response schema (read-only properties):
+
+```json
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$ref": "#/$defs/profileObject.read",
+  "$defs": {
+    "profileObject.read": {
+      "type": "object",
+      "properties": {
+        "@type":       { "type": "string", "const": "profile", "readOnly": true },
+        "name":        { "type": "string", "readOnly": true },
+        "description": { "type": "string", "readOnly": true },
+        "version":     { "type": "string", "readOnly": true },
+        "rppVersion":  { "type": "string", "readOnly": true },
+        "objects": {
+          "type": "array",
+          "items": { "type": "string" },
+          "minItems": 1,
+          "readOnly": true
+        },
+        "extensions": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/extension" },
+          "readOnly": true
+        },
+        "baseProfile":    { "$ref": "#/$defs/profileObject.reference" },
+        "defaultProfile": { "type": "boolean", "readOnly": true }
+      },
+      "required": ["@type", "name", "description", "version", "rppVersion", "objects", "defaultProfile"]
+    }
+  }
+}
+```
+
+### Reference
+
+Reference schema (identifier only):
+
+```json
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$ref": "#/$defs/profileObject.reference",
+  "$defs": {
+    "profileObject.reference": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "profile", "readOnly": true },
+        "name":  { "type": "string", "readOnly": true }
+      },
+      "required": ["@type", "name"]
     }
   }
 }
@@ -4193,6 +4459,112 @@ Example message query response, containing a Transfer Request Message Object for
 }
 ```
 
+## Discovery
+
+### Read
+
+There exists no request message for the discovery read operation.
+
+Example discovery read response:
+
+```json
+{
+    "@type": "discovery",
+    "versions": [
+        {
+            "@type": "discoveryVersion",
+            "version": "1.0",
+            "baseUrl": "https://rpp.example/rpp"
+        }
+    ],
+    "environment": {
+        "@type": "discoveryEnvironment",
+        "name": "rpp.example",
+        "status": "production"
+    },
+    "tlds": ["example"],
+    "extensions": [
+        {
+            "@type": "extension",
+            "name": "RPP example extension",
+            "id": "urn:ietf:params:rpp:extension:example-extension",
+            "version": "1.0",
+            "url": "https://www.iana.org/assignments/rpp-extensions/rpp-example-extension"
+        }
+    ],
+    "profiles": ["urn:ietf:params:rpp:profile:epp-compatibility"],
+    "objects": ["domainName", "host", "contact"],
+    "datetime": "2026-05-31T12:30:00Z",
+    "links": [
+        { "label": "privacy-policy", "object": "https://registry.example/privacy" },
+        { "label": "terms-of-service", "object": "https://registry.example/terms" }
+    ],
+    "idnLgr": [
+        {
+            "@type": "discoveryIdnLgr",
+            "tld": ["example"],
+            "name": "example-latn-1.0",
+            "url": "https://www.iana.org/domains/idn-tables/tables/example_latn_1.0.txt",
+            "default": true
+        }
+    ],
+    "notices": [
+        {
+            "@type": "discoveryNotice",
+            "pubTime": "2026-06-01T00:00:00Z",
+            "text": "This server will undergo planned maintenance on the first Monday of each month."
+        }
+    ]
+}
+```
+
+## Profile
+
+### Read
+
+There exists no request message for the profile read operation.
+
+Example profile read response:
+
+```json
+{
+    "@type": "profile",
+    "name": "urn:ietf:params:rpp:profile:epp-compatibility",
+    "description": "EPP compatibility profile",
+    "version": "1.0",
+    "rppVersion": "1.0",
+    "objects": ["domainName", "host", "contact"],
+    "extensions": [
+        {
+            "@type": "extension",
+            "name": "RPP example extension",
+            "id": "urn:ietf:params:rpp:extension:example-extension",
+            "version": "1.0",
+            "url": "https://www.iana.org/assignments/rpp-extensions/rpp-example-extension",
+        }
+    ],
+    "defaultProfile": true
+}
+```
+
+Example profile read response for a profile that extends a base profile:
+
+```json
+{
+    "@type": "profile",
+    "name": "org.example.rpp.profile.registry-extended",
+    "description": "Registry specific profile extending the EPP compatibility profile",
+    "version": "1.0",
+    "rppVersion": "1.0",
+    "objects": ["domainName", "host", "contact"],
+    "baseProfile": {
+        "@type": "profile",
+        "name": "urn:ietf:params:rpp:profile:epp-compatibility"
+    },
+    "defaultProfile": false
+}
+```
+
 # IANA Considerations
 
 ## RPP Media Type (application/rpp+json)
@@ -4276,6 +4648,7 @@ TODO
 
 ## Version draft-ietf-rpp-json-00 to draft-ietf-rpp-json-01
 
+- Added schemas and examples for the Discovery and Profile Data Objects. (Issue #92)
 - Added schemas and examples related to service messages. (Issue #82)
 - Added IANA registration for the "application/rpp+json" media type (Issue #84)
 - Added extension framework section, describing how extensions should be defined. (Issue #78)
