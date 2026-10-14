@@ -513,8 +513,8 @@ The `match` property is used to identify elements in an array of objects. It is 
 
 The following rules apply to matching and depend on the type of the property in the `match` object:
 
-- The ordering of elements in the target array does not affect matching.
 - A primitive type property (e.g. string, number or boolean) matches if the target object property has the same type and the same value.
+- An array of primitive type property (e.g. array of string, number or boolean) matches if the target array contains elements of the same type and both sets of values are identical. The ordering of elements does not affect matching.
 - An object type is considered a match when the value of every property in the `match` object matches the value of the property with the same name in the target object. Properties of the target object that are not named in the `match` object are not compared.
 - The server MUST NOT match nested data structures. The `match` property is only used for matching elements in the immediate array specified by the `path` property of the JSON Patch operation.
 - The server MUST reject a `match` that is not a JSON object, or that contains a value that cannot be compared using the rules above.
