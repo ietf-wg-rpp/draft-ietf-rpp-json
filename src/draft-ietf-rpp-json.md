@@ -106,6 +106,39 @@ RPP primitive types MUST be represented in JSON as follows:
 | URL                | `string`    | Uniform Resource Locator as per [@!RFC1738]                                    |
 | Binary             | `string`    | Base64-encoded binary data                                                     |
 
+## Undefined Values
+
+A data element can have no defined value, for example when the value is NULL in the server's database or has never been set. The JSON `null` value must not be used to represent an undefined value, a JSON Schema type such as `"type": "string"` does not allow `null`.
+
+An undefined value of a primitive type data element must not be rendered, the property must be omitted from the JSON object. An array data element with cardinality `0+` that has no values may be rendered as an empty array (`[]`) or may be omitted from the JSON object. Consumers must treat both representations as equivalent.
+
+Example: a domain name for which the primitive type data element `expiryDate` is undefined and not rendered, the array data element `nameservers` has no values, with `nameservers` rendered as an empty array:
+
+```json
+{
+    "@type": "domainName",
+    "name": "example.example",
+    "provMetadata": {
+        "@type": "provMetadata",
+        "spClientId": "ClientX"
+    },
+    "nameservers": []
+}
+```
+
+The same domain name with the `nameservers` array omitted is equivalent:
+
+```json
+{
+    "@type": "domainName",
+    "name": "example.example",
+    "provMetadata": {
+        "@type": "provMetadata",
+        "spClientId": "ClientX"
+    }
+}
+```
+
 ## Cardinality Rules
 
 The cardinality of each data element in the RPP data model MUST be represented as follows in JSON:
@@ -4851,6 +4884,7 @@ TODO
 - Added extension framework section, describing how extensions should be defined. (Issue #78)
 - Added support for Internationalized Domain Names (IDN). (Issue #86)
 - Added "inheritance" section (Issue #88)
+- Added section describing the representation of undefined values. (Issue #97)
 
 ## Version draft-wullink-rpp-json-02 to draft-ietf-rpp-json-00
 
