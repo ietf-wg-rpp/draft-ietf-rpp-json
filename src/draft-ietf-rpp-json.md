@@ -4884,7 +4884,7 @@ TODO
 - Added extension framework section, describing how extensions should be defined. (Issue #78)
 - Added support for Internationalized Domain Names (IDN). (Issue #86)
 - Added "inheritance" section (Issue #88)
-- Added section describing the representation of undefined values.
+- Added section describing the representation of undefined values. (Issue #97)
 
 ## Version draft-wullink-rpp-json-02 to draft-ietf-rpp-json-00
 
