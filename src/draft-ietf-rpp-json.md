@@ -505,7 +505,7 @@ A full update operation replaces the entire state of a resource object with the 
 A partial update operation allows clients to update specific properties of a resource object, while leaving other properties unchanged.
 A partial update MUST use JSON Patch [@!RFC6902], extended with a `match` property for matching array elements. The `match` property is not part of [@!RFC6902]; it is introduced and defined in this document (see (#partial-matching)).
 
-The request body of a partial update is a JSON array of patch operations, see (#partial-schema). Each patch operation consists of an `op` (the operation), a `path` (a JSON Pointer to the property the operation targets), a `value` (the new value, for `add` and `replace`), and optionally a `match` (to select array elements).
+The request body of a partial update is a JSON array of patch operations, see (#partial-schema). Each patch operation consists of an `op` (the operation), a `path` (a JSON Pointer to the property the operation targets), a `value` (the new value, for `add` and `replace`), and optionally a `match` (to select array elements). When the `path` points to an existing primitive type property, the `add` operations has the same semantics as `replace` and will overwrite the existing value.
 
 ### Matching {#partial-matching}
 
