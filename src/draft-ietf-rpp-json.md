@@ -581,7 +581,7 @@ The server MUST process the patch operations in the order in which they appear i
 For each patch operation the server MUST perform the following steps. (#fig-partial-update-operation) shows the steps for a single patch operation, (#fig-partial-update-simple) shows the handling of a primitive type value or an object, and (#fig-partial-update-array) shows the handling of an array.
 
 1. Check the operation: the `op` must be one of "add", "remove" or "replace". JSON Patch operations other than these are not allowed.
-2. Resolve the path: the `path` must point to an existing field or element of the resource object.
+2. Resolve the path: the `path` must point to an existing property in the JSON object or a non-existing but allowed property defined in the JSON Schema of the object.
 3. Determine the type of the target that the `path` points to:
     - A primitive type value (for example a string, number or boolean), or an object: continue with step 4.
     - An array: continue with step 5.
