@@ -34,6 +34,8 @@ The sub-chapter determines what `@type` rules apply:
 | `Contact Data Object`        | **required** — error if missing  | top-level example required     |
 | `Host Data Object`           | **required** — error if missing  | top-level example required     |
 | `Organisation Data Object`   | **required** — error if missing  | top-level example required     |
+| `Discovery Data Object`      | **required** — error if missing  | top-level example required     |
+| `Profile Data Object`        | **required** — error if missing  | top-level example required     |
 
 ### Rules checked per schema block
 - Must be valid JSON

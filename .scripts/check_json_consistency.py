@@ -85,6 +85,8 @@ SCHEMA_SUBCHAPTER_TYPE_RULES: dict[str, str] = {
     "Contact Data Object":       "required",
     "Host Data Object":          "required",
     "Organisation Data Object":  "required",
+    "Discovery Data Object":     "required",
+    "Profile Data Object":       "required",
 }
 
 # Which subchapters require a top-level example (the @type must appear as the
@@ -96,6 +98,8 @@ SCHEMA_SUBCHAPTER_NEEDS_TOPLEVEL_EXAMPLE: set[str] = {
     "Contact Data Object",
     "Host Data Object",
     "Organisation Data Object",
+    "Discovery Data Object",
+    "Profile Data Object",
 }
 
 
