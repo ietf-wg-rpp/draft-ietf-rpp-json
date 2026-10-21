@@ -467,6 +467,43 @@ Example (Domain Name Data Object):
 
 Rule 26: When a transfer request or other operation requires authorization information (e.g., EPP-style authinfo), the client MUST NOT include the `authInfo` object in the JSON request body. Instead, the client MUST convey the authorization information using the `RPP-Authorization` HTTP request header as defined in [@!I-D.ietf-rpp-core]. Servers MUST reject any request that includes an `authInfo` object in the JSON body with an appropriate error response.
 
+## JSON Schema Composition Rules
+
+Rule 27: The JSON Schema definitions of all RPP component objects and data objects MUST be located in a single shared `$defs` object at the top level of the RPP schema document. The key of a definition in the shared `$defs` object MUST be its Identifier for a component object. For a data object, the key MUST be its Identifier, followed by a `.` and the name of the operation, such as `createProcess.read`. Types defined by an external specification, for example the JSContact `Card`, are not subject to this rule; they are embedded as described in the External Type Embedding Rules and MAY use a key that is not derived from an RPP Identifier.
+
+A schema that refers to another component object or data object MUST use the `$ref` keyword with a JSON Pointer fragment to the definition in the shared `$defs` object, for example `{ "$ref": "#/$defs/period" }`.
+
+The final RPP schema document, containing the shared `$defs` object with all sub-schemas, MUST have an `$id` keyword whose value is an absolute URI without a fragment, serving as the stable identifier of the complete RPP schema document.
+
+Example (structure of the final RPP schema document):
+
+```json
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:ietf:params:rpp:schema:json-1.0",
+  "$defs": {
+    "period": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "period" },
+        "value": { "type": "integer" },
+        "unit":  { "type": "string", "enum": ["y", "m"] }
+      },
+      "required": ["@type", "value", "unit"]
+    },
+    "domainCreateProcess.create": {
+      "type": "object",
+      "properties": {
+        "@type":     { "type": "string", "const": "domainCreateProcess" },
+        "processId": { "type": "string", "readOnly": true },
+        "period":    { "$ref": "#/$defs/period" }
+      },
+      "required": ["@type"]
+    }
+  }
+}
+```
+
 ### Inheritance
 
 RPP Data Objects and Component Objects MAY inherit the data elements and operations of another object. The JSON schema for an object must include all the inherited data elements and constraints from its base object, using a flat structure where all properties are defined at the top level of the schema, rather than nested under an `"allOf"` or `"anyOf"` construct.
@@ -985,7 +1022,7 @@ Example of a partial update request for a organisation object to add status "lin
 
 This section provides normative JSON Schema definitions for RPP component objects and resource objects. All schemas use JSON Schema draft 2020-12 [@!I-D.ietf-jsonschema-json-schema].
 
-<!-- TODO: can we say normative for json schema definitions? -->
+
 
 ## Common Data Types Schemas
 
@@ -4878,6 +4915,7 @@ TODO
 
 ## Version draft-ietf-rpp-json-00 to draft-ietf-rpp-json-01
 
+- Added section "JSON Schema Composition Rules". (Issue #102)
 - Added schemas and examples for the Discovery and Profile Data Objects. (Issue #92)
 - Added schemas and examples related to service messages. (Issue #82)
 - Added IANA registration for the "application/rpp+json" media type (Issue #84)
