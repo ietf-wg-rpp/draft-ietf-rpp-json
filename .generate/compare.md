@@ -150,14 +150,13 @@
 ## `restoreProcess.create` (draft line 2055) -> `restoreProcess.create`
 
 ## `restoreProcess.read` (draft line 2074) -> `restoreProcess.read`
-- properties only in generated: processId, restoreReport
+- properties only in generated: processId
 - `restoreStatus.enum`: draft=["pendingRestore", "restored", "rgpPendingDelete"] generated=null [prose constraint]
 
 ## `domainObject.create` (draft line 2114) -> `domainName.create`
 - properties only in generated: status
 - required: draft=['@type', 'name'] generated=['@type', 'name', 'status']
 - `name.format`: draft=null generated="hostname"
-- `registrant.$ref`: draft="contact.reference" generated="contact.create"
 - `processes.properties.createProcess.items.$ref`: draft="createProcess.create" generated="domainCreateProcess.create"
 - `processes.properties.createProcess.maxItems`: draft=1 generated=null [prose constraint]
 
@@ -168,12 +167,10 @@
 - `status.items.$ref`: draft="<status>" generated="domainStatus"
 - `status.minItems`: draft=null generated=1
 - `status.readOnly`: draft=true generated=null
-- `registrant.$ref`: draft="contact.reference" generated="contact.read"
 
 ## `domainObject.update` (draft line 2221) -> `domainName.update`
 - properties only in generated: status
 - required: draft=['@type'] generated=['@type', 'status']
-- `registrant.$ref`: draft="contact.reference" generated="contact.update"
 
 ## `renewProcess.create.domain` (draft line 2260) -> `renewProcess.create`
 - draft structure: $ref alias -> renewProcess.create
@@ -227,7 +224,7 @@
 
 ## `contactObject.create` (draft line 2414) -> `contact.create`
 - draft structure: unevaluatedProperties: false
-- properties only in generated: status, disclose, processes
+- properties only in generated: status, disclose
 - required: draft=['@type', 'contactInfo', 'id'] generated=['@type', 'contactInfo', 'id', 'status']
 - `id.$ref`: draft=null generated="identifier"
 - `id.type`: draft="string" generated=null
@@ -280,7 +277,7 @@
 - `id.type`: draft="string" generated=null
 
 ## `hostObject.create` (draft line 2536) -> `host.create`
-- properties only in generated: status, processes
+- properties only in generated: status
 - required: draft=['@type', 'hostName'] generated=['@type', 'hostName', 'status']
 
 ## `hostObject.read` (draft line 2558) -> `host.read`
@@ -295,10 +292,9 @@
 - `hostName.readOnly`: draft=true generated=null
 
 ## `organisationObject.create` (draft line 2621) -> `organisation.create`
-- properties only in generated: status, users, processes
+- properties only in generated: status, users
 - required: draft=['@type', 'id', 'roles'] generated=['@type', 'id', 'roles', 'status']
 - `id.writeOnly`: draft=null generated=true
-- `parent.$ref`: draft="organisation.reference" generated="organisation.create"
 
 ## `organisationObject.read` (draft line 2660) -> `organisation.read`
 - draft structure: $ref alias -> organisationObject.create
@@ -306,7 +302,6 @@
 - properties only in generated: processes
 - `@type.readOnly`: draft=null generated=true
 - `id.readOnly`: draft=null generated=true
-- `parent.$ref`: draft="organisation.reference" generated="organisation.read"
 - `status.items.$ref`: draft="<status>" generated="organisationStatus"
 - `status.minItems`: draft=null generated=1
 - `status.readOnly`: draft=true generated=null
@@ -314,7 +309,6 @@
 ## `organisationObject.update` (draft line 2700) -> `organisation.update`
 - required: draft=['@type'] generated=['@type', 'roles', 'status']
 - `roles.minProperties`: draft=null generated=1
-- `parent.$ref`: draft="organisation.reference" generated="organisation.update"
 - `status.items.$ref`: draft="<status>" generated="organisationStatus"
 - `status.minItems`: draft=null generated=1
 - `status.readOnly`: draft=true generated=null
@@ -337,7 +331,7 @@
 
 ## `userObject.create` (draft line 2893) -> `user.create`
 - properties only in draft: organisationId
-- properties only in generated: id, processes
+- properties only in generated: id
 - required: draft=['@type', 'details', 'organisationId'] generated=['@type', 'details', 'id', 'status']
 - `details.$ref`: draft="contact.reference" generated="Card"
 - `status.items.enum`: draft=["active", "suspended", "deactivated", "pending"] generated=null [prose constraint]
@@ -373,7 +367,6 @@
 - `links.items.properties.object.pattern`: draft="^https://" generated=null [prose constraint]
 
 ## `profileObject.read` (draft line 3097) -> `profile.read`
-- `baseProfile.$ref`: draft="profile.reference" generated="profile.read"
 - `baseProfile.readOnly`: draft=null generated=true
 
 ## `profileObject.reference` (draft line 3134) -> `profile.reference`
@@ -381,4 +374,4 @@
 
 ## Generated definitions without a draft counterpart
 
-`domainStatus`, `hostStatus`, `contactStatus`, `organisationRoleStatus`, `organisationStatus`, `disclose`, `baseProcess`, `restoreProcess.update`, `domainCreateProcess.create`, `domainCreateProcess.read`, `host.update`, `message.query`
+`domainStatus`, `hostStatus`, `contactStatus`, `organisationRoleStatus`, `organisationStatus`, `disclose`, `baseProcess`, `restoreProcess.report`, `domainCreateProcess.create`, `domainCreateProcess.read`, `host.update`, `message.query`

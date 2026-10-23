@@ -29,6 +29,12 @@ Generation decisions (precedence: draft rules > YAML content > draft schema shap
   * Inheritance ("extends") is flattened (draft section "Inheritance").
   * Polymorphism: a reference to a base object accepts every object extending
     it, expressed as "oneOf" over the candidates (each fixed by its "@type").
+  * Reference views use the exported "unique_identifier"; objects without
+    one get no reference view.
+  * Create views carry "processes" only when the Data Object supports a
+    Create Process Object ("supported_processes" or an owned process, "owner").
+  * Elements with Visibility "onDemand" are not required in read views.
+    Direct Access does not change the representation.
   * Prose constraints are NOT converted to keywords; only the structured
     attributes (cardinality, mutability, data type) are used.
 """
@@ -248,37 +254,39 @@ class Model:
         return oid
 
     def owner_of(self, proc):
-        """Owner resource of an object-specific process, derived from its identifier."""
-        for base in proc.ancestors():
-            suffix = uc_first(base.id)
-            if base.kind == "Process" and proc.id.endswith(suffix) and proc.id != base.id:
-                prefix = proc.id[: -len(suffix)]
-                for r in self.objs.values():
-                    if r.kind == "Resource" and r.id.startswith(prefix):
-                        self.diag.add("yaml-gap",
-                                      "Owner Data Object of an object-specific Process Object "
-                                      "is not exported; derived from the identifier prefix",
-                                      f"{proc.id} -> {r.id}")
-                        return r
-        return None
+        """Owner Data Object of an object-specific process ("owner" in the export)."""
+        oid = proc.raw.get("owner") or ""
+        if not oid:
+            return None
+        owner = self.objs.get(oid)
+        if owner is None or owner.kind != "Resource":
+            self.diag.add("yaml-issue", f"Owner '{oid}' is not a Data Object", proc.id)
+            return None
+        return owner
 
     def unique_id(self, o):
-        """Unique Identifier element; not exported in the YAML, so derived heuristically."""
-        cands = [e for e in o.elements if e["cardinality"] == "1"]
-        pick = None
-        if o.kind == "Process":
-            pick = next((e for e in o.elements if e["identifier"] == "processId"), None)
+        """Unique Identifier element ("unique_identifier" in the export), or None."""
+        uid = o.raw.get("unique_identifier") or ""
+        if not uid:
+            return None
+        pick = next((e for e in o.elements if e["identifier"] == uid), None)
         if pick is None:
-            pick = next((e for e in cands if e["data_type"].rstrip(".")
-                         in ("Identifier", "Fully Qualified Domain Name")), None)
-        if pick is None:
-            pick = next((e for e in cands if e["identifier"] in ("id", "name")), None)
-        if pick is not None:
-            self.diag.add("yaml-gap",
-                          "'Unique Identifier' object attribute is not exported; "
-                          "derived heuristically for the reference view",
-                          f"{o.id} -> {pick['identifier']}")
+            self.diag.add("yaml-issue", f"Unique Identifier '{uid}' is not a data element of the object",
+                          o.id)
         return pick
+
+    def supported_processes(self, res):
+        """Process Objects a Data Object supports: inherited unmodified plus those it owns."""
+        out = []
+        for sp in res.raw.get("supported_processes") or []:
+            p = self.lookup(sp["name"], f"{res.id} supported process")
+            if p is None or p.kind != "Process":
+                self.diag.add("yaml-issue", f"Supported process '{sp['name']}' is not a Process Object",
+                              res.id)
+            else:
+                out.append(p)
+        out.extend(p for p in self.objs.values() if p.kind == "Process" and self.owner_of(p) is res)
+        return out
 
 
 # ---------------------------------------------------------------------------
@@ -348,6 +356,7 @@ class Generator:
                                       "an open object placeholder is generated (Rule 15)",
                           f"{profile}:{name}")
         defs.update(ordered)
+        self.check_processes()
         self.defs = defs
         return {"$schema": SCHEMA_URI, "$defs": defs}
 
@@ -377,13 +386,16 @@ class Generator:
         for e in elements:
             self.add_element(o, e, view, props, required)
         for inp in op_inputs:
+            # Input Data Elements have no Mutability (data-objects §1): client-provided content
             e = dict(inp)
-            e.setdefault("mutability", (inp.get("extra_attributes") or {}).get("mutability", "read-write"))
+            e.setdefault("mutability", "read-write")
             self.add_element(o, e, view, props, required)
 
         if view == "create" and o.kind == "Resource" and \
                 any(e["identifier"] == "processes" for e in o.elements):
-            props["processes"] = self.create_processes_prop(o)
+            prop = self.create_processes_prop(o)
+            if prop is not None:
+                props["processes"] = prop
 
         for p in o.raw.get("operations") or []:
             for par in p.get("params") or []:
@@ -397,8 +409,49 @@ class Generator:
         if ident.startswith("@"):
             self.diag.add("yaml-issue", "Data element name begins with '@' (reserved)", f"{o.id}.{ident}")
         props[ident] = self.element_schema(o, e, view)
-        if self.min_card(e["cardinality"]) >= 1:
+        if e.get("direct_access"):
+            self.direct_access(o, e)
+        on_demand = e.get("visibility") == "onDemand"
+        if on_demand:
+            self.diag.add("rule-gap", "Visibility 'onDemand' has no JSON rule; the element is never "
+                                      "required in read views (output only on request)", f"{o.id}.{ident}")
+        if self.min_card(e["cardinality"]) >= 1 and not (on_demand and view == "read"):
             required.append(ident)
+
+    def direct_access(self, o, e):
+        ctx = f"{o.id}.{e['identifier']}"
+        self.diag.add("rule-gap", "Direct Access (sub-resource addressing) has no JSON rule; "
+                                  "the inline representation is generated unchanged", ctx)
+        dt = e["data_type"].strip().rstrip(".")
+        m = ASSOC_RE.match(dt)
+        target = self.m.lookup(m.group(2) if m else dt)
+        if target is None:
+            self.diag.add("yaml-issue", "Direct Access on a data element that is not an association "
+                                        "with an object", ctx)
+        elif e["cardinality"] not in ("1", "0-1") and \
+                any(self.m.unique_id(c) is None for c in [target] + target.descendants()):
+            self.diag.add("yaml-issue", "Direct Access with cardinality greater than 1 requires the "
+                                        "associated object to define a Unique Identifier", ctx)
+
+    def check_processes(self):
+        """The shared Processes Object vs. the processes each Data Object supports."""
+        comp = self.m.objs.get("processes")
+        if comp is None:
+            return
+        for r in self.m.objs.values():
+            if r.kind != "Resource" or not any(e["identifier"] == "processes" for e in r.elements):
+                continue
+            supported = self.m.supported_processes(r)
+            extra = []
+            for e in comp.elements:
+                m = ASSOC_RE.match(e["data_type"].strip())
+                t = self.m.lookup(m.group(2) if m else e["data_type"])
+                if t is not None and not any(p.is_a(t) for p in supported):
+                    extra.append(e["identifier"])
+            if extra:
+                self.diag.add("rule-gap", "The Processes Object is shared by all Data Objects; no rule "
+                                          "excludes processes a Data Object does not support",
+                              f"{r.id}: {', '.join(extra)}")
 
     def type_prop(self, o, view):
         p = {"type": "string", "const": o.id}
@@ -568,10 +621,11 @@ class Generator:
         return f"{o.id}.read"
 
     def create_processes_prop(self, o):
+        """'processes' of a create view: the Create Process Objects the Data Object supports."""
         base = self.m.objs.get("createProcess")
-        specific = [p for p in self.m.objs.values()
-                    if base is not None and p is not base and p.is_a(base) and self.m.owner_of(p) is o]
-        cands = specific or ([base] if base is not None else [])
+        cands = [p for p in self.m.supported_processes(o) if base is not None and p.is_a(base)]
+        if not cands:
+            return None
         refs = [{"$ref": f"#/$defs/{c.id}.create"} for c in cands]
         self.diag.add("rule-conflict", "Rule 18 requires process data in the 'processes' element of "
                                        "create requests, but 'processes' is read-only and Rule 5 forbids "
