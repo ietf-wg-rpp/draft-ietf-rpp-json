@@ -125,38 +125,44 @@
 #                   prose written directly after its "* Identifier:" bullet).
 #                   Covers every prose paragraph between "* Identifier:" and
 #                   the first "* Authorisation:"/"* Input:"/"* Output:"
-#                   bullet (or the first Input Data Elements / Parameters
-#                   lead-in line), newline-joined
-#                   if there is more than one paragraph.
+#                   bullet, newline-joined if there is more than one
+#                   paragraph.
 #     authorisation: the operation's "* Authorisation:" bullet as a LIST of
 #                   strings, one per top-level sub-bullet (same
 #                   nested-bullet folding as an element's "constraints" —
 #                   deeper nesting, e.g. "Pull transfer:"/"Push transfer:"
 #                   sub-cases, is newline-joined into that entry). Empty
 #                   list if the operation has no Authorisation bullet.
-#     input:        the operation's "* Input:" bullet value as a single
-#                   string, e.g. "Object identifier"; a nested bullet list
-#                   under a blank "* Input:" is newline-joined. Empty string
-#                   if absent.
-#     output:       the operation's "* Output:" bullet value, same rules as
-#                   input. Empty string if absent.
+#     input:        the operation's "* Input:" items, in the draft's
+#                   "Operation Input and Output" notation; [] for "(None)".
+#                   A Data Object operation that declares no Input gets the
+#                   Uniform interface default for its identifier. Each
+#                   Reference / Object / Changes item:
+#                     kind:        "Reference" | "Object" | "Changes"
+#                     target:      an object Name, "This Object" (the object
+#                                  defining the operation) or "Owner Data
+#                                  Object" (of a Process Object)
+#                     elements:    Mutability values of the included data
+#                                  elements; [] for a Reference
+#                     cardinality: number of representations ("1" unless
+#                                  an Object item says otherwise)
+#                   An "Input Data Elements" (content the operation acts
+#                   upon) / "Parameters" (controls processing or output)
+#                   item — Input only, at most once each, neither part of
+#                   the object's state:
+#                     kind:        "Input Data Elements" | "Parameters"
+#                     definitions: one entry per definition, laid out like
+#                                  the draft's "* Data Elements:" list:
+#                                  identifier, name, cardinality,
+#                                  data_type, description, constraints,
+#                                  notes — same meaning as for elements
+#                   null only if neither the operation nor a default
+#                   declares it (reported as [OP IO MISSING]).
+#     output:       the operation's "* Output:" items, same rules as input.
 #     notes:        orphan prose in the operation's body beyond description/
 #                   authorisation/input/output (e.g. a further explanatory
-#                   paragraph after the Authorisation bullet). The lead-in
-#                   lines introducing inputs/params are structure, not
-#                   notes. Empty list if none.
-#     inputs:       Input Data Elements of the operation (content the
-#                   operation acts upon, not part of the object's state),
-#                   from the bullets after a lead-in line such as "The
-#                   following input data elements are defined for this
-#                   operation:". Each with identifier, name, cardinality,
-#                   data_type, description, constraints, notes — same
-#                   meaning as for elements.
-#     params:       Parameters of the operation (control processing or
-#                   output, not part of the object's state), from the
-#                   bullets after a lead-in line such as "The following
-#                   parameters are defined for this operation:". Same
-#                   fields as inputs.
+#                   paragraph after the Authorisation bullet). Empty list
+#                   if none.
 #
 # Every attribute bullet in the draft has a field here: an element, input
 # or parameter attribute the export does not cover makes --yaml-out fail
@@ -2135,13 +2141,26 @@ processes:
     - 'Push transfer:
 
       * Only the sponsoring client is authorised to initiate a push transfer.'
-    input: 'Owner Data Object reference
-
-      Transfer Process Object (create-only and read-write elements)'
-    output: Transfer Process Object
+    input:
+    - kind: Reference
+      target: Owner Data Object
+      elements: []
+      cardinality: '1'
+    - kind: Object
+      target: Transfer Process Object
+      elements:
+      - create-only
+      - read-write
+      cardinality: '1'
+    output:
+    - kind: Object
+      target: Transfer Process Object
+      elements:
+      - create-only
+      - read-write
+      - read-only
+      cardinality: '1'
     notes: []
-    inputs: []
-    params: []
   - identifier: transferRead
     name: Read (Transfer Query)
     description: The Read operation allows a client to determine the real-time status of a pending or
@@ -2150,22 +2169,48 @@ processes:
     - This operation MUST be accessible to both the sponsoring client and the gaining client.
     - Server policy determines whether other clients may query transfer status and what information is
       returned.
-    input: Transfer Process Object reference
-    output: Transfer Process Object
+    input:
+    - kind: Reference
+      target: Owner Data Object
+      elements: []
+      cardinality: '1'
+    - kind: Reference
+      target: Transfer Process Object
+      elements: []
+      cardinality: '1'
+    output:
+    - kind: Object
+      target: Transfer Process Object
+      elements:
+      - create-only
+      - read-write
+      - read-only
+      cardinality: '1'
     notes: []
-    inputs: []
-    params: []
   - identifier: transferDelete
     name: Delete (Transfer Cancel)
     description: The Delete operation allows the initiating client to cancel its own pending transfer
       request.
     authorisation:
     - Only the initiating client (the client that originally requested the transfer).
-    input: Transfer Process Object reference
-    output: Transfer Process Object or nothing
+    input:
+    - kind: Reference
+      target: Owner Data Object
+      elements: []
+      cardinality: '1'
+    - kind: Reference
+      target: Transfer Process Object
+      elements: []
+      cardinality: '1'
+    output:
+    - kind: Object
+      target: Transfer Process Object
+      elements:
+      - create-only
+      - read-write
+      - read-only
+      cardinality: 0-1
     notes: []
-    inputs: []
-    params: []
   - identifier: transferApprove
     name: Approve
     description: The Approve operation allows the appropriate client to accept a pending transfer request.
@@ -2176,11 +2221,24 @@ processes:
     - 'Push transfer:
 
       * only the designated gaining client'
-    input: Transfer Process Object reference
-    output: Transfer Process Object
+    input:
+    - kind: Reference
+      target: Owner Data Object
+      elements: []
+      cardinality: '1'
+    - kind: Reference
+      target: Transfer Process Object
+      elements: []
+      cardinality: '1'
+    output:
+    - kind: Object
+      target: Transfer Process Object
+      elements:
+      - create-only
+      - read-write
+      - read-only
+      cardinality: '1'
     notes: []
-    inputs: []
-    params: []
   - identifier: transferReject
     name: Reject
     description: The Reject operation allows the appropriate client to decline a pending transfer request.
@@ -2191,19 +2249,34 @@ processes:
     - 'Push transfer:
 
       * only the designated gaining client'
-    input: Transfer Process Object reference
-    output: Transfer Process Object
+    input:
+    - kind: Reference
+      target: Owner Data Object
+      elements: []
+      cardinality: '1'
+    - kind: Reference
+      target: Transfer Process Object
+      elements: []
+      cardinality: '1'
+    - kind: Input Data Elements
+      definitions:
+      - identifier: reason
+        name: Reason
+        cardinality: 0-1
+        data_type: String
+        description: A human-readable text describing the rationale for rejecting the transfer request.
+        constraints:
+        - In EPP Compatibility Profile this data element MUST NOT be used
+        notes: []
+    output:
+    - kind: Object
+      target: Transfer Process Object
+      elements:
+      - create-only
+      - read-write
+      - read-only
+      cardinality: '1'
     notes: []
-    inputs:
-    - identifier: reason
-      name: Reason
-      cardinality: 0-1
-      data_type: String
-      description: A human-readable text describing the rationale for rejecting the transfer request.
-      constraints:
-      - In EPP Compatibility Profile this data element MUST NOT be used
-      notes: []
-    params: []
   subsections: []
   supported_processes: []
 - identifier: restoreProcess
@@ -2269,37 +2342,67 @@ processes:
       is not in the `redemptionPeriod` state.
     authorisation:
     - Only the sponsoring client is authorised to perform this operation.
-    input: Restore Process Object (create-only and read-write elements)
-    output: Restore Process Object
+    input:
+    - kind: Reference
+      target: Owner Data Object
+      elements: []
+      cardinality: '1'
+    - kind: Object
+      target: Restore Process Object
+      elements:
+      - create-only
+      - read-write
+      cardinality: '1'
+    - kind: Input Data Elements
+      definitions:
+      - identifier: restoreReport
+        name: Restore Report
+        cardinality: 0-1
+        data_type: Restore Report Object
+        description: An OPTIONAL inline restore report. If provided, the server processes the request
+          and the report atomically. If the server does not require a restore report, this element MUST
+          NOT be present and the restore is completed immediately. If the server requires a report and
+          this element is absent, the object transitions to `pendingRestore` state awaiting a subsequent
+          Report operation.
+        constraints:
+        - MUST NOT be provided if the server does not require a restore report.
+        - In EPP Compatibility Profile, corresponds to `op="request"` (without report) or a combined `op="request"`
+          followed immediately by `op="report"` as defined in [@!RFC3915].
+        notes: []
+    output:
+    - kind: Object
+      target: Restore Process Object
+      elements:
+      - create-only
+      - read-write
+      - read-only
+      cardinality: '1'
     notes: []
-    inputs:
-    - identifier: restoreReport
-      name: Restore Report
-      cardinality: 0-1
-      data_type: Restore Report Object
-      description: An OPTIONAL inline restore report. If provided, the server processes the request and
-        the report atomically. If the server does not require a restore report, this element MUST NOT
-        be present and the restore is completed immediately. If the server requires a report and this
-        element is absent, the object transitions to `pendingRestore` state awaiting a subsequent Report
-        operation.
-      constraints:
-      - MUST NOT be provided if the server does not require a restore report.
-      - In EPP Compatibility Profile, corresponds to `op="request"` (without report) or a combined `op="request"`
-        followed immediately by `op="report"` as defined in [@!RFC3915].
-      notes: []
-    params: []
   - identifier: read
     name: Read (Restore Query)
     description: The Read operation allows the sponsoring client to retrieve the current state of the
       RGP process for an object.
     authorisation:
     - Only the sponsoring client is authorised to perform this operation.
-    input: Object Identifier
-    output: Restore Process Object
+    input:
+    - kind: Reference
+      target: Owner Data Object
+      elements: []
+      cardinality: '1'
+    - kind: Reference
+      target: Restore Process Object
+      elements: []
+      cardinality: '1'
+    output:
+    - kind: Object
+      target: Restore Process Object
+      elements:
+      - create-only
+      - read-write
+      - read-only
+      cardinality: '1'
     notes:
     - In EPP Compatibility Profile this operation is not supported.
-    inputs: []
-    params: []
   - identifier: report
     name: Report
     description: 'This operation is OPTIONAL, only for servers which support or require submission of
@@ -2310,19 +2413,34 @@ processes:
       server MUST reject this operation if the object is not in the `pendingRestore` state.'
     authorisation:
     - Only the sponsoring client is authorised to perform this operation.
-    input: Object Identifier
-    output: Restore Process Object
-    notes: []
-    inputs:
-    - identifier: restoreReport
-      name: Restore Report
+    input:
+    - kind: Reference
+      target: Owner Data Object
+      elements: []
       cardinality: '1'
-      data_type: Restore Report Object
-      description: The restore report to be submitted as part of the RGP process.
-      constraints:
-      - In EPP Compatibility Profile, corresponds to `op="report"` as defined in [@!RFC3915].
-      notes: []
-    params: []
+    - kind: Reference
+      target: Restore Process Object
+      elements: []
+      cardinality: '1'
+    - kind: Input Data Elements
+      definitions:
+      - identifier: restoreReport
+        name: Restore Report
+        cardinality: '1'
+        data_type: Restore Report Object
+        description: The restore report to be submitted as part of the RGP process.
+        constraints:
+        - In EPP Compatibility Profile, corresponds to `op="report"` as defined in [@!RFC3915].
+        notes: []
+    output:
+    - kind: Object
+      target: Restore Process Object
+      elements:
+      - create-only
+      - read-write
+      - read-only
+      cardinality: '1'
+    notes: []
   subsections: []
   supported_processes: []
 - identifier: renewProcess
@@ -2366,14 +2484,26 @@ processes:
       Process Object.
     authorisation:
     - Only the sponsoring client is authorised to perform this operation.
-    input: 'Owner Data Object reference
-
-      Renew Process Object (create-only and read-write elements)'
-    output: Full object (read-write and read-only properties), or a minimum set of properties affected
-      by the operation (Expiry Date).
+    input:
+    - kind: Reference
+      target: Owner Data Object
+      elements: []
+      cardinality: '1'
+    - kind: Object
+      target: Renew Process Object
+      elements:
+      - create-only
+      - read-write
+      cardinality: '1'
+    output:
+    - kind: Object
+      target: Renew Process Object
+      elements:
+      - create-only
+      - read-write
+      - read-only
+      cardinality: '1'
     notes: []
-    inputs: []
-    params: []
   subsections: []
   supported_processes: []
 - identifier: createProcess
@@ -2403,22 +2533,46 @@ processes:
       the creation of the owning resource object.
     authorisation:
     - Inherited from the resource object create operation that initiates this process.
-    input: Create Process Object (create-only and read-write elements)
-    output: Create Process Object
+    input:
+    - kind: Object
+      target: Create Process Object
+      elements:
+      - create-only
+      - read-write
+      cardinality: '1'
+    output:
+    - kind: Object
+      target: Create Process Object
+      elements:
+      - create-only
+      - read-write
+      - read-only
+      cardinality: '1'
     notes: []
-    inputs: []
-    params: []
   - identifier: read
     name: Read
     description: The Read operation retrieves the result or status of the creation, if the server exposes
       the process resource.
     authorisation:
     - Only the sponsoring client is authorised to perform this operation.
-    input: Object Identifier
-    output: Create Process Object
+    input:
+    - kind: Reference
+      target: Owner Data Object
+      elements: []
+      cardinality: '1'
+    - kind: Reference
+      target: Create Process Object
+      elements: []
+      cardinality: '1'
+    output:
+    - kind: Object
+      target: Create Process Object
+      elements:
+      - create-only
+      - read-write
+      - read-only
+      cardinality: '1'
     notes: []
-    inputs: []
-    params: []
   subsections: []
   supported_processes: []
 - identifier: domainCreateProcess
@@ -2454,22 +2608,46 @@ processes:
       domain creation.
     authorisation:
     - Inherited from the Domain Name Data Object create operation that initiates this process.
-    input: Domain Create Process Object (create-only and read-write elements)
-    output: Domain Create Process Object
+    input:
+    - kind: Object
+      target: Domain Create Process Object
+      elements:
+      - create-only
+      - read-write
+      cardinality: '1'
+    output:
+    - kind: Object
+      target: Domain Create Process Object
+      elements:
+      - create-only
+      - read-write
+      - read-only
+      cardinality: '1'
     notes: []
-    inputs: []
-    params: []
   - identifier: read
     name: Read
     description: The Read operation retrieves the result or status of the domain creation, if the server
       exposes the process resource.
     authorisation:
     - Only the sponsoring client is authorised to perform this operation.
-    input: Object Identifier
-    output: Domain Create Process Object
+    input:
+    - kind: Reference
+      target: Owner Data Object
+      elements: []
+      cardinality: '1'
+    - kind: Reference
+      target: Domain Create Process Object
+      elements: []
+      cardinality: '1'
+    output:
+    - kind: Object
+      target: Domain Create Process Object
+      elements:
+      - create-only
+      - read-write
+      - read-only
+      cardinality: '1'
     notes: []
-    inputs: []
-    params: []
   subsections: []
   supported_processes: []
 - identifier: domainTransferProcess
@@ -2483,18 +2661,6 @@ processes:
     the common transfer process.
   preamble: []
   elements:
-  - identifier: processId
-    name: Process ID
-    cardinality: 0-1
-    mutability: read-only
-    data_type: String
-    description: A server-assigned identifier of the process instance, unique within the scope of the
-      Owner Data Object.
-    constraints:
-    - The value is set by the server and cannot be specified by the client.
-    direct_access: false
-    visibility: default
-    notes: []
   - identifier: expiryDate
     name: Expiry Date
     cardinality: 0-1
@@ -2531,13 +2697,26 @@ processes:
       a Domain Transfer Process Object, extending the common Transfer Create Operation (#transfer-create).
     authorisation:
     - as defined in (#transfer-create).
-    input: 'Owner Data Object reference
-
-      Domain Transfer Process Object (create-only and read-write elements)'
-    output: Domain Transfer Process Object
+    input:
+    - kind: Reference
+      target: Owner Data Object
+      elements: []
+      cardinality: '1'
+    - kind: Object
+      target: Domain Transfer Process Object
+      elements:
+      - create-only
+      - read-write
+      cardinality: '1'
+    output:
+    - kind: Object
+      target: Domain Transfer Process Object
+      elements:
+      - create-only
+      - read-write
+      - read-only
+      cardinality: '1'
     notes: []
-    inputs: []
-    params: []
   subsections: []
   supported_processes: []
 resources:
@@ -2732,8 +2911,27 @@ resources:
     - Generally each client is authorised to create new domain objects becoming a sponsoring client. This
       can be however constrained by the server policy in many ways, i.e. by applying rate limiting, billing
       related constraints or compliance locks.
-    input: ''
-    output: ''
+    input:
+    - kind: Object
+      target: This Object
+      elements:
+      - create-only
+      - read-write
+      cardinality: '1'
+    - kind: Object
+      target: Domain Create Process Object
+      elements:
+      - create-only
+      - read-write
+      cardinality: '1'
+    output:
+    - kind: Object
+      target: This Object
+      elements:
+      - create-only
+      - read-write
+      - read-only
+      cardinality: '1'
     notes:
     - The Create operation implicitly initiates the Domain Create Process Object (#domain-create-process),
       which carries the creation-specific inputs that are consumed during creation and not persisted as
@@ -2743,8 +2941,6 @@ resources:
       IDN table, the server MUST return an error indicating the invalid code point. If the name does not
       map to the provided Unicode Name (uName), the server MUST respond with an appropriate error indicating
       the mismatch.
-    inputs: []
-    params: []
   - identifier: read
     name: Read Operation
     description: The Read operation allows a client to retrieve the data elements of a Domain Name resource.
@@ -2763,48 +2959,82 @@ resources:
 
       * Full object, however some properties only authorised to the sponsoring client MAY be redacted
       according to server policy'
-    input: ''
-    output: ''
+    input:
+    - kind: Reference
+      target: This Object
+      elements: []
+      cardinality: '1'
+    - kind: Parameters
+      definitions:
+      - identifier: hostsFilter
+        name: Hosts Filter
+        cardinality: 0-1
+        data_type: String
+        description: Controls which host information is returned with the object.
+        constraints:
+        - The value MUST be one of "all", "del" (delegated), "sub" (subordinate), or "none". The default
+          value is "all".
+        notes: []
+    output:
+    - kind: Object
+      target: This Object
+      elements:
+      - create-only
+      - read-write
+      - read-only
+      cardinality: '1'
     notes: []
-    inputs: []
-    params:
-    - identifier: hostsFilter
-      name: Hosts Filter
-      cardinality: 0-1
-      data_type: String
-      description: Controls which host information is returned with
-      constraints: []
-      notes:
-      - the object.
-      - (delegated), "sub" (subordinate), or "none". The default value is "all".
   - identifier: update
     name: Update Operation
     description: The Update operation allows a client to modify the read-write data elements of an existing
       Domain Name resource.
     authorisation:
     - Only sponsoring client is authorised to perform this operation
-    input: ''
-    output: ''
+    input:
+    - kind: Reference
+      target: This Object
+      elements: []
+      cardinality: '1'
+    - kind: Changes
+      target: This Object
+      elements:
+      - read-write
+      cardinality: '1'
+    output:
+    - kind: Object
+      target: This Object
+      elements:
+      - create-only
+      - read-write
+      - read-only
+      cardinality: '1'
     notes:
     - At least one change to a read-write data element MUST be provided, unless the operation is extended.
       The registrant and the Authorisation Information MAY be removed. Contacts, nameservers, and the
       registrant to be added MUST be known to the server.
-    inputs: []
-    params: []
   - identifier: delete
     name: Delete Operation
     description: The Delete operation allows a client to remove an existing Domain Name resource. The
       operation targets a specific data object identified by its name.
     authorisation:
     - Only sponsoring client is authorised to perform this operation
-    input: ''
-    output: ''
+    input:
+    - kind: Reference
+      target: This Object
+      elements: []
+      cardinality: '1'
+    output:
+    - kind: Object
+      target: This Object
+      elements:
+      - create-only
+      - read-write
+      - read-only
+      cardinality: 0-1
     notes:
     - The server SHOULD reject a delete request if subordinate host objects are associated with the domain
       name.
     - The error response SHOULD indicate the related subordinate host objects.
-    inputs: []
-    params: []
   subsections: []
   supported_processes:
   - name: Renew Process
@@ -2920,12 +3150,23 @@ resources:
     - Generally each client is authorised to create new contact objects becoming a sponsoring client.
       This can be however constrained by the server policy, e.g. by applying rate limiting or compliance
       locks.
-    input: ''
-    output: ''
+    input:
+    - kind: Object
+      target: This Object
+      elements:
+      - create-only
+      - read-write
+      cardinality: '1'
+    output:
+    - kind: Object
+      target: This Object
+      elements:
+      - create-only
+      - read-write
+      - read-only
+      cardinality: '1'
     notes:
     - 'In EPP Compatibility Profile, the following data elements MUST be provided:'
-    inputs: []
-    params: []
   - identifier: read
     name: Read Operation
     description: The Read operation allows a client to retrieve the data elements of a Contact resource.
@@ -2944,8 +3185,19 @@ resources:
 
       * Full object, however some properties only authorised to the sponsoring client MAY be redacted
       according to server policy'
-    input: ''
-    output: ''
+    input:
+    - kind: Reference
+      target: This Object
+      elements: []
+      cardinality: '1'
+    output:
+    - kind: Object
+      target: This Object
+      elements:
+      - create-only
+      - read-write
+      - read-only
+      cardinality: '1'
     notes:
     - Authorisation Information (`authInfo`) MUST NOT be provided in the response if the querying client
       is not the current sponsoring client.
@@ -2953,36 +3205,57 @@ resources:
       Object (`disclose`), whether set by the server operator's default data-collection policy or by the
       sponsoring client for the contact. Data elements marked for non-disclosure MUST NOT be included
       in responses to unauthorised clients.
-    inputs: []
-    params: []
   - identifier: update
     name: Update Operation
     description: The Update operation allows a client to modify the attributes of an existing Contact
       resource.
     authorisation:
     - Only sponsoring client is authorised to perform this operation
-    input: ''
-    output: ''
+    input:
+    - kind: Reference
+      target: This Object
+      elements: []
+      cardinality: '1'
+    - kind: Changes
+      target: This Object
+      elements:
+      - read-write
+      cardinality: '1'
+    output:
+    - kind: Object
+      target: This Object
+      elements:
+      - create-only
+      - read-write
+      - read-only
+      cardinality: '1'
     notes:
     - 'The following aspects of the contact object MAY be modified:'
     - At least one change MUST be provided, unless the operation is extended.
-    inputs: []
-    params: []
   - identifier: delete
     name: Delete Operation
     description: The Delete operation allows a client to remove an existing Contact resource. The operation
       targets a specific data object identified by its Handle ID.
     authorisation:
     - Only sponsoring client is authorised to perform this operation
-    input: ''
-    output: ''
+    input:
+    - kind: Reference
+      target: This Object
+      elements: []
+      cardinality: '1'
+    output:
+    - kind: Object
+      target: This Object
+      elements:
+      - create-only
+      - read-write
+      - read-only
+      cardinality: 0-1
     notes:
     - The server SHOULD reject a delete request if the contact object is associated with other known objects
       (e.g., domain names). An associated contact SHOULD NOT be deleted until associations with other
       known objects have been broken.
     - The error response SHOULD indicate the existing object associations.
-    inputs: []
-    params: []
   subsections: []
   supported_processes:
   - name: Transfer Process
@@ -3069,8 +3342,21 @@ resources:
     authorisation:
     - Generally each client is authorised to create new host objects becoming a sponsoring client. This
       can be however constrained by the server policy, e.g. by applying rate limiting or compliance locks.
-    input: ''
-    output: ''
+    input:
+    - kind: Object
+      target: This Object
+      elements:
+      - create-only
+      - read-write
+      cardinality: '1'
+    output:
+    - kind: Object
+      target: This Object
+      elements:
+      - create-only
+      - read-write
+      - read-only
+      cardinality: '1'
     notes:
     - If the host name exists in a namespace for which the server is authoritative, then the superordinate
       domain of the host MUST be known to the server before the host object can be created.
@@ -3078,8 +3364,6 @@ resources:
       If the host name exists in a namespace for which the server is authoritative and is subordinate
       to an existing domain, IP addresses SHOULD be provided. If the host name is external to the server's
       namespace, IP addresses are not required by the DNS and MAY be omitted.
-    inputs: []
-    params: []
   - identifier: read
     name: Read Operation
     description: The Read operation allows a client to retrieve the data elements of a Host Data Object.
@@ -3087,19 +3371,44 @@ resources:
     - Any client is authorised to retrieve the full object. In EPP Compatibility Profile, host objects
       do not carry authorisation information and there is no distinction based on client identity as described
       in [@!RFC5732, section 3.1.2].
-    input: ''
-    output: ''
+    input:
+    - kind: Reference
+      target: This Object
+      elements: []
+      cardinality: '1'
+    output:
+    - kind: Object
+      target: This Object
+      elements:
+      - create-only
+      - read-write
+      - read-only
+      cardinality: '1'
     notes: []
-    inputs: []
-    params: []
   - identifier: update
     name: Update Operation
     description: The Update operation allows a client to modify the attributes of an existing Host Data
       Object. The operation targets a specific data object identified by its host name.
     authorisation:
     - Only sponsoring client is authorised to perform this operation
-    input: ''
-    output: ''
+    input:
+    - kind: Reference
+      target: This Object
+      elements: []
+      cardinality: '1'
+    - kind: Changes
+      target: This Object
+      elements:
+      - read-write
+      cardinality: '1'
+    output:
+    - kind: Object
+      target: This Object
+      elements:
+      - create-only
+      - read-write
+      - read-only
+      cardinality: '1'
     notes:
     - Host name changes MAY require the addition or removal of IP addresses to be accepted by the server.
       IP address association MAY be subject to server policies for provisioning hosts as name servers.
@@ -3111,23 +3420,30 @@ resources:
       sponsored by a different client. Attempts to update such hosts directly MUST fail. The change can
       be provisioned by creating a new External host with a new name and any needed new attributes, and
       subsequently updating the other objects sponsored by the client.'
-    inputs: []
-    params: []
   - identifier: delete
     name: Delete Operation
     description: The Delete operation allows a client to remove an existing Host Data Object. The operation
       targets a specific data object identified by its host name.
     authorisation:
     - Only sponsoring client is authorised to perform this operation
-    input: ''
-    output: ''
+    input:
+    - kind: Reference
+      target: This Object
+      elements: []
+      cardinality: '1'
+    output:
+    - kind: Object
+      target: This Object
+      elements:
+      - create-only
+      - read-write
+      - read-only
+      cardinality: 0-1
     notes:
     - The server SHOULD reject a delete request if the host object is associated with any other object,
       such as a domain name object. Deleting a host object without first breaking existing associations
       can cause DNS resolution failure for domain objects that refer to the deleted host object.
     - The error response SHOULD indicate the related associated objects.
-    inputs: []
-    params: []
   subsections: []
   supported_processes:
   - name: Restore Process
@@ -3264,13 +3580,24 @@ resources:
       Data Object.
     authorisation:
     - Generally only registry clients are authorised to create new organisation objects.
-    input: ''
-    output: ''
+    input:
+    - kind: Object
+      target: This Object
+      elements:
+      - create-only
+      - read-write
+      cardinality: '1'
+    output:
+    - kind: Object
+      target: This Object
+      elements:
+      - create-only
+      - read-write
+      - read-only
+      cardinality: '1'
     notes:
     - An organisation object MUST include at least one role on creation. The server MAY defer completing
       the action and return a `pendingCreate` status if human or third-party review is required.
-    inputs: []
-    params: []
   - identifier: read
     name: Read Operation
     description: The Read operation allows a client to retrieve the data elements of an Organisation Data
@@ -3278,40 +3605,72 @@ resources:
     authorisation:
     - Any client is authorised to retrieve organisation object information. The server MAY restrict the
       information returned based on client identity and server policy.
-    input: ''
-    output: ''
+    input:
+    - kind: Reference
+      target: This Object
+      elements: []
+      cardinality: '1'
+    output:
+    - kind: Object
+      target: This Object
+      elements:
+      - create-only
+      - read-write
+      - read-only
+      cardinality: '1'
     notes: []
-    inputs: []
-    params: []
   - identifier: update
     name: Update Operation
     description: The Update operation allows a client to modify the attributes of an existing Organisation
       Data Object.
     authorisation:
     - Generally only registry clients are authorised to update organisation objects.
-    input: ''
-    output: ''
+    input:
+    - kind: Reference
+      target: This Object
+      elements: []
+      cardinality: '1'
+    - kind: Changes
+      target: This Object
+      elements:
+      - read-write
+      cardinality: '1'
+    output:
+    - kind: Object
+      target: This Object
+      elements:
+      - create-only
+      - read-write
+      - read-only
+      cardinality: '1'
     notes:
     - 'The following aspects of the organisation object MAY be modified:'
     - A client MUST NOT add, delete, or alter values for statuses managed by the server (prefixed with
       "server"). A server MAY add, delete, or alter status values set by a client, subject to server policy.
-    inputs: []
-    params: []
   - identifier: delete
     name: Delete Operation
     description: The Delete operation allows a client to remove an existing Organisation Data Object.
       The operation targets a specific data object identified by its Organisation ID.
     authorisation:
     - Generally only registry clients are authorised to delete organisation objects.
-    input: ''
-    output: ''
+    input:
+    - kind: Reference
+      target: This Object
+      elements: []
+      cardinality: '1'
+    output:
+    - kind: Object
+      target: This Object
+      elements:
+      - create-only
+      - read-write
+      - read-only
+      cardinality: 0-1
     notes:
     - An organisation object MUST NOT be deleted if it is associated with other known objects (e.g., domain
       names, contacts, or child organisations). The server MUST reject such a delete request and notify
       the client that object relationships exist.
     - The error response SHOULD indicate the related associated objects.
-    inputs: []
-    params: []
   subsections: []
   supported_processes: []
 - identifier: message
@@ -3375,24 +3734,44 @@ resources:
       Data Object.
     authorisation:
     - Only the server is authorised to create new message objects.
-    input: ''
-    output: ''
+    input:
+    - kind: Object
+      target: This Object
+      elements:
+      - create-only
+      - read-write
+      cardinality: '1'
+    output:
+    - kind: Object
+      target: This Object
+      elements:
+      - create-only
+      - read-write
+      - read-only
+      cardinality: '1'
     notes: []
-    inputs: []
-    params: []
   - identifier: read
     name: Read Operation
     description: The Read operation allows a client to retrieve the data elements of a Message Data Object.
     authorisation:
     - Any client is authorised to retrieve message object information. The server MAY restrict the information
       returned based on client identity and server policy.
-    input: ''
-    output: ''
+    input:
+    - kind: Reference
+      target: This Object
+      elements: []
+      cardinality: '1'
+    output:
+    - kind: Object
+      target: This Object
+      elements:
+      - create-only
+      - read-write
+      - read-only
+      cardinality: '1'
     notes:
     - Organisation ID (`owner`) MUST NOT be provided in the response, since a client can only ever retrieve
       messages linked to its own organisation.
-    inputs: []
-    params: []
   - identifier: query
     name: Query Operation
     description: The Query operation allows a client to retrieve a collection of Message Data Object instances
@@ -3400,19 +3779,26 @@ resources:
     authorisation:
     - Any client is authorised to retrieve message object information. The server MAY restrict the information
       returned based on client identity and server policy.
-    input: ''
-    output: ''
+    input:
+    - kind: Parameters
+      definitions:
+      - identifier: type
+        name: Message Type
+        cardinality: 0-1
+        data_type: String
+        description: The type of the message to use as a filter when retrieving message objects.
+        constraints:
+        - The type value MUST be a valid identifier for an RPP message component (e.g. reviewResponse).
+        notes: []
+    output:
+    - kind: Object
+      target: This Object
+      elements:
+      - create-only
+      - read-write
+      - read-only
+      cardinality: 0+
     notes: []
-    inputs: []
-    params:
-    - identifier: type
-      name: Message Type
-      cardinality: 0-1
-      data_type: String
-      description: The type of the message to use as a filter when retrieving message objects.
-      constraints:
-      - The type value MUST be a valid identifier for an RPP message component (e.g. reviewResponse).
-      notes: []
   - identifier: delete
     name: Delete Operation
     description: The Delete operation allows a client to remove an existing Message Data Object. The operation
@@ -3420,11 +3806,20 @@ resources:
     authorisation:
     - Generally clients are authorised to delete message objects linked to the organisation the client
       belongs to.
-    input: ''
-    output: ''
+    input:
+    - kind: Reference
+      target: This Object
+      elements: []
+      cardinality: '1'
+    output:
+    - kind: Object
+      target: This Object
+      elements:
+      - create-only
+      - read-write
+      - read-only
+      cardinality: 0-1
     notes: []
-    inputs: []
-    params: []
   subsections: []
   supported_processes: []
 - identifier: user
@@ -3513,45 +3908,88 @@ resources:
     authorisation:
     - Client can only create users in the context of the organisation linked to the client, and only if
       the client has the necessary permissions to create users in that organisation.
-    input: ''
-    output: ''
+    input:
+    - kind: Object
+      target: This Object
+      elements:
+      - create-only
+      - read-write
+      cardinality: '1'
+    output:
+    - kind: Object
+      target: This Object
+      elements:
+      - create-only
+      - read-write
+      - read-only
+      cardinality: '1'
     notes: []
-    inputs: []
-    params: []
   - identifier: read
     name: Read Operation
     description: The Read operation retrieves the data of a specific User Object.
     authorisation:
     - Client can only read users in the context of the organisation linked to the client, and only if
       the client has the necessary permissions to read users in that organisation.
-    input: ''
-    output: ''
+    input:
+    - kind: Reference
+      target: This Object
+      elements: []
+      cardinality: '1'
+    output:
+    - kind: Object
+      target: This Object
+      elements:
+      - create-only
+      - read-write
+      - read-only
+      cardinality: '1'
     notes: []
-    inputs: []
-    params: []
   - identifier: update
     name: Update Operation
     description: The Update operation modifies the read-write data elements.
     authorisation:
     - Client can only update users in the context of the organisation linked to the client, and only if
       the client has the necessary permissions to update users in that organisation.
-    input: ''
-    output: ''
+    input:
+    - kind: Reference
+      target: This Object
+      elements: []
+      cardinality: '1'
+    - kind: Changes
+      target: This Object
+      elements:
+      - read-write
+      cardinality: '1'
+    output:
+    - kind: Object
+      target: This Object
+      elements:
+      - create-only
+      - read-write
+      - read-only
+      cardinality: '1'
     notes: []
-    inputs: []
-    params: []
   - identifier: delete
     name: Delete Operation
     description: The Delete operation removes a specific User Object.
     authorisation:
     - Client can only delete users in the context of the organisation linked to the client, and only if
       the client has the necessary permissions to delete users in that organisation.
-    input: ''
-    output: ''
+    input:
+    - kind: Reference
+      target: This Object
+      elements: []
+      cardinality: '1'
+    output:
+    - kind: Object
+      target: This Object
+      elements:
+      - create-only
+      - read-write
+      - read-only
+      cardinality: 0-1
     notes:
     - The server MUST reject this operation if the User is associated with an Organisation Object.
-    inputs: []
-    params: []
   subsections: []
   supported_processes: []
 - identifier: discovery
@@ -3682,16 +4120,21 @@ resources:
   operations:
   - identifier: read
     name: Read Operation
-    description: The Read operation allows a client to retrieve the Discovery Data Object. The operation
-      takes no input. It is the only operation supported for this object.
+    description: The Read operation allows a client to retrieve the Discovery Data Object. It is the only
+      operation supported for this object.
     authorisation:
     - Any client is authorised to perform this operation. The operation MUST be available without authentication,
       so that a client can retrieve it before authenticating with the server.
-    input: ''
-    output: Discovery Data Object
+    input: []
+    output:
+    - kind: Object
+      target: This Object
+      elements:
+      - create-only
+      - read-write
+      - read-only
+      cardinality: '1'
     notes: []
-    inputs: []
-    params: []
   subsections: []
   supported_processes: []
 - identifier: profile
@@ -3811,10 +4254,19 @@ resources:
       its name. It is the only operation supported for this object.
     authorisation:
     - Any authenticated client is authorised to perform this operation.
-    input: ''
-    output: ''
+    input:
+    - kind: Reference
+      target: This Object
+      elements: []
+      cardinality: '1'
+    output:
+    - kind: Object
+      target: This Object
+      elements:
+      - create-only
+      - read-write
+      - read-only
+      cardinality: '1'
     notes: []
-    inputs: []
-    params: []
   subsections: []
   supported_processes: []

@@ -26,10 +26,12 @@
   (contact.contactInfo)
 - DictionaryComposition with cardinality 1+: Rules 10/12 do not define how cardinality maps to a JSON object; minProperties 1 applied
   (organisation.roles)
-- Query response representation is not defined by a rule; array of read representations applied following the draft
+- An Output Object with cardinality '0+' has no JSON rule; array of read representations applied following the draft
   (message)
 - LabelledAggregation of a primitive type: Rule 9/11 only cover associations with objects
   (discovery.links)
+- Common Data Types have no Identifier, so Rule 27 does not name their $defs key; the draft's key is used
+  (clientIdentifier, identifier)
 - The Processes Object is shared by all Data Objects; no rule excludes processes a Data Object does not support
   (contact: renewProcess, restoreProcess, createProcess, host: renewProcess, createProcess, organisation: transferProcess, renewProcess, restoreProcess, createProcess, user: transferProcess, renewProcess, restoreProcess, createProcess)
 
@@ -49,8 +51,6 @@
 
 ## yaml-issue: YAML content inconsistent with the data-objects conventions
 
-- Derived object redefines inherited data element 'processId' (data-objects Inheritance: MUST NOT)
-  (domainTransferProcess)
 - Object referenced as 'Authorisation Information Object' but defined as 'Authorisation Information'
   (domainName.authInfo, contact.authInfo)
 - Object referenced as 'Disclose Object' but defined as 'Disclose'

@@ -2,8 +2,8 @@
 
 Inputs:
 
-- object model `.work/draft-ietf-rpp-data-objects.yaml` (export with `unique_identifier`, `owner`, `supported_processes`, `direct_access`, `visibility` and structured subsection `tables`)
-- draft `src/draft-ietf-rpp-json.md` (branch `feature/generate-schemas`, commit `f922a26`)
+- object model `.work/draft-ietf-rpp-data-objects.yaml` (export with `unique_identifier`, `owner`, `supported_processes`, `direct_access`, `visibility`, structured subsection `tables`, and structured operation `input`/`output` items)
+- draft `src/draft-ietf-rpp-json.md` (branch `feature/generate-schemas`, commit `3a3feee`)
 - source text `.work/draft-ietf-rpp-data-objects.clean.txt`, checked where the YAML is silent
 
 Generator: `.scripts/gen_json_schema.py`.
@@ -17,10 +17,12 @@ Generator: `.scripts/gen_json_schema.py`.
 The generator produces 73 `$defs`. The bundle passes 2020-12 meta-schema validation, and every `$ref` in it resolves.
 
 Generation precedence: **the draft's written rules, then the YAML content, then the shape of the draft's existing schemas**.
-- `$defs` names are built from the YAML identifier: `<id>` for components, and `<id>.create`, `<id>.read`, `<id>.update`, `<id>.reference` and `<id>.query` for resources.
-- Process objects get `<id>.create` and `<id>.read`, plus one view per operation that has input data elements (for example `transferProcess.reject`).
+- `$defs` keys follow Rule 27 of PR #104 as updated by the M1 suggestion (review comment r4363681640), with YAML identifiers used as-is: `<id>` for components, and `<id>.create`, `<id>.read`, `<id>.update`, `<id>.reference` and `<id>.query` for resources.
+- Process objects get `<id>.create` and `<id>.read`, plus one view per other operation that has input data elements, keyed by the operation Identifier (`transferProcess.transferReject`, `restoreProcess.report`). Derived objects use their own identifier.
+- `--compare` pairs draft keys with Rule 27 keys case-insensitively and flags each mismatch (`KEY MISMATCH`). Against PR #104, 32 of 69 draft keys differ (none by case only).
 - Reference views use the exported `unique_identifier`; objects without one (Discovery) get no reference view.
-- Create views carry `processes` only when the Data Object supports a Create Process Object, either through `supported_processes` or as the `owner` of an object-specific one. Only `domainName` qualifies.
+- The elements of each view come from the operations' exported Input/Output items: the `Elements` mutabilities of the create Input `Object`, the update Input `Changes` and the read Output `Object` that name the object itself. Operation views carry the `Input Data Elements` definitions.
+- Create views carry `processes` only when the Create Input names a Process Object (`Object: Domain Create Process Object`). Only `domainName` qualifies.
 - Elements with `visibility: onDemand` are not required in read views. `direct_access` does not change the representation.
 - Prose constraints are **not** turned into keywords. Only cardinality, mutability and data type are used.
 - A bare object name as a data type is treated as `Composition[Type]` (data-objects §8.2).
@@ -34,8 +36,8 @@ Without these rules, the schemas can't be reproduced the way the draft writes th
 
 | # | Status | Gap | Where the draft schemas show it | Generator choice |
 |---|--------|-----|-------------------------------|------------------|
-| M1 | open | **No naming rule for `$defs`.** The draft names definitions after `<x>Object`, not after the `@type` identifier (`domainObject.*` for `domainName`, `contactObject.*` for `contact`). Components get bare names. Object-specific processes get an owner suffix (`transferProcess.create.domain`). | all resource and process schemas | `<identifier>[.<view>]` |
-| M2 | open | **No rule for which schema views exist and what each one contains.** Rules 5–7 suggest the views but never state that a create view holds create-only and read-write elements, an update view holds read-write elements, a read view holds everything, and a reference view holds `@type` and the identifier. There is also no rule for operation-specific views (Reject), or for query responses (`messageObject.query` is an array of read views). | the `### Create/Read/Update/Reference` subsections | derived from mutability and operations, as stated |
+| M1 | open | **No naming rule for `$defs`.** The draft names definitions after `<x>Object`, not after the `@type` identifier (`domainObject.*` for `domainName`, `contactObject.*` for `contact`). Components get bare names. Object-specific processes get an owner suffix (`transferProcess.create.domain`). PR #104 adds Rule 27 (keys from the Identifier plus the operation name); the M1 suggestion on PR #104 updates Rule 27 to cover Process Objects, `reference`/`query` views, operation Identifiers as-is and derived objects. Common Data Types have no Identifier, so Rule 27 doesn't name them. | all resource and process schemas | Rule 27: `<identifier>[.<view>]`; draft keys for Common Data Types |
+| M2 | open | **No rule for which schema views exist and what each one contains.** Rules 5–7 suggest the views but never state that a create view holds create-only and read-write elements, an update view holds read-write elements, a read view holds everything, and a reference view holds `@type` and the identifier. There is also no rule for what operation-specific views (`transferProcess.transferReject`) contain, or for query responses (`messageObject.query` is an array of read views). | the `### Create/Read/Update/Reference` subsections | derived from the `Elements` of the operations' Input/Output items |
 | M3 | open | **No rule for which element is the "primary identifier".** The TODO comment under *Labelled associations* says so. The data-objects draft has an explicit `Unique Identifier` attribute, but this draft never refers to it. | `*.reference` | the exported `unique_identifier` (Y1 fixed) |
 | M4 | open | **References contradict each other.** Rule 13 says a referenced object is represented as a JSON **string** (its identifier). Rules 8–10 and every schema in the draft use an **object** with `@type` and the identifier. | `registrant`, `contacts`, `nameservers` | object reference (`<id>.reference`) |
 | M5 | open | **The bare `Type` notation is not mentioned.** In data-objects §8.2 a data type given as a bare object name means `Composition[Type]` (`Notation: Composition[Type] or Type`). The Association Rules here only show the bracketed form. The YAML now uses it only for Component Objects (for example `status: Domain Name Status Object`, `authInfo`, `provMetadata`); `registrant`, `parent` and `baseProfile` are now `Aggregation[...]`. | `status`, `authInfo`, `provMetadata` | composition: the component is embedded |
@@ -52,8 +54,8 @@ Without these rules, the schemas can't be reproduced the way the draft writes th
 | M16 | open | **Labelled aggregation of a primitive is not covered**: `links: LabelledAggregation[String]`. Rule 9 assumes a referenced object. | `discoveryObject.read.links` | `{label, object: string}` |
 | M17 | open | **External types have no schema-level rule.** Rule 15 says to embed the native JSON, but nothing says how the `External:<Profile>:<Type>` notation maps to a `$defs` name (the draft uses `Card`), or where the profile's constraints live. | `Card` | `$ref` `#/$defs/<Type>`, with a placeholder definition |
 | M18 | open | **Required elements in update schemas.** Rule 23 says *every* definition lists its cardinality-`1`/`1+` elements as required. The draft's update schemas require only `@type` (contact also requires `contactInfo`). There is no rule that distinguishes full-update schemas from the partial-update (JSON Patch) path. | all `*.update` | Rule 23 applied |
-| M19 | open | **Process data in create requests.** No rule says which create-process type to use when an object-specific one exists (`domainCreateProcess`), or that `processes` is left out when the Data Object supports no Create Process. There is also no basis for the draft's `"maxItems": 1`. | `domainObject.create.processes` | the Create Process Objects the Data Object supports (`supported_processes` and owned processes); no `processes` in create views otherwise; no `maxItems` |
-| M20 | open | **Operation parameters** (`hostsFilter`, message query `type`): the draft doesn't say whether they have any JSON representation. They are presumably URL parameters. | — | left out |
+| M19 | open | **Process data in create requests.** No rule says which create-process type to use when an object-specific one exists (`domainCreateProcess`), or that `processes` is left out when the Data Object supports no Create Process. There is also no basis for the draft's `"maxItems": 1`. | `domainObject.create.processes` | the Process Objects in the Create Input (`Object: <Process Object>`), each under the matching Processes Object element; no `processes` in create views otherwise; no `maxItems` |
+| M20 | open | **Operation parameters** (`hostsFilter`, message query `type`): the draft doesn't say whether they have any JSON representation. They are presumably URL parameters. | — | left out (the `Parameters` items of the operation Input) |
 | M21 | open | **Rule 22 needs enumerations that the model supplies only as prose.** No rule covers other constraint keywords either (`minimum`/`maximum`, `pattern`, `propertyNames`). | `period`, `dnsControls` | not generated (structure-only mode) |
 | M22 | open | **No rule for `Visibility: onDemand`** (data-objects §2.4). An element returned only on request cannot be required in a read schema. | `domainName.authInfo`, `contact.authInfo` | never required in read views (both are `0-1` today, so no visible effect) |
 | M23 | open | **No rule for `Direct Access`** (sub-resource addressing). It is a protocol concern, but the draft doesn't say that the inline JSON representation is unaffected. | `processes.*`, `*.processes`, `organisation.users` | ignored |
@@ -103,7 +105,7 @@ The "In source?" column says whether the information is in `draft-ietf-rpp-data-
 | Y8 | open | **External type** `RPP-JSContact-Profile:Card` | No (external profile) | Placeholder object. The draft's `Card` schema has to come from the profile. |
 | Y9 | open | **`Object` type structure** (`dnsRecord.rdata`, RDATA structures subsection) | Prose only | Open object. |
 | Y10 | open | **Disclose Object** has no data elements | No (source says `Description: TBD`) | Only an empty `disclose` schema can be generated. |
-| Y11 | open | **Operation input and output for resources** (`input`/`output` are empty for every resource operation). That Create carries Create Process data (Rule 18) and what a Query returns are described only in prose. | Prose only | The create `processes` property and the `query` view are generated by rule, not from the data. |
+| Y11 | fixed | **Operation input and output** | Yes | Now exported as structured `input`/`output` items (Uniform interface defaults filled in). The generator takes the view elements, the create `processes` Process Objects, the query cardinality, the Input Data Elements and the Parameters from them. |
 | Y12 | open | **Maintenance Message Object** | **No** (missing from the YAML and from the source) | The draft defines `maintenanceMessage`, so `message.data` in the draft has an extra `oneOf` branch. |
 
 ### YAML data-quality issues found while generating
@@ -114,6 +116,7 @@ The "In source?" column says whether the information is in `draft-ietf-rpp-data-
 - (fixed) `user.organisationId` used the `<Object> Reference` notation; it is now `Aggregation[Organisation Data Object]`.
 - (fixed) `domainName.registrant`, `organisation.parent` and `profile.baseProfile` used the bare type (Composition); they are now `Aggregation[...]`, so the generator emits `*.reference` like the draft.
 - `domainTransferProcess` redefines the inherited `processId`, which data-objects §2.5 forbids.
+- (fixed) The Output of every operation (and the Uniform interface default) listed `Elements: read-write, read-only`, so create-only elements (`domainName.name`, `contact.id`, `transferProcess.transferDir`, …) were never returned. The Output now lists `create-only, read-write, read-only`, and the generator's override was removed.
 - `contact.contactInfo` has cardinality `1-2`, which is not in the data-objects cardinality notation (§2.4).
 - (fixed) The `user` element constraints were given as `'-'` rather than `[]`.
 

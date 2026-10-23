@@ -23,16 +23,22 @@ Usage:
 
 Generation decisions (precedence: draft rules > YAML content > draft schema shape):
 
-  * $defs names derive from the YAML identifier: components "<id>", resources
-    "<id>.create|read|update|reference", processes "<id>.create|read" plus one
-    view per operation carrying input data elements (e.g. "<id>.reject").
+  * $defs keys follow Rule 27 (as updated by the M1 suggestion on PR #104), with
+    identifiers used as-is: components "<id>", resources
+    "<id>.create|read|update|query|reference",
+    processes "<id>.create|read[|update]" plus one view per other operation that
+    carries input data elements, keyed by the operation Identifier
+    (e.g. "transferProcess.transferReject"). Derived objects use their own id.
   * Inheritance ("extends") is flattened (draft section "Inheritance").
   * Polymorphism: a reference to a base object accepts every object extending
     it, expressed as "oneOf" over the candidates (each fixed by its "@type").
   * Reference views use the exported "unique_identifier"; objects without
     one get no reference view.
-  * Create views carry "processes" only when the Data Object supports a
-    Create Process Object ("supported_processes" or an owned process, "owner").
+  * View elements follow the "Elements" of the operations' Input/Output items
+    (create Input Object, update Input Changes, read Output Object). Operation views carry the operation's
+    Input Data Elements; Parameters are left out.
+  * Create views carry "processes" only when the Create Input names a
+    Process Object.
   * Elements with Visibility "onDemand" are not required in read views.
     Direct Access does not change the representation.
   * Prose constraints are NOT converted to keywords; only the structured
@@ -89,6 +95,8 @@ ASSOC_RE = re.compile(r"^(Aggregation|Composition|LabelledAggregation|Dictionary
                       r"LabelledComposition|DictionaryComposition)\[(.+)\]$")
 DICT_RE = re.compile(r"^Dictionary\[(.+)\]$")
 EXTERNAL_RE = re.compile(r"^External:([^:]+):(.+)$")
+
+STANDARD_VIEWS = ("create", "read", "update", "query")
 
 COMPOSITIONS = {"Composition", "LabelledComposition", "DictionaryComposition"}
 LABELLED = {"LabelledAggregation", "LabelledComposition"}
@@ -246,12 +254,44 @@ class Model:
 
     @staticmethod
     def op_suffix(op, owner):
-        """Normalised operation name: "transferReject" on transferProcess -> "reject"."""
+        """Operation kind: "transferCreate" on transferProcess -> "create".
+
+        Only used to recognise standard views and overrides; never part of a $defs key."""
         oid = op["identifier"]
         stem = owner.stem() if owner.kind == "Process" else ""
         if stem and oid.startswith(stem) and len(oid) > len(stem):
             return lc_first(oid[len(stem):])
         return oid
+
+    # -- operation Input / Output (data-objects "Operation Input and Output") --
+
+    def io(self, op, owner, side):
+        """Items of an operation's "input" or "output" ([] for "(None)")."""
+        items = op.get(side)
+        if items is None:
+            self.diag.add("yaml-gap", f"Operation has no {side} and no Uniform interface default "
+                                      f"applies ([OP IO MISSING])", f"{owner.id}.{op['identifier']}")
+            return []
+        return items
+
+    @staticmethod
+    def definitions(op, kind):
+        """Definitions of the "Input Data Elements" or "Parameters" item of an operation."""
+        return [d for item in op.get("input") or [] if item["kind"] == kind
+                for d in item.get("definitions") or []]
+
+    def io_target(self, item, owner):
+        """Object named by a Reference/Object/Changes item, resolved against the defining object."""
+        t = item["target"]
+        if t == "This Object":
+            return owner
+        if t == "Owner Data Object":
+            return self.owner_of(owner)
+        o = self.lookup(t, f"{owner.id} operation {item['kind']}")
+        if o is None:
+            self.diag.add("yaml-issue", f"Operation {item['kind']} target '{t}' is not a defined object",
+                          owner.id)
+        return o
 
     def owner_of(self, proc):
         """Owner Data Object of an object-specific process ("owner" in the export)."""
@@ -303,6 +343,12 @@ class Generator:
 
     # -- views -------------------------------------------------------------
 
+    @staticmethod
+    def view_of(op, owner):
+        """View name of an operation: a standard view, else the operation Identifier as-is."""
+        s = Model.op_suffix(op, owner)
+        return s if s in STANDARD_VIEWS else op["identifier"]
+
     def views_for(self, o):
         if o.kind == "Component":
             return [None]
@@ -312,9 +358,9 @@ class Generator:
             if "update" in sfx:
                 views.append("update")
             for op, owner in o.operations:
-                s = Model.op_suffix(op, owner)
-                if op.get("inputs") and s not in views:
-                    views.append(s)
+                v = self.view_of(op, owner)
+                if Model.definitions(op, "Input Data Elements") and v not in views:
+                    views.append(v)
             return views
         views = [v for v in ("create", "read", "update") if v in sfx]
         if "query" in sfx and "read" in views:
@@ -348,6 +394,8 @@ class Generator:
                           "$comment": "Common Data Type: syntax not available in the object model export"}
             self.diag.add("yaml-gap", "Common Data Types (syntax, length, pattern) are not exported; "
                                       "a plain string placeholder is generated", name)
+            self.diag.add("rule-gap", "Common Data Types have no Identifier, so Rule 27 does not name "
+                                      "their $defs key; the draft's key is used", name)
         for name, profile in self.external_used.items():
             defs[name] = {"type": "object",
                           "$comment": f"External type from {profile}: definition not available "
@@ -362,7 +410,9 @@ class Generator:
 
     def build_view(self, o, view):
         if view == "query":
-            self.diag.add("rule-gap", "Query response representation is not defined by a rule; "
+            items = self.view_items(o, view)
+            card = items[0]["cardinality"] if items else "0+"
+            self.diag.add("rule-gap", f"An Output Object with cardinality '{card}' has no JSON rule; "
                                       "array of read representations applied following the draft", o.id)
             return {"type": "array", "items": {"$ref": f"#/$defs/{o.id}.read"}}
         props = {"@type": self.type_prop(o, view)}
@@ -376,12 +426,13 @@ class Generator:
 
         op_inputs = []
         for op, owner in o.operations:
-            if Model.op_suffix(op, owner) == view:
-                op_inputs.extend(op.get("inputs") or [])
+            if self.view_of(op, owner) == view:
+                op_inputs.extend(Model.definitions(op, "Input Data Elements"))
         if o.kind == "Process" and view not in ("create", "read", "update"):
             elements = []
         else:
-            elements = [e for e in o.elements if self.included(e, view)]
+            muts = self.view_mutabilities(o, view)
+            elements = [e for e in o.elements if e["mutability"] in muts]
 
         for e in elements:
             self.add_element(o, e, view, props, required)
@@ -391,14 +442,13 @@ class Generator:
             e.setdefault("mutability", "read-write")
             self.add_element(o, e, view, props, required)
 
-        if view == "create" and o.kind == "Resource" and \
-                any(e["identifier"] == "processes" for e in o.elements):
+        if view == "create" and o.kind == "Resource":
             prop = self.create_processes_prop(o)
             if prop is not None:
                 props["processes"] = prop
 
         for p in o.raw.get("operations") or []:
-            for par in p.get("params") or []:
+            for par in Model.definitions(p, "Parameters"):
                 self.diag.add("rule-gap", "Operation parameters have no JSON representation rule; "
                                           "not included in any schema",
                               f"{o.id}.{p['identifier']}.{par['identifier']}")
@@ -460,14 +510,39 @@ class Generator:
             p["readOnly"] = True
         return p
 
-    @staticmethod
-    def included(e, view):
-        mut = e["mutability"]
-        if view == "create":
-            return mut in ("create-only", "read-write")
-        if view == "update":
-            return mut == "read-write"
-        return True
+    # Input/Output item that defines the elements of each view
+    VIEW_IO = {"create": ("input", "Object"), "update": ("input", "Changes"),
+               "read": ("output", "Object"), "query": ("output", "Object")}
+    DEFAULT_MUTS = {"create": {"create-only", "read-write"}, "update": {"read-write"},
+                    "read": {"create-only", "read-write", "read-only"}}
+
+    def view_items(self, o, view, ops=None):
+        """Input/Output items of the operations of a view that name the object itself."""
+        side, kind = self.VIEW_IO[view]
+        out = []
+        for op, owner in ops if ops is not None else \
+                [(op, ow) for op, ow in o.operations if self.view_of(op, ow) == view]:
+            for item in self.m.io(op, owner, side):
+                if item["kind"] == kind:
+                    t = self.m.io_target(item, owner)
+                    if t is not None and o.is_a(t):
+                        out.append(item)
+        return out
+
+    def view_mutabilities(self, o, view):
+        """Mutability values of the elements in a view, from the operations' Input/Output."""
+        if view is None:  # a component has a single schema
+            return self.DEFAULT_MUTS["read"]
+        items = self.view_items(o, view)
+        if not items and view == "read":
+            # a process without a Read operation: the representation its operations return
+            items = self.view_items(o, view, o.operations)
+        if not items:
+            self.diag.add("heuristic", "No operation Input/Output describes this view; elements "
+                                       "selected by mutability (create: create-only, read-write; "
+                                       "update: read-write; read: all)", f"{o.id}.{view}")
+            return self.DEFAULT_MUTS[view]
+        return {m for item in items for m in item["elements"]}
 
     # -- elements ----------------------------------------------------------
 
@@ -621,12 +696,34 @@ class Generator:
         return f"{o.id}.read"
 
     def create_processes_prop(self, o):
-        """'processes' of a create view: the Create Process Objects the Data Object supports."""
-        base = self.m.objs.get("createProcess")
-        cands = [p for p in self.m.supported_processes(o) if base is not None and p.is_a(base)]
+        """'processes' of a create view: the Process Objects in the Create operation's Input."""
+        cands = []
+        for op, owner in o.operations:
+            if self.view_of(op, owner) != "create":
+                continue
+            for item in self.m.io(op, owner, "input"):
+                t = self.m.io_target(item, owner) if item["kind"] == "Object" else None
+                if t is not None and t.kind == "Process":
+                    cands.append(t)
         if not cands:
             return None
-        refs = [{"$ref": f"#/$defs/{c.id}.create"} for c in cands]
+        if not any(e["identifier"] == "processes" for e in o.elements):
+            self.diag.add("yaml-issue", "Create Input carries a Process Object, but the Data Object has "
+                                        "no 'processes' data element", o.id)
+        comp = self.m.objs.get("processes")
+        slots = {}
+        for c in cands:
+            slot = None
+            for e in comp.elements if comp is not None else []:
+                m = ASSOC_RE.match(e["data_type"].strip())
+                t = self.m.lookup(m.group(2) if m else e["data_type"])
+                if t is not None and c.is_a(t):
+                    slot = e["identifier"]
+            if slot is None:
+                self.diag.add("yaml-issue", f"Process Object '{c.id}' in the Create Input has no data "
+                                            f"element in the Processes Object", o.id)
+                continue
+            slots.setdefault(slot, []).append({"$ref": f"#/$defs/{c.id}.create"})
         self.diag.add("rule-conflict", "Rule 18 requires process data in the 'processes' element of "
                                        "create requests, but 'processes' is read-only and Rule 5 forbids "
                                        "read-only properties in requests; Rule 18 applied",
@@ -634,8 +731,8 @@ class Generator:
         return {"type": "object",
                 "properties": {
                     "@type": {"type": "string", "const": "processes"},
-                    "createProcess": {"type": "array",
-                                      "items": refs[0] if len(refs) == 1 else {"oneOf": refs}}},
+                    **{slot: {"type": "array", "items": refs[0] if len(refs) == 1 else {"oneOf": refs}}
+                       for slot, refs in slots.items()}},
                 "required": ["@type"]}
 
 
@@ -800,18 +897,34 @@ def draft_type_const(defn, ddefs, seen=None):
 
 
 def map_draft_name(name, ddefs, gen_defs):
-    """Generated $defs name corresponding to a draft $defs name."""
+    """Generated $defs key (Rule 27) corresponding to a draft $defs key.
+
+    Matching is case-insensitive and tolerant of the draft's naming styles
+    ("<x>Object", owner suffixes, operation names without the process stem), so
+    that keys that differ from Rule 27 are still paired and can be reported."""
     if name in gen_defs:
         return name
+    lower = {g.lower(): g for g in gen_defs}
+    if name.lower() in lower:
+        return lower[name.lower()]
     parts = name.split(".")
     tc = draft_type_const(ddefs[name][0], ddefs) if name in ddefs else None
-    base = tc or parts[0]
+    bases = [b for b in (tc, parts[0], parts[0][: -len("Object")] if parts[0].endswith("Object") else None)
+             if b]
     if len(parts) >= 3:
-        specific = f"{parts[2]}{uc_first(parts[0])}.{parts[1]}"
-        if specific in gen_defs:
-            return specific
-    cand = base if len(parts) == 1 else f"{base}.{parts[1]}"
-    return cand if cand in gen_defs else None
+        bases.insert(0, f"{parts[2]}{uc_first(parts[0])}")
+    for base in bases:
+        if len(parts) == 1:
+            if base.lower() in lower:
+                return lower[base.lower()]
+            continue
+        view = parts[1].lower()
+        cands = [g for g in gen_defs if g.lower().startswith(base.lower() + ".")]
+        for match in (lambda v: v == view, lambda v: v.endswith(view)):
+            hit = next((g for g in cands if match(g.split(".", 1)[1].lower())), None)
+            if hit:
+                return hit
+    return None
 
 
 def shape(p, mapref):
@@ -876,6 +989,9 @@ def compare(bundle, md_path):
     for dname, (ddef, line) in ddefs.items():
         gname = mapping[dname]
         out.append(f"## `{dname}` (draft line {line}) -> " + (f"`{gname}`" if gname else "NO COUNTERPART"))
+        if gname and gname != dname:
+            kind = "case only" if gname.lower() == dname.lower() else "name"
+            out.append(f"- KEY MISMATCH ({kind}): draft `{dname}`, Rule 27 key `{gname}`")
         notes = set()
         dprops, dreq = flatten_draft(ddef, ddefs, notes)
         for n in sorted(notes):
@@ -908,6 +1024,9 @@ def compare(bundle, md_path):
                                f"generated={json.dumps(b.get(path))}{tag}")
         out.append("")
 
+    mismatched = [n for n, g in mapping.items() if g and g != n]
+    out.insert(2, f"Draft keys that differ from the Rule 27 key: {len(mismatched)} of {len(ddefs)}"
+                  f" (case only: {sum(mapping[n].lower() == n.lower() for n in mismatched)})\n")
     mapped = {v for v in mapping.values() if v}
     missing = [n for n in gen if n not in mapped]
     out.append("## Generated definitions without a draft counterpart")

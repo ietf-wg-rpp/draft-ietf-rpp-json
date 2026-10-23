@@ -451,7 +451,7 @@
       },
       "required": ["@type", "trStatus", "reqClientId", "requestDate", "actClientId", "actionDate"]
     },
-    "transferProcess.reject": {
+    "transferProcess.transferReject": {
       "type": "object",
       "properties": {
         "@type": { "type": "string", "const": "transferProcess" },
@@ -565,7 +565,7 @@
       },
       "required": ["@type", "trStatus", "reqClientId", "requestDate", "actClientId", "actionDate"]
     },
-    "domainTransferProcess.reject": {
+    "domainTransferProcess.transferReject": {
       "type": "object",
       "properties": {
         "@type": { "type": "string", "const": "domainTransferProcess" },
