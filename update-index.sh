@@ -7,7 +7,7 @@
 # Usage: ./update-index.sh [path/to/draft.md]
 set -euo pipefail
 
-CLAUDE_MD="CLAUDE.md"
+CLAUDE_MD="Agents.md"
 BEGIN='<!-- BEGIN AUTO-INDEX -->'
 END='<!-- END AUTO-INDEX -->'
 

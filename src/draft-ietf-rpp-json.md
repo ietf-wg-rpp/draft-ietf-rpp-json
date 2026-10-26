@@ -174,7 +174,7 @@ Rule 3: A data element with cardinality `0+` (zero or more) MUST be represented 
   "properties": {
     "status": {
       "type": "array",
-      "items": { "$ref": "#/$defs/status" }
+      "items": { "$ref": "#/$defs/domainStatus" }
     }
   }
 }
@@ -262,7 +262,7 @@ A `Composition[Type]` represents a parent-child relationship where the child's l
                     "repositoryId": "NS1EXAMPLE-REP",
                     "spClientId": "ClientX"
                 },
-                "status": [ { "@type": "status", "label": "ok" } ],
+                "status": [ { "@type": "hostStatus", "label": "ok" } ],
                 "dns": {
                     "@type": "dnsData",
                     "records": [
@@ -870,7 +870,7 @@ Example JSON document used by partial update examples below:
         { "label": "tech", "object": { "@type": "contact", "id": "sh8013" } }
     ],
     "status": [
-        { "@type": "status", "label": "ok" }
+        { "@type": "domainStatus", "label": "ok" }
     ],
     "expiryDate": "2027-01-01T00:00:00.0Z"
 }
@@ -891,7 +891,7 @@ Example of a partial update request to change the registrant of a domain name fr
 ]
 ```
 
-Example of a partial update request to change the status of a domain name from "ok" to "clientProhibited":
+Example of a partial update request to change the status of a domain name from "ok" to "clientUpdateProhibited":
 
 ```json
 [
@@ -902,8 +902,8 @@ Example of a partial update request to change the status of a domain name from "
       "label": "ok"
     },
     "value": {
-      "@type": "status",
-      "label": "clientProhibited"
+      "@type": "domainStatus",
+      "label": "clientUpdateProhibited"
     }
   }
 ]
@@ -963,12 +963,12 @@ Example of a partial update request for a organisation object to add status "lin
 {
   "remove": {
     "status": [
-       { "@type": "status", "label": "ok" }
+       { "@type": "organisationStatus", "label": "ok" }
     ]
   },
   "add": {
     "status": [
-       { "@type": "status", "label": "linked" }
+       { "@type": "organisationStatus", "label": "linked" }
     ]
   },
   "change": {
@@ -1091,24 +1091,191 @@ The following constraints cannot be expressed in JSON Schema and MUST be enforce
 }
 ```
 
-### Status Object
+### Status Objects {#status-objects}
+
+Each RPP Data Object type that carries a status uses a type-specific status object, as defined in [@!I-D.ietf-rpp-data-objects].
 
 The following constraints cannot be expressed in JSON Schema and MUST be enforced by implementations:
 
-- `label` MUST use camelCase notation using only ASCII alphabetic characters. Labels set explicitly by the server MUST use the prefix "server"; labels set explicitly by a client MUST use the prefix "client"; all other labels MUST NOT use either prefix. The allowed set of label values depends on the provisioning object type and MAY be extended by extensions.
-- `due`: Servers MAY restrict the ability of clients to set or update this value.
-- When the RGP feature is supported, the following additional status labels MAY appear on objects that support RGP: `addPeriod`, `autoRenewPeriod`, `renewPeriod`, `transferPeriod`, `redemptionPeriod`, `pendingRestore`, `rgpPendingDelete`. The labels `redemptionPeriod`, `pendingRestore`, and `rgpPendingDelete` MUST only appear alongside the standard `pendingDelete` status.
+- Label values with the prefix `"client"` are added and removed by the client; label values with the prefix `"server"` are added and removed by the server. All other label values are server-managed unless stated otherwise below. A client MUST NOT add, remove, or alter a server-managed or `"server"`-prefixed label value. A server MAY alter or override `"client"`-prefixed label values, subject to local server policy.
+- A server MUST reject a request whose `"status"` array contains a combination of label values prohibited by the status exclusion rules for that object type in [@!I-D.ietf-rpp-data-objects].
+- A `"status"` array MUST NOT contain the same `"label"` value more than once.
+
+Extensions MAY define additional `"label"` values for a status object; such values are added to the `"enum"` of the corresponding status object in the effective schema, as described in (#extension-framework).
+
+#### Domain Name Status Object
+
+The following constraints cannot be expressed in JSON Schema and MUST be enforced by implementations:
+
+- `"due"`: Servers MAY restrict the ability of clients to set or update this value.
+- Label values with the prefix `"rgp"` MUST only appear when the server supports the Redemption Grace Period (RGP) for the domain name.
+- The labels `"rgpRedemptionPeriod"`, `"rgpPendingRestore"`, and `"rgpPendingDelete"` MUST only appear together with the `"pendingDelete"` label.
 
 ```json
 {
   "$defs": {
-    "status": {
+    "domainStatus": {
       "type": "object",
       "properties": {
-        "@type":  { "type": "string", "const": "status" },
-        "label":  { "type": "string", "pattern": "^[a-zA-Z]+$" },
+        "@type": { "type": "string", "const": "domainStatus" },
+        "label": {
+          "type": "string",
+          "enum": [
+            "clientDeleteProhibited",
+            "serverDeleteProhibited",
+            "clientHold",
+            "serverHold",
+            "clientRenewProhibited",
+            "serverRenewProhibited",
+            "clientTransferProhibited",
+            "serverTransferProhibited",
+            "clientUpdateProhibited",
+            "serverUpdateProhibited",
+            "inactive",
+            "ok",
+            "pendingCreate",
+            "pendingDelete",
+            "pendingRenew",
+            "pendingTransfer",
+            "pendingUpdate",
+            "rgpAddPeriod",
+            "rgpAutoRenewPeriod",
+            "rgpRenewPeriod",
+            "rgpTransferPeriod",
+            "rgpRedemptionPeriod",
+            "rgpPendingRestore",
+            "rgpPendingDelete"
+          ]
+        },
         "reason": { "type": "string" },
-        "due":    { "type": "string", "format": "date-time" }
+        "due": { "type": "string", "format": "date-time" }
+      },
+      "required": ["@type", "label"]
+    }
+  }
+}
+```
+
+#### Host Status Object
+
+```json
+{
+  "$defs": {
+    "hostStatus": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "hostStatus" },
+        "label": {
+          "type": "string",
+          "enum": [
+            "clientDeleteProhibited",
+            "serverDeleteProhibited",
+            "clientUpdateProhibited",
+            "serverUpdateProhibited",
+            "linked",
+            "ok",
+            "pendingCreate",
+            "pendingDelete",
+            "pendingTransfer",
+            "pendingUpdate"
+          ]
+        },
+        "reason": { "type": "string" }
+      },
+      "required": ["@type", "label"]
+    }
+  }
+}
+```
+
+#### Contact Status Object
+
+```json
+{
+  "$defs": {
+    "contactStatus": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "contactStatus" },
+        "label": {
+          "type": "string",
+          "enum": [
+            "clientDeleteProhibited",
+            "serverDeleteProhibited",
+            "clientTransferProhibited",
+            "serverTransferProhibited",
+            "clientUpdateProhibited",
+            "serverUpdateProhibited",
+            "linked",
+            "ok",
+            "pendingCreate",
+            "pendingDelete",
+            "pendingTransfer",
+            "pendingUpdate"
+          ]
+        },
+        "reason": { "type": "string" }
+      },
+      "required": ["@type", "label"]
+    }
+  }
+}
+```
+
+#### Organisation Role Status Object
+
+```json
+{
+  "$defs": {
+    "organisationRoleStatus": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "organisationRoleStatus" },
+        "label": {
+          "type": "string",
+          "enum": ["clientLinkProhibited", "serverLinkProhibited", "linked", "ok"]
+        },
+        "reason": { "type": "string" }
+      },
+      "required": ["@type", "label"]
+    }
+  }
+}
+```
+
+#### Organisation Status Object
+
+The following constraints cannot be expressed in JSON Schema and MUST be enforced by implementations:
+
+- The `"hold"` and `"terminated"` labels are server-managed when the organisation has no parent organisation; otherwise they MAY be client-managed, subject to server policy.
+- The `"status"` array MUST contain exactly one of the labels `"pendingCreate"`, `"ok"`, `"hold"`, or `"terminated"`.
+
+```json
+{
+  "$defs": {
+    "organisationStatus": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "organisationStatus" },
+        "label": {
+          "type": "string",
+          "enum": [
+            "ok",
+            "hold",
+            "terminated",
+            "linked",
+            "clientLinkProhibited",
+            "serverLinkProhibited",
+            "clientUpdateProhibited",
+            "serverUpdateProhibited",
+            "clientDeleteProhibited",
+            "serverDeleteProhibited",
+            "pendingCreate",
+            "pendingUpdate",
+            "pendingDelete"
+          ]
+        },
+        "reason": { "type": "string" }
       },
       "required": ["@type", "label"]
     }
@@ -3248,6 +3415,9 @@ Reference schema (identifier only):
 
 Extensions MUST employ an additive schema composition method, allowing new optional or required properties to be added to an existing base object schema. New properties MUST not conflict with existing definitions and MUST NOT redefine existing properties from the base schema.
 
+A> TODO: the rule above needs revision - extending enum
+list won't be possible this way
+
 To support multiple extensions, a mechanism for mapping extensions to their respective base objects is defined using the `rpp:extends` property within the extension schema.
 
 Extensions SHOULD be independent of one another, meaning that an extension should not rely on the presence of another extension to function correctly. This ensures modularity and reduces the risk of conflicts between extensions.
@@ -3406,8 +3576,8 @@ Example domain create response from a server with RGP support:
         "crDate": "1999-04-03T22:00:00.0Z"
     },
     "status": [
-        { "@type": "status", "label": "ok" },
-        { "@type": "status", "label": "addPeriod" }
+        { "@type": "domainStatus", "label": "ok" },
+        { "@type": "domainStatus", "label": "rgpAddPeriod" }
     ],
     "expiryDate": "2001-04-03T22:00:00.0Z"
 }
@@ -3448,7 +3618,7 @@ Example domain read response:
         "trDate": "2000-04-08T09:00:00.0Z"
     },
     "status": [
-        { "@type": "status", "label": "ok" }
+        { "@type": "domainStatus", "label": "ok" }
     ],
     "registrant": { "@type": "contact", "id": "jd1234" },
     "contacts": [
@@ -3548,7 +3718,7 @@ Example domain update response:
         "upDate": "2000-01-15T09:00:00.0Z"
     },
     "status": [
-        { "@type": "status", "label": "ok" }
+        { "@type": "domainStatus", "label": "ok" }
     ],
     "registrant": { "@type": "contact", "id": "sh8013" }
 }
@@ -3855,7 +4025,7 @@ Example contact create response:
         "crDate": "1999-04-03T22:00:00.0Z"
     },
     "status": [
-        { "@type": "status", "label": "ok" }
+        { "@type": "contactStatus", "label": "ok" }
     ],
     "contactInfo": {
         "@type": "Card",
@@ -3907,7 +4077,7 @@ Example contact read response:
         "upDate": "2000-01-15T09:00:00.0Z"
     },
     "status": [
-        { "@type": "status", "label": "ok" }
+        { "@type": "contactStatus", "label": "ok" }
     ],
     "contactInfo": {
         "@type": "Card",
@@ -3987,7 +4157,7 @@ Example contact update response:
         "upDate": "2025-06-01T10:00:00.0Z"
     },
     "status": [
-        { "@type": "status", "label": "ok" }
+        { "@type": "contactStatus", "label": "ok" }
     ],
     "contactInfo": {
         "@type": "Card",
@@ -4134,7 +4304,7 @@ Example host create response:
         "crDate": "1999-04-03T22:00:00.0Z"
     },
     "status": [
-        { "@type": "status", "label": "ok" }
+        { "@type": "hostStatus", "label": "ok" }
     ],
     "dns": {
         "@type": "dnsData",
@@ -4178,7 +4348,7 @@ Example host read response:
         "crDate": "1999-04-03T22:00:00.0Z"
     },
     "status": [
-        { "@type": "status", "label": "ok" }
+        { "@type": "hostStatus", "label": "ok" }
     ],
     "dns": {
         "@type": "dnsData",
@@ -4403,12 +4573,12 @@ Example organisation create response:
         "crDate": "2025-03-15T10:00:00.0Z"
     },
     "status": [
-        { "@type": "status", "label": "ok" }
+        { "@type": "organisationStatus", "label": "ok" }
     ],
     "roles": { "registrar":
         {
             "@type": "organisationRole",
-            "status": ["ok"],
+            "status": [ { "@type": "organisationRoleStatus", "label": "ok" } ],
             "roleId": "1234"
         }
     },
@@ -4463,12 +4633,12 @@ Example organisation read response:
         "upDate": "2025-06-01T08:30:00.0Z"
     },
     "status": [
-        { "@type": "status", "label": "linked" }
+        { "@type": "organisationStatus", "label": "linked" }
     ],
     "roles": { "registrar":
         {
             "@type": "organisationRole",
-            "status": ["ok"],
+            "status": [ { "@type": "organisationRoleStatus", "label": "ok" } ],
             "roleId": "1234"
         }
     },
@@ -4515,12 +4685,12 @@ Example organisation update request:
     "roles": { "registrar":
         {
             "@type": "organisationRole",
-            "status": ["clientLinkProhibited"],
+            "status": [ { "@type": "organisationRoleStatus", "label": "clientLinkProhibited" } ],
             "roleId": "1234"
         }
     },
     "status": [
-        { "@type": "status", "label": "clientLinkProhibited" }
+        { "@type": "organisationStatus", "label": "clientLinkProhibited" }
     ],
     "contacts": [
         { "label": "admin", "object": { "@type": "contact", "id": "CID-2001" } },
@@ -4981,6 +5151,7 @@ TODO
 - Added support for Internationalized Domain Names (IDN). (Issue #86)
 - Added "inheritance" section (Issue #88)
 - Added section describing the representation of undefined values. (Issue #97)
+- Replaced the generic Status Object with type-specific status objects in (#status-objects).
 
 ## Version draft-wullink-rpp-json-02 to draft-ietf-rpp-json-00
 
