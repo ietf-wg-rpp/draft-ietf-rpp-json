@@ -7,7 +7,7 @@
         "name": { "type": "string" },
         "class": { "type": "string" },
         "type": { "type": "string" },
-        "rdata": { "type": "object", "additionalProperties": true }
+        "rdata": { "type": "object", "unevaluatedProperties": true }
       },
       "required": ["@type", "name", "type", "rdata"]
     }

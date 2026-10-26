@@ -1686,25 +1686,25 @@ The Processes Object is a read-only container grouping the currently active Proc
     "processes": {
       "type": "object",
       "properties": {
-        "@type":           { "type": "string", "const": "processes", "readOnly": true },
-        "createProcess":   {
-          "type": "array",
-          "items": { "$ref": "#/$defs/createProcess.read" },
-          "readOnly": true
-        },
-        "renewProcess":    {
-          "type": "array",
-          "items": { "$ref": "#/$defs/renewProcess.read" },
-          "readOnly": true
-        },
+        "@type": { "type": "string", "const": "processes", "readOnly": true },
         "transferProcess": {
           "type": "array",
           "items": { "$ref": "#/$defs/transferProcess.read" },
           "readOnly": true
         },
-        "restoreProcess":  {
+        "renewProcess": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/renewProcess.read" },
+          "readOnly": true
+        },
+        "restoreProcess": {
           "type": "array",
           "items": { "$ref": "#/$defs/restoreProcess.read" },
+          "readOnly": true
+        },
+        "createProcess": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/createProcess.read" },
           "readOnly": true
         }
       },
@@ -1738,10 +1738,7 @@ The following constraints cannot be expressed in JSON Schema and MUST be enforce
         "@type": { "type": "string", "const": "baseMessage", "readOnly": true },
         "objectType": { "type": "string", "readOnly": true },
         "objectId": { "type": "string", "readOnly": true },
-        "process": {
-          "$ref": "#/$defs/baseProcess",
-          "readOnly": true
-        }
+        "process": { "$ref": "#/$defs/baseProcess", "readOnly": true }
       },
       "required": ["@type"]
     }
@@ -1760,10 +1757,7 @@ The following constraints cannot be expressed in JSON Schema and MUST be enforce
         "@type": { "type": "string", "const": "reviewResponseMessage" },
         "objectType": { "type": "string", "readOnly": true },
         "objectId": { "type": "string", "readOnly": true },
-        "process": {
-          "$ref": "#/$defs/baseProcess",
-          "readOnly": true
-        },
+        "process": { "$ref": "#/$defs/baseProcess", "readOnly": true },
         "approved": { "type": "boolean", "readOnly": true },
         "clientTransactionId": { "type": "string", "readOnly": true },
         "serverTransactionId": { "type": "string", "readOnly": true },
@@ -1787,10 +1781,7 @@ The following constraints cannot be expressed in JSON Schema and MUST be enforce
         "@type": { "type": "string", "const": "transferRequestMessage", "readOnly": true },
         "objectType": { "type": "string", "readOnly": true },
         "objectId": { "type": "string", "readOnly": true },
-        "process": { 
-          "$ref": "#/$defs/transferProcess.read",
-          "readOnly": true
-        },
+        "process": { "$ref": "#/$defs/baseProcess", "readOnly": true },
         "status": { "type": "string", "enum": ["pending"], "readOnly": true },
         "requestDate": { "type": "string", "format": "date-time", "readOnly": true },
         "actionDate": { "type": "string", "format": "date-time", "readOnly": true }
@@ -1812,10 +1803,7 @@ The following constraints cannot be expressed in JSON Schema and MUST be enforce
         "@type": { "type": "string", "const": "transferOutcomeMessage", "readOnly": true },
         "objectType": { "type": "string", "readOnly": true },
         "objectId": { "type": "string", "readOnly": true },
-        "process": { 
-          "$ref": "#/$defs/transferProcess.read",
-          "readOnly": true
-        },
+        "process": { "$ref": "#/$defs/baseProcess", "readOnly": true },
         "trStatus": {
           "type": "string",
           "enum": [
@@ -1848,10 +1836,7 @@ The following constraints cannot be expressed in JSON Schema and MUST be enforce
         "@type": { "type": "string", "const": "expirationDeletionMessage", "readOnly": true },
         "objectType": { "type": "string", "readOnly": true },
         "objectId": { "type": "string", "readOnly": true },
-        "process": { 
-          "$ref": "#/$defs/baseProcess",
-          "readOnly": true
-        },
+        "process": { "$ref": "#/$defs/baseProcess", "readOnly": true },
         "deletionDate": { "type": "string", "format": "date-time", "readOnly": true }
       },
       "required": ["@type", "deletionDate"]
@@ -1871,10 +1856,7 @@ The following constraints cannot be expressed in JSON Schema and MUST be enforce
         "@type": { "type": "string", "const": "autoRenewalMessage", "readOnly": true },
         "objectType": { "type": "string", "readOnly": true },
         "objectId": { "type": "string", "readOnly": true },
-        "process": { 
-          "$ref": "#/$defs/baseProcess",
-          "readOnly": true
-        },
+        "process": { "$ref": "#/$defs/baseProcess", "readOnly": true },
         "renewalDate": { "type": "string", "format": "date-time", "readOnly": true },
         "expiryDate": { "type": "string", "format": "date-time", "readOnly": true }
       },
@@ -1897,10 +1879,7 @@ The Service Notice Message Object extends the Base Message Object. It is not lin
         "@type": { "type": "string", "const": "serviceNoticeMessage", "readOnly": true },
         "objectType": { "type": "string", "readOnly": true },
         "objectId": { "type": "string", "readOnly": true },
-        "process": { 
-          "$ref": "#/$defs/baseProcess",
-          "readOnly": true
-        },
+        "process": { "$ref": "#/$defs/baseProcess", "readOnly": true },
         "message": { "type": "string", "readOnly": true }
       },
       "required": ["@type", "message"]
@@ -1956,8 +1935,7 @@ Create request schema (create-only and read-write properties):
     "createProcess.create": {
       "type": "object",
       "properties": {
-        "@type": { "type": "string", "const": "createProcess" },
-        "period": { "$ref": "#/$defs/period" }
+        "@type": { "type": "string", "const": "createProcess" }
       },
       "required": ["@type"]
     }
@@ -3041,19 +3019,7 @@ Create request schema. Only the server is authorised to create Message Data Obje
       "type": "object",
       "properties": {
         "@type": { "type": "string", "const": "message" },
-        "data": {
-          "oneOf": [
-            { "$ref": "#/$defs/baseMessage" },
-            { "$ref": "#/$defs/reviewResponseMessage" },
-            { "$ref": "#/$defs/transferRequestMessage" },
-            { "$ref": "#/$defs/transferOutcomeMessage" },
-            { "$ref": "#/$defs/expirationDeletionMessage" },
-            { "$ref": "#/$defs/autoRenewalMessage" },
-            { "$ref": "#/$defs/serviceNoticeMessage" },
-            { "$ref": "#/$defs/maintenanceMessage" }
-          ],
-          "writeOnly": true
-        }
+        "data": { "$ref": "#/$defs/baseMessage", "writeOnly": true }
       },
       "required": ["@type", "data"]
     }
@@ -3077,19 +3043,7 @@ Read response schema (read-only properties):
         "id": { "$ref": "#/$defs/identifier", "readOnly": true },
         "creationDate": { "type": "string", "format": "date-time", "readOnly": true },
         "status": { "type": "string", "enum": ["queued", "delivered", "removed"], "readOnly": true },
-        "data": {
-          "oneOf": [
-            { "$ref": "#/$defs/baseMessage" },
-            { "$ref": "#/$defs/reviewResponseMessage" },
-            { "$ref": "#/$defs/transferRequestMessage" },
-            { "$ref": "#/$defs/transferOutcomeMessage" },
-            { "$ref": "#/$defs/expirationDeletionMessage" },
-            { "$ref": "#/$defs/autoRenewalMessage" },
-            { "$ref": "#/$defs/serviceNoticeMessage" },
-            { "$ref": "#/$defs/maintenanceMessage" }
-          ],
-          "readOnly": true
-        }
+        "data": { "$ref": "#/$defs/baseMessage", "readOnly": true }
       },
       "required": ["@type", "id", "creationDate", "status", "data"]
     }
@@ -3148,24 +3102,18 @@ Create request schema (create-only and read-write properties):
 ```json
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$ref": "#/$defs/userObject.create",
+  "$ref": "#/$defs/user.create",
   "$defs": {
-    "userObject.create": {
+    "user.create": {
       "type": "object",
       "properties": {
-        "@type":  { "type": "string", "const": "user" },
-        "organisationId": { "$ref": "#/$defs/organisationObject.reference" },
-        "details": { "$ref": "#/$defs/contactObject.reference" },
-        "status": {
-          "type": "array",
-          "items": {
-            "type": "string",
-            "enum": ["active", "suspended", "deactivated", "pending"]
-          }
-        },
-        "description":  { "type": "string", "const": "user" }
+        "@type": { "type": "string", "const": "user" },
+        "id": { "$ref": "#/$defs/identifier", "writeOnly": true },
+        "details": { "$ref": "#/$defs/Card" },
+        "description": { "type": "string" },
+        "status": { "type": "string" }
       },
-      "required": ["@type", "organisationId", "details"]
+      "required": ["@type", "id", "details", "status"]
     }
   }
 }
@@ -3178,9 +3126,9 @@ Read response schema (read-write and read-only properties):
 ```json
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$ref": "#/$defs/userObject.read",
+  "$ref": "#/$defs/user.read",
   "$defs": {
-    "userObject.read": {
+    "user.read": {
       "type": "object",
       "properties": {
         "@type":  { "type": "string", "const": "user", "readOnly": true },
@@ -3196,7 +3144,7 @@ Read response schema (read-write and read-only properties):
         },
         "description":  { "type": "string", "const": "user" }
       },
-      "required": ["@type", "userId", "details", "status"]
+      "required": ["@type", "id", "details", "status", "organisationId"]
     }
   }
 }
@@ -3209,9 +3157,9 @@ Update request schema (read-write properties):
 ```json
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$ref": "#/$defs/userObject.update",
+  "$ref": "#/$defs/user.update",
   "$defs": {
-    "userObject.update": {
+    "user.update": {
       "type": "object",
       "properties": {
         "@type":  { "type": "string", "const": "user" },

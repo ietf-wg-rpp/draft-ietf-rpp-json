@@ -1,6 +1,6 @@
 # Comparison: generated schemas vs. draft-ietf-rpp-json
 
-Draft keys that differ from the Rule 27 key: 3 of 70 (case only: 0)
+Draft keys that differ from the Rule 27 key: 6 of 74 (case only: 0)
 
 ## `identifier` (draft line 1000) -> `identifier`
 - `maxLength`: draft=89 generated=null [prose constraint]
@@ -14,177 +14,224 @@ Draft keys that differ from the Rule 27 key: 3 of 70 (case only: 0)
 
 ## `provMetadata` (draft line 1073) -> `provMetadata`
 
-## `status` (draft line 1102) -> NO COUNTERPART
+## `domainStatus` (draft line 1114) -> `domainStatus`
 
-## `dnsRecord` (draft line 1139) -> `dnsRecord`
+## `hostStatus` (draft line 1161) -> `hostStatus`
 
-## `dnsControls` (draft line 1161) -> `dnsControls`
+## `contactStatus` (draft line 1193) -> `contactStatus`
 
-## `dnsData` (draft line 1193) -> `dnsData`
+## `organisationRoleStatus` (draft line 1227) -> `organisationRoleStatus`
 
-## `authInfo` (draft line 1219) -> `authInfo`
+## `organisationStatus` (draft line 1253) -> `organisationStatus`
 
-## `Card` (draft line 1245) -> `Card`
+## `dnsRecord` (draft line 1306) -> `dnsRecord`
+
+## `dnsControls` (draft line 1328) -> `dnsControls`
+
+## `dnsData` (draft line 1360) -> `dnsData`
+
+## `authInfo` (draft line 1386) -> `authInfo`
+
+## `Card` (draft line 1412) -> `Card`
 - properties only in draft: @type, version, kind, language, name, organizations, addresses, phones, emails, links, localizations
 - required: draft=['@type', 'version'] generated=[]
 
-## `restoreReport` (draft line 1347) -> `restoreReport`
+## `restoreReport` (draft line 1514) -> `restoreReport`
+- required: draft=['@type', 'statements'] generated=['@type']
+- `statements.maxItems`: draft=2 generated=null [prose constraint]
+- `statements.minItems`: draft=1 generated=null
 
-## `organisationRole` (draft line 1377) -> `organisationRole`
-- `status.items.$ref`: draft="<organisationRoleStatus>" generated="organisationRoleStatus"
+## `organisationRole` (draft line 1546) -> `organisationRole`
 
-## `extension` (draft line 1403) -> `extension`
+## `extension` (draft line 1572) -> `extension`
 
-## `discoveryVersion` (draft line 1429) -> `discoveryVersion`
+## `discoveryVersion` (draft line 1598) -> `discoveryVersion`
 
-## `discoveryEnvironment` (draft line 1447) -> `discoveryEnvironment`
+## `discoveryEnvironment` (draft line 1616) -> `discoveryEnvironment`
 
-## `discoveryIdnLgr` (draft line 1469) -> `discoveryIdnLgr`
+## `discoveryIdnLgr` (draft line 1638) -> `discoveryIdnLgr`
 
-## `discoveryNotice` (draft line 1494) -> `discoveryNotice`
+## `discoveryNotice` (draft line 1663) -> `discoveryNotice`
 
-## `processes` (draft line 1514) -> `processes`
-- `createProcess.items.oneOf`: draft=["<domainCreateProcess.read>", "createProcess.read"] generated=["createProcess.read", "domainCreateProcess.read"]
+## `processes` (draft line 1683) -> `processes`
 
-## `baseMessage` (draft line 1573) -> `baseMessage`
-- `process.oneOf`: draft=["<baseProcess>", "<domainCreateProcess.read>", "createProcess.read", "domainTransferProcess.read", "renewProcess.read", "restoreProcess.read", "transferProcess.read"] generated=["baseProcess", "createProcess.read", "domainCreateProcess.read", "domainTransferProcess.read", "renewProcess.read", "restoreProcess.read", "transferProcess.read"]
+## `baseMessage` (draft line 1732) -> `baseMessage`
+- `process.$ref`: draft="<baseProcess>" generated="baseProcess"
 
-## `reviewResponseMessage` (draft line 1603) -> `reviewResponseMessage`
-- `process.oneOf`: draft=["<baseProcess>", "<domainCreateProcess.read>", "createProcess.read", "domainTransferProcess.read", "renewProcess.read", "restoreProcess.read", "transferProcess.read"] generated=["baseProcess", "createProcess.read", "domainCreateProcess.read", "domainTransferProcess.read", "renewProcess.read", "restoreProcess.read", "transferProcess.read"]
+## `reviewResponseMessage` (draft line 1754) -> `reviewResponseMessage`
+- `process.$ref`: draft="<baseProcess>" generated="baseProcess"
 
-## `transferRequestMessage` (draft line 1638) -> `transferRequestMessage`
-- `process.oneOf`: draft=["<baseProcess>", "<domainCreateProcess.read>", "createProcess.read", "domainTransferProcess.read", "renewProcess.read", "restoreProcess.read", "transferProcess.read"] generated=["baseProcess", "createProcess.read", "domainCreateProcess.read", "domainTransferProcess.read", "renewProcess.read", "restoreProcess.read", "transferProcess.read"]
+## `transferRequestMessage` (draft line 1781) -> `transferRequestMessage`
+- `process.$ref`: draft="transferProcess.read" generated="baseProcess"
 
-## `transferOutcomeMessage` (draft line 1671) -> `transferOutcomeMessage`
-- `process.oneOf`: draft=["<baseProcess>", "<domainCreateProcess.read>", "createProcess.read", "domainTransferProcess.read", "renewProcess.read", "restoreProcess.read", "transferProcess.read"] generated=["baseProcess", "createProcess.read", "domainCreateProcess.read", "domainTransferProcess.read", "renewProcess.read", "restoreProcess.read", "transferProcess.read"]
+## `transferOutcomeMessage` (draft line 1806) -> `transferOutcomeMessage`
+- `process.$ref`: draft="transferProcess.read" generated="baseProcess"
 
-## `expirationDeletionMessage` (draft line 1715) -> `expirationDeletionMessage`
-- `process.oneOf`: draft=["<baseProcess>", "<domainCreateProcess.read>", "createProcess.read", "domainTransferProcess.read", "renewProcess.read", "restoreProcess.read", "transferProcess.read"] generated=["baseProcess", "createProcess.read", "domainCreateProcess.read", "domainTransferProcess.read", "renewProcess.read", "restoreProcess.read", "transferProcess.read"]
+## `expirationDeletionMessage` (draft line 1842) -> `expirationDeletionMessage`
+- `process.$ref`: draft="<baseProcess>" generated="baseProcess"
 
-## `autoRenewalMessage` (draft line 1746) -> `autoRenewalMessage`
-- `process.oneOf`: draft=["<baseProcess>", "<domainCreateProcess.read>", "createProcess.read", "domainTransferProcess.read", "renewProcess.read", "restoreProcess.read", "transferProcess.read"] generated=["baseProcess", "createProcess.read", "domainCreateProcess.read", "domainTransferProcess.read", "renewProcess.read", "restoreProcess.read", "transferProcess.read"]
+## `autoRenewalMessage` (draft line 1865) -> `autoRenewalMessage`
+- `process.$ref`: draft="<baseProcess>" generated="baseProcess"
 
-## `serviceNoticeMessage` (draft line 1780) -> `serviceNoticeMessage`
-- `process.oneOf`: draft=["<baseProcess>", "<domainCreateProcess.read>", "createProcess.read", "domainTransferProcess.read", "renewProcess.read", "restoreProcess.read", "transferProcess.read"] generated=["baseProcess", "createProcess.read", "domainCreateProcess.read", "domainTransferProcess.read", "renewProcess.read", "restoreProcess.read", "transferProcess.read"]
+## `serviceNoticeMessage` (draft line 1891) -> `serviceNoticeMessage`
+- `process.$ref`: draft="<baseProcess>" generated="baseProcess"
 
-## `maintenanceMessage` (draft line 1813) -> NO COUNTERPART
+## `maintenanceMessage` (draft line 1916) -> NO COUNTERPART
 
-## `createProcess.create` (draft line 1848) -> `createProcess.create`
+## `createProcess.create` (draft line 1951) -> `createProcess.create`
+- properties only in draft: period
 
-## `createProcess.read` (draft line 1866) -> `createProcess.read`
+## `createProcess.read` (draft line 1970) -> `createProcess.read`
+- properties only in draft: period
+- properties only in generated: processId
 
-## `renewProcess.create` (draft line 1887) -> `renewProcess.create`
+## `renewProcess.create` (draft line 1991) -> `renewProcess.create`
 
-## `renewProcess.read` (draft line 1907) -> `renewProcess.read`
+## `renewProcess.read` (draft line 2011) -> `renewProcess.read`
 
-## `transferProcess.create` (draft line 1932) -> `transferProcess.create`
+## `transferProcess.create` (draft line 2036) -> `transferProcess.create`
 - draft structure: allOf
 
-## `transferProcess.read` (draft line 1976) -> `transferProcess.read`
+## `transferProcess.read` (draft line 2080) -> `transferProcess.read`
 - draft structure: allOf
 
-## `transferProcess.transferReject` (draft line 2049) -> `transferProcess.transferReject`
+## `transferProcess.transferReject` (draft line 2153) -> `transferProcess.transferReject`
 
-## `restoreProcess.create` (draft line 2080) -> `restoreProcess.create`
+## `restoreProcess.create` (draft line 2184) -> `restoreProcess.create`
 
-## `restoreProcess.read` (draft line 2099) -> `restoreProcess.read`
+## `restoreProcess.read` (draft line 2203) -> `restoreProcess.read`
 
-## `domainName.create` (draft line 2140) -> `domainName.create`
-- `status.items.$ref`: draft="<domainStatus>" generated="domainStatus"
+## `domainName.create` (draft line 2244) -> `domainName.create`
 - `processes.properties.createProcess.items.$ref`: draft="<domainCreateProcess.create>" generated="domainCreateProcess.create"
 
-## `domainName.read` (draft line 2197) -> `domainName.read`
-- `status.items.$ref`: draft="<domainStatus>" generated="domainStatus"
+## `domainName.read` (draft line 2301) -> `domainName.read`
 
-## `domainName.update` (draft line 2251) -> `domainName.update`
-- `status.items.$ref`: draft="<domainStatus>" generated="domainStatus"
+## `domainName.update` (draft line 2355) -> `domainName.update`
 
-## `renewProcess.create.domain` (draft line 2295) -> `renewProcess.create`
+## `renewProcess.create.domain` (draft line 2399) -> `renewProcess.create`
 - KEY MISMATCH (name): draft `renewProcess.create.domain`, Rule 27 key `renewProcess.create`
 - draft structure: $ref alias -> renewProcess.create
 
-## `domainTransferProcess.create` (draft line 2311) -> `domainTransferProcess.create`
+## `domainTransferProcess.create` (draft line 2415) -> `domainTransferProcess.create`
 - draft structure: allOf
 
-## `domainTransferProcess.read` (draft line 2354) -> `domainTransferProcess.read`
+## `domainTransferProcess.read` (draft line 2458) -> `domainTransferProcess.read`
 - draft structure: allOf
 
-## `transferProcess.delete.domain` (draft line 2417) -> NO COUNTERPART
+## `transferProcess.delete.domain` (draft line 2521) -> NO COUNTERPART
 - draft structure: $ref alias -> transferProcess.read.domain
 
-## `transferProcess.approve.domain` (draft line 2431) -> NO COUNTERPART
+## `transferProcess.approve.domain` (draft line 2535) -> NO COUNTERPART
 - draft structure: $ref alias -> transferProcess.read.domain
 
-## `domainTransferProcess.transferReject` (draft line 2445) -> `domainTransferProcess.transferReject`
+## `domainTransferProcess.transferReject` (draft line 2549) -> `domainTransferProcess.transferReject`
 
-## `transferProcess.reject.domain` (draft line 2464) -> `domainTransferProcess.transferReject`
+## `transferProcess.reject.domain` (draft line 2568) -> `domainTransferProcess.transferReject`
 - KEY MISMATCH (name): draft `transferProcess.reject.domain`, Rule 27 key `domainTransferProcess.transferReject`
 - draft structure: $ref alias -> transferProcess.read.domain
 - properties only in generated: @type, reason
 - required: draft=[] generated=['@type']
 
-## `domainName.reference` (draft line 2480) -> `domainName.reference`
+## `domainName.reference` (draft line 2584) -> `domainName.reference`
 
-## `contact.create` (draft line 2516) -> `contact.create`
-- `status.items.$ref`: draft="<contactStatus>" generated="contactStatus"
+## `contact.create` (draft line 2620) -> `contact.create`
+- `contactInfo.$ref`: draft="Card" generated=null
+- `contactInfo.items.$ref`: draft=null generated="Card"
+- `contactInfo.maxItems`: draft=null generated=2
+- `contactInfo.minItems`: draft=null generated=1
+- `contactInfo.type`: draft=null generated="array"
 - `disclose.$ref`: draft="<disclose>" generated="disclose"
 
-## `contact.read` (draft line 2550) -> `contact.read`
-- `status.items.$ref`: draft="<contactStatus>" generated="contactStatus"
+## `contact.read` (draft line 2649) -> `contact.read`
+- `contactInfo.$ref`: draft="Card" generated=null
+- `contactInfo.items.$ref`: draft=null generated="Card"
+- `contactInfo.maxItems`: draft=null generated=2
+- `contactInfo.minItems`: draft=null generated=1
+- `contactInfo.type`: draft=null generated="array"
 - `disclose.$ref`: draft="<disclose>" generated="disclose"
 
-## `contact.update` (draft line 2586) -> `contact.update`
-- `status.items.$ref`: draft="<contactStatus>" generated="contactStatus"
+## `contact.update` (draft line 2680) -> `contact.update`
+- `contactInfo.$ref`: draft="Card" generated=null
+- `contactInfo.items.$ref`: draft=null generated="Card"
+- `contactInfo.maxItems`: draft=null generated=2
+- `contactInfo.minItems`: draft=null generated=1
+- `contactInfo.type`: draft=null generated="array"
 - `disclose.$ref`: draft="<disclose>" generated="disclose"
 
-## `transferProcess.create.contact` (draft line 2619) -> `transferProcess.create`
+## `transferProcess.create.contact` (draft line 2708) -> `transferProcess.create`
 - KEY MISMATCH (name): draft `transferProcess.create.contact`, Rule 27 key `transferProcess.create`
 - draft structure: $ref alias -> transferProcess.create
 - draft structure: allOf
 
-## `contact.reference` (draft line 2635) -> `contact.reference`
+## `contact.reference` (draft line 2724) -> `contact.reference`
 
-## `host.create` (draft line 2663) -> `host.create`
-- `status.items.$ref`: draft="<hostStatus>" generated="hostStatus"
+## `host.create` (draft line 2752) -> `host.create`
 
-## `host.read` (draft line 2690) -> `host.read`
-- `status.items.$ref`: draft="<hostStatus>" generated="hostStatus"
+## `host.read` (draft line 2779) -> `host.read`
 
-## `host.reference` (draft line 2723) -> `host.reference`
+## `host.reference` (draft line 2812) -> `host.reference`
 
-## `organisation.create` (draft line 2753) -> `organisation.create`
-- `status.items.$ref`: draft="<organisationStatus>" generated="organisationStatus"
+## `organisation.create` (draft line 2842) -> `organisation.create`
 
-## `organisation.read` (draft line 2808) -> `organisation.read`
-- `status.items.$ref`: draft="<organisationStatus>" generated="organisationStatus"
+## `organisation.read` (draft line 2897) -> `organisation.read`
 
-## `organisation.update` (draft line 2865) -> `organisation.update`
-- `status.items.$ref`: draft="<organisationStatus>" generated="organisationStatus"
+## `organisation.update` (draft line 2954) -> `organisation.update`
 
-## `organisation.reference` (draft line 2919) -> `organisation.reference`
+## `organisation.reference` (draft line 3008) -> `organisation.reference`
 
-## `message.create` (draft line 2946) -> `message.create`
+## `message.create` (draft line 3035) -> `message.create`
+- `data.$ref`: draft=null generated="baseMessage"
+- `data.oneOf`: draft=["<maintenanceMessage>", "autoRenewalMessage", "baseMessage", "expirationDeletionMessage", "reviewResponseMessage", "serviceNoticeMessage", "transferOutcomeMessage", "transferRequestMessage"] generated=null
 
-## `message.read` (draft line 2978) -> `message.read`
+## `message.read` (draft line 3068) -> `message.read`
+- `data.$ref`: draft=null generated="baseMessage"
+- `data.oneOf`: draft=["<maintenanceMessage>", "autoRenewalMessage", "baseMessage", "expirationDeletionMessage", "reviewResponseMessage", "serviceNoticeMessage", "transferOutcomeMessage", "transferRequestMessage"] generated=null
 
-## `message.query` (draft line 3013) -> `message.query`
+## `message.query` (draft line 3104) -> `message.query`
 
-## `message.reference` (draft line 3030) -> `message.reference`
+## `message.reference` (draft line 3121) -> `message.reference`
 
-## `user.create` (draft line 3057) -> `user.create`
+## `userObject.create` (draft line 3148) -> `user.create`
+- KEY MISMATCH (name): draft `userObject.create`, Rule 27 key `user.create`
+- properties only in draft: organisationId
+- properties only in generated: id
+- required: draft=['@type', 'details', 'organisationId'] generated=['@type', 'details', 'id', 'status']
+- `details.$ref`: draft="<contactObject.reference>" generated="Card"
+- `status.items.enum`: draft=["active", "suspended", "deactivated", "pending"] generated=null [prose constraint]
+- `status.items.type`: draft="string" generated=null
+- `status.type`: draft="array" generated="string"
+- `description.const`: draft="user" generated=null [prose constraint]
 
-## `user.read` (draft line 3081) -> `user.read`
+## `userObject.read` (draft line 3178) -> `user.read`
+- KEY MISMATCH (name): draft `userObject.read`, Rule 27 key `user.read`
+- properties only in draft: userId
+- properties only in generated: id, processes
+- required: draft=['@type', 'details', 'status', 'userId'] generated=['@type', 'details', 'id', 'organisationId', 'status']
+- `organisationId.$ref`: draft="<organisationObject.reference>" generated="organisation.reference"
+- `organisationId.readOnly`: draft=null generated=true
+- `details.$ref`: draft="<contactObject.reference>" generated="Card"
+- `status.items.enum`: draft=["active", "suspended", "deactivated", "pending"] generated=null [prose constraint]
+- `status.items.type`: draft="string" generated=null
+- `status.type`: draft="array" generated="string"
+- `description.const`: draft="user" generated=null [prose constraint]
 
-## `user.update` (draft line 3107) -> `user.update`
+## `userObject.update` (draft line 3209) -> `user.update`
+- KEY MISMATCH (name): draft `userObject.update`, Rule 27 key `user.update`
+- properties only in generated: description
+- required: draft=['@type'] generated=['@type', 'details', 'status']
+- `details.$ref`: draft="<contactObject.reference>" generated="Card"
+- `status.items.enum`: draft=["active", "suspended", "deactivated", "pending"] generated=null [prose constraint]
+- `status.items.type`: draft="string" generated=null
+- `status.type`: draft="array" generated="string"
 
-## `user.reference` (draft line 3130) -> `user.reference`
+## `user.reference` (draft line 3237) -> `user.reference`
 
-## `discovery.read` (draft line 3162) -> `discovery.read`
+## `discovery.read` (draft line 3269) -> `discovery.read`
 
-## `profile.read` (draft line 3245) -> `profile.read`
+## `profile.read` (draft line 3352) -> `profile.read`
 
-## `profile.reference` (draft line 3290) -> `profile.reference`
+## `profile.reference` (draft line 3397) -> `profile.reference`
 
 ## Generated definitions without a draft counterpart
 
-`domainStatus`, `hostStatus`, `contactStatus`, `organisationRoleStatus`, `organisationStatus`, `disclose`, `baseProcess`, `restoreProcess.report`, `domainCreateProcess.create`, `domainCreateProcess.read`, `host.update`
+`disclose`, `baseProcess`, `restoreProcess.report`, `domainCreateProcess.create`, `domainCreateProcess.read`, `host.update`

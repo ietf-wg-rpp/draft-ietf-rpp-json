@@ -6,12 +6,7 @@
         "@type": { "type": "string", "const": "processes", "readOnly": true },
         "transferProcess": {
           "type": "array",
-          "items": {
-            "oneOf": [
-              { "$ref": "#/$defs/transferProcess.read" },
-              { "$ref": "#/$defs/domainTransferProcess.read" }
-            ]
-          },
+          "items": { "$ref": "#/$defs/transferProcess.read" },
           "readOnly": true
         },
         "renewProcess": {
@@ -26,12 +21,7 @@
         },
         "createProcess": {
           "type": "array",
-          "items": {
-            "oneOf": [
-              { "$ref": "#/$defs/createProcess.read" },
-              { "$ref": "#/$defs/domainCreateProcess.read" }
-            ]
-          },
+          "items": { "$ref": "#/$defs/createProcess.read" },
           "readOnly": true
         }
       },
