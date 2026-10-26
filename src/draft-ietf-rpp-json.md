@@ -478,12 +478,12 @@ The key of a definition in the shared `$defs` object MUST be formed as follows, 
 
 The view names are:
 
-- `create`: the request body of the Create operation.
+- `create`: the request content of the Create operation.
 - `read`: the object representation returned in responses.
-- `update`: the request body of the Update operation.
+- `update`: the request content of the Update operation.
 - `reference`: the limited representation of an aggregated object (see Aggregation), containing `@type` and the object's Unique Identifier as defined in [@!I-D.ietf-rpp-data-objects].
-- `query`: the response body of the Query operation.
-- Any other operation of a Process Object that has input data elements: the Identifier of the operation.
+- `query`: the response content of the Query operation.
+- The Identifier of the operation: the request or response content of any other operation that has input data elements.
 
 Each key MUST be unique within the shared `$defs` object. Common Data Types and types defined by an external specification are not subject to this rule. They MAY use a key that is not derived from an RPP Identifier.
 
