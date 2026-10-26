@@ -1,0 +1,39 @@
+{
+  "$defs": {
+    "transferOutcomeMessage": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "transferOutcomeMessage", "readOnly": true },
+        "objectType": { "type": "string", "readOnly": true },
+        "objectId": { "type": "string", "readOnly": true },
+        "process": {
+          "oneOf": [
+            { "$ref": "#/$defs/baseProcess" },
+            { "$ref": "#/$defs/transferProcess.read" },
+            { "$ref": "#/$defs/domainTransferProcess.read" },
+            { "$ref": "#/$defs/restoreProcess.read" },
+            { "$ref": "#/$defs/renewProcess.read" },
+            { "$ref": "#/$defs/createProcess.read" },
+            { "$ref": "#/$defs/domainCreateProcess.read" }
+          ],
+          "readOnly": true
+        },
+        "trStatus": {
+          "type": "string",
+          "enum": [
+            "clientApproved",
+            "clientCancelled",
+            "clientRejected",
+            "serverApproved",
+            "serverCancelled"
+          ],
+          "readOnly": true
+        },
+        "requestDate": { "type": "string", "format": "date-time", "readOnly": true },
+        "actionDate": { "type": "string", "format": "date-time", "readOnly": true },
+        "expiryDate": { "type": "string", "format": "date-time", "readOnly": true }
+      },
+      "required": ["@type", "trStatus", "requestDate", "actionDate"]
+    }
+  }
+}

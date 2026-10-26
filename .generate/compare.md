@@ -5,15 +5,16 @@ Draft keys that differ from the Rule 27 key: 32 of 69 (case only: 0)
 - DUPLICATE draft $defs name `transferProcess.reject.domain` (block at line 2362); the later one wins
 
 ## `identifier` (draft line 1000) -> `identifier`
+- `maxLength`: draft=89 generated=null [prose constraint]
+- `pattern`: draft="^(\\w|_){1,8}-\\w{1,}$" generated=null [prose constraint]
 
 ## `clientIdentifier` (draft line 1018) -> `clientIdentifier`
+- `pattern`: draft="^[a-zA-Z0-9]([-a-zA-Z0-9]*[a-zA-Z0-9])?$" generated="^\\S+( \\S+)*$"
 
-## `phoneNumber` (draft line 1037) -> NO COUNTERPART
+## `phoneNumber` (draft line 1037) -> `phoneNumber`
+- `pattern`: draft="^\\+[0-9]{1,3}\\.[0-9]+( x[0-9]+)?$" generated="^\\+[0-9]{1,3}\\.[0-9]{1,14}(x[0-9]+)?$"
 
 ## `period` (draft line 1052) -> `period`
-- `value.maximum`: draft=99 generated=null [prose constraint]
-- `value.minimum`: draft=1 generated=null [prose constraint]
-- `unit.enum`: draft=["y", "m"] generated=null [prose constraint]
 
 ## `provMetadata` (draft line 1083) -> `provMetadata`
 - `repositoryId.$ref`: draft=null generated="identifier"
@@ -26,10 +27,8 @@ Draft keys that differ from the Rule 27 key: 32 of 69 (case only: 0)
 - `rdata.unevaluatedProperties`: draft=true generated=null
 
 ## `dnsControls` (draft line 1171) -> `dnsControls`
-- `ttl.additionalProperties.minimum`: draft=1 generated=null [prose constraint]
-- `ttl.propertyNames.pattern`: draft="^[a-z]+$" generated=null [prose constraint]
-- `maxSigLifetime.additionalProperties.minimum`: draft=1 generated=null [prose constraint]
-- `maxSigLifetime.propertyNames.pattern`: draft="^[a-z]+$" generated=null [prose constraint]
+- `ttl.propertyNames.pattern`: draft="^[a-z]+$" generated="^[a-z][a-z0-9-]*$"
+- `maxSigLifetime.propertyNames.pattern`: draft="^[a-z]+$" generated="^[a-z][a-z0-9-]*$"
 
 ## `dnsData` (draft line 1207) -> `dnsData`
 
@@ -88,6 +87,7 @@ Draft keys that differ from the Rule 27 key: 32 of 69 (case only: 0)
 - `process.required`: draft=["@type", "processId"] generated=null
 - `process.type`: draft="object" generated=null
 - `status.const`: draft="pending" generated=null [prose constraint]
+- `status.enum`: draft=null generated=["pending"]
 
 ## `transferOutcomeMessage` (draft line 1679) -> `transferOutcomeMessage`
 - `process.oneOf`: draft=null generated=["baseProcess", "createProcess.read", "domainCreateProcess.read", "domainTransferProcess.read", "renewProcess.read", "restoreProcess.read", "transferProcess.read"]
@@ -95,7 +95,6 @@ Draft keys that differ from the Rule 27 key: 32 of 69 (case only: 0)
 - `process.properties.processId.type`: draft="string" generated=null
 - `process.required`: draft=["@type", "processId"] generated=null
 - `process.type`: draft="object" generated=null
-- `trStatus.enum`: draft=["clientApproved", "clientCancelled", "clientRejected", "serverApproved", "serverCancelled"] generated=null [prose constraint]
 
 ## `expirationDeletionMessage` (draft line 1717) -> `expirationDeletionMessage`
 - `process.oneOf`: draft=null generated=["baseProcess", "createProcess.read", "domainCreateProcess.read", "domainTransferProcess.read", "renewProcess.read", "restoreProcess.read", "transferProcess.read"]
@@ -138,14 +137,13 @@ Draft keys that differ from the Rule 27 key: 32 of 69 (case only: 0)
 - draft structure: oneOf
 - required: draft=['@type', 'transferDir'] generated=['@type']
 - `transferDir.const`: draft="push" generated=null [prose constraint]
+- `transferDir.enum`: draft=null generated=["pull", "push"]
 - `transferDir.writeOnly`: draft=null generated=true
 - `gainingClientId.writeOnly`: draft=null generated=true
 
 ## `transferProcess.read` (draft line 1973) -> `transferProcess.read`
 - properties only in generated: processId
 - required: draft=['@type', 'actClientId', 'actionDate', 'reqClientId', 'requestDate', 'trStatus', 'transferDir'] generated=['@type', 'actClientId', 'actionDate', 'reqClientId', 'requestDate', 'trStatus']
-- `trStatus.enum`: draft=["pending", "clientApproved", "clientCancelled", "clientRejected", "serverApproved", "serverCancelled"] generated=null [prose constraint]
-- `transferDir.enum`: draft=["pull", "push"] generated=null [prose constraint]
 
 ## `transferProcess.reject` (draft line 2024) -> `transferProcess.transferReject`
 - KEY MISMATCH (name): draft `transferProcess.reject`, Rule 27 key `transferProcess.transferReject`
@@ -154,7 +152,6 @@ Draft keys that differ from the Rule 27 key: 32 of 69 (case only: 0)
 
 ## `restoreProcess.read` (draft line 2074) -> `restoreProcess.read`
 - properties only in generated: processId
-- `restoreStatus.enum`: draft=["pendingRestore", "restored", "rgpPendingDelete"] generated=null [prose constraint]
 
 ## `domainObject.create` (draft line 2114) -> `domainName.create`
 - KEY MISMATCH (name): draft `domainObject.create`, Rule 27 key `domainName.create`
@@ -192,6 +189,7 @@ Draft keys that differ from the Rule 27 key: 32 of 69 (case only: 0)
 - required: draft=['@type', 'transferDir'] generated=['@type']
 - `@type.const`: draft="transferProcess" generated="domainTransferProcess" [@type value]
 - `transferDir.const`: draft="push" generated=null [prose constraint]
+- `transferDir.enum`: draft=null generated=["pull", "push"]
 - `transferDir.writeOnly`: draft=null generated=true
 - `gainingClientId.writeOnly`: draft=null generated=true
 - `transferPeriod.writeOnly`: draft=null generated=true
@@ -203,8 +201,6 @@ Draft keys that differ from the Rule 27 key: 32 of 69 (case only: 0)
 - properties only in generated: processId, transferPeriod
 - required: draft=['@type', 'actClientId', 'actionDate', 'reqClientId', 'requestDate', 'trStatus', 'transferDir'] generated=['@type', 'actClientId', 'actionDate', 'reqClientId', 'requestDate', 'trStatus']
 - `@type.const`: draft="transferProcess" generated="domainTransferProcess" [@type value]
-- `trStatus.enum`: draft=["pending", "clientApproved", "clientCancelled", "clientRejected", "serverApproved", "serverCancelled"] generated=null [prose constraint]
-- `transferDir.enum`: draft=["pull", "push"] generated=null [prose constraint]
 
 ## `transferProcess.delete.domain` (draft line 2320) -> NO COUNTERPART
 - draft structure: $ref alias -> transferProcess.read
@@ -282,6 +278,7 @@ Draft keys that differ from the Rule 27 key: 32 of 69 (case only: 0)
 - draft structure: oneOf
 - required: draft=['@type', 'transferDir'] generated=['@type']
 - `transferDir.const`: draft="push" generated=null [prose constraint]
+- `transferDir.enum`: draft=null generated=["pull", "push"]
 - `transferDir.writeOnly`: draft=null generated=true
 - `gainingClientId.writeOnly`: draft=null generated=true
 
@@ -346,7 +343,6 @@ Draft keys that differ from the Rule 27 key: 32 of 69 (case only: 0)
 
 ## `messageObject.read` (draft line 2813) -> `message.read`
 - KEY MISMATCH (name): draft `messageObject.read`, Rule 27 key `message.read`
-- `status.enum`: draft=["queued", "delivered", "removed"] generated=null [prose constraint]
 - `data.oneOf`: draft=["<maintenanceMessage>", "autoRenewalMessage", "baseMessage", "expirationDeletionMessage", "reviewResponseMessage", "serviceNoticeMessage", "transferOutcomeMessage", "transferRequestMessage"] generated=["autoRenewalMessage", "baseMessage", "expirationDeletionMessage", "reviewResponseMessage", "serviceNoticeMessage", "transferOutcomeMessage", "transferRequestMessage"]
 
 ## `messageObject.query` (draft line 2849) -> `message.query`

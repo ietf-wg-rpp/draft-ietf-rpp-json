@@ -2,11 +2,15 @@
 
 ## rule-gap: No rule in draft-ietf-rpp-json covers this; generator choice applied
 
+- Restriction 'range' has no JSON rule (Rule 22 covers enumerations only); mapped to the matching JSON Schema keyword
+  (period.value, dnsControls.ttl, dnsControls.maxSigLifetime)
 - Create-only element in a component object: components have a single schema, Rule 6 (writeOnly in requests, excluded from update) cannot be applied; no annotation
   (domainStatus.label, domainStatus.reason, hostStatus.label, hostStatus.reason, contactStatus.label, contactStatus.reason, organisationRoleStatus.label, organisationRoleStatus.reason, organisationStatus.label, organisationStatus.reason, authInfo.method, authInfo.authdata, reviewResponseMessage.message)
 - Primitive type 'Object' is not listed in Primitive Type Mappings (Rule 24 only permits additionalProperties: true for it)
   (dnsRecord.rdata)
 - Dictionary[Type] primitive has no mapping in Primitive Type Mappings (mapped to object with additionalProperties)
+  (dnsControls.ttl, dnsControls.maxSigLifetime)
+- Restriction 'key_pattern' has no JSON rule (Rule 22 covers enumerations only); mapped to the matching JSON Schema keyword
   (dnsControls.ttl, dnsControls.maxSigLifetime)
 - Polymorphism (an object extending the referenced base object may be used in its place) has no JSON rule; oneOf over all candidates applied
   (processes.transferProcess -> transferProcess, domainTransferProcess, processes.createProcess -> createProcess, domainCreateProcess, baseMessage.process -> baseProcess, transferProcess, domainTransferProcess, restoreProcess, renewProcess, createProcess, domainCreateProcess, reviewResponseMessage.process -> baseProcess, transferProcess, domainTransferProcess, restoreProcess, renewProcess, createProcess, domainCreateProcess, transferRequestMessage.process -> baseProcess, transferProcess, domainTransferProcess, restoreProcess, renewProcess, createProcess, domainCreateProcess, transferOutcomeMessage.process -> baseProcess, transferProcess, domainTransferProcess, restoreProcess, renewProcess, createProcess, domainCreateProcess, expirationDeletionMessage.process -> baseProcess, transferProcess, domainTransferProcess, restoreProcess, renewProcess, createProcess, domainCreateProcess, autoRenewalMessage.process -> baseProcess, transferProcess, domainTransferProcess, restoreProcess, renewProcess, createProcess, domainCreateProcess, serviceNoticeMessage.process -> baseProcess, transferProcess, domainTransferProcess, restoreProcess, renewProcess, createProcess, domainCreateProcess, message.data -> baseMessage, reviewResponseMessage, transferRequestMessage, transferOutcomeMessage, expirationDeletionMessage, autoRenewalMessage, serviceNoticeMessage)
@@ -14,6 +18,8 @@
   (processes.transferProcess, processes.renewProcess, processes.restoreProcess, processes.createProcess, domainName.processes, contact.processes, host.processes, organisation.users, organisation.processes, user.processes)
 - Aggregation with cardinality 1 or 0-1: Rule 8 only covers 0+ and 1+
   (baseMessage.process, reviewResponseMessage.process, transferRequestMessage.process, transferOutcomeMessage.process, expirationDeletionMessage.process, autoRenewalMessage.process, serviceNoticeMessage.process, domainName.registrant, organisation.parent, user.organisationId, profile.baseProfile)
+- Cross-element conditions have no JSON rule; if/then applied
+  (transferProcess.create, transferProcess.read, domainTransferProcess.create, domainTransferProcess.read)
 - Annotation of create-only elements in read responses is not defined (Rule 6 covers requests only); readOnly applied following the draft schemas
   (transferProcess.transferDir, transferProcess.gainingClientId, renewProcess.expiryDate, renewProcess.renewalPeriod, domainCreateProcess.period, domainTransferProcess.transferDir, domainTransferProcess.gainingClientId, domainTransferProcess.transferPeriod, domainName.name, domainName.uName, domainName.lgr, contact.id, organisation.id, message.data, user.id)
 - Primitive type 'Fully Qualified Domain Name' is not listed in Primitive Type Mappings
@@ -30,8 +36,14 @@
   (message)
 - LabelledAggregation of a primitive type: Rule 9/11 only cover associations with objects
   (discovery.links)
+- Restriction 'min_length' has no JSON rule (Rule 22 covers enumerations only); mapped to the matching JSON Schema keyword
+  (clientIdentifier)
+- Restriction 'max_length' has no JSON rule (Rule 22 covers enumerations only); mapped to the matching JSON Schema keyword
+  (clientIdentifier)
+- Restriction 'pattern' has no JSON rule (Rule 22 covers enumerations only); mapped to the matching JSON Schema keyword
+  (clientIdentifier, phoneNumber)
 - Common Data Types have no Identifier, so Rule 27 does not name their $defs key; the draft's key is used
-  (clientIdentifier, identifier)
+  (clientIdentifier, identifier, phoneNumber)
 - The Processes Object is shared by all Data Objects; no rule excludes processes a Data Object does not support
   (contact: renewProcess, restoreProcess, createProcess, host: renewProcess, createProcess, organisation: transferProcess, renewProcess, restoreProcess, createProcess, user: transferProcess, renewProcess, restoreProcess, createProcess)
 
@@ -44,8 +56,8 @@
 
 - Object has no data elements
   (disclose)
-- Common Data Types (syntax, length, pattern) are not exported; a plain string placeholder is generated
-  (clientIdentifier, identifier)
+- Common Data Type syntax is given only as prose (no restrictions exported); no syntax keywords generated
+  (identifier)
 - External type definition is not exported; an open object placeholder is generated (Rule 15)
   (RPP-JSContact-Profile:Card)
 

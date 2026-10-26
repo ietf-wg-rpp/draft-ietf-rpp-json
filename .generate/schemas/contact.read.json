@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$ref": "#/$defs/contact.read",
+  "$defs": {
+    "contact.read": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "contact", "readOnly": true },
+        "id": { "$ref": "#/$defs/identifier", "readOnly": true },
+        "provMetadata": { "$ref": "#/$defs/provMetadata", "readOnly": true },
+        "status": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/contactStatus" },
+          "minItems": 1
+        },
+        "contactInfo": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/Card" },
+          "minItems": 1,
+          "maxItems": 2
+        },
+        "authInfo": { "$ref": "#/$defs/authInfo" },
+        "disclose": { "$ref": "#/$defs/disclose" },
+        "processes": { "$ref": "#/$defs/processes", "readOnly": true }
+      },
+      "required": ["@type", "id", "provMetadata", "status", "contactInfo"]
+    }
+  }
+}

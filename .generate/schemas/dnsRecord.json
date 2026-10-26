@@ -1,0 +1,15 @@
+{
+  "$defs": {
+    "dnsRecord": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "dnsRecord" },
+        "name": { "type": "string" },
+        "class": { "type": "string" },
+        "type": { "type": "string" },
+        "rdata": { "type": "object", "additionalProperties": true }
+      },
+      "required": ["@type", "name", "type", "rdata"]
+    }
+  }
+}

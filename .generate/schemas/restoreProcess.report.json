@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$ref": "#/$defs/restoreProcess.report",
+  "$defs": {
+    "restoreProcess.report": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "restoreProcess" },
+        "restoreReport": { "$ref": "#/$defs/restoreReport" }
+      },
+      "required": ["@type", "restoreReport"]
+    }
+  }
+}

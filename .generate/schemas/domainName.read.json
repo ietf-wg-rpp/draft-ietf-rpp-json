@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$ref": "#/$defs/domainName.read",
+  "$defs": {
+    "domainName.read": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "domainName", "readOnly": true },
+        "name": { "type": "string", "format": "hostname", "readOnly": true },
+        "uName": { "type": "string", "readOnly": true },
+        "lgr": { "type": "string", "readOnly": true },
+        "provMetadata": { "$ref": "#/$defs/provMetadata", "readOnly": true },
+        "status": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/domainStatus" },
+          "minItems": 1
+        },
+        "registrant": { "$ref": "#/$defs/contact.reference" },
+        "contacts": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "label": { "type": "string" },
+              "object": { "$ref": "#/$defs/contact.reference" }
+            },
+            "required": ["label", "object"]
+          }
+        },
+        "nameservers": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/host.reference" }
+        },
+        "dns": { "$ref": "#/$defs/dnsData" },
+        "subordinateHosts": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/host.reference" },
+          "readOnly": true
+        },
+        "expiryDate": { "type": "string", "format": "date-time", "readOnly": true },
+        "authInfo": { "$ref": "#/$defs/authInfo" },
+        "processes": { "$ref": "#/$defs/processes", "readOnly": true }
+      },
+      "required": ["@type", "name", "provMetadata", "status"]
+    }
+  }
+}

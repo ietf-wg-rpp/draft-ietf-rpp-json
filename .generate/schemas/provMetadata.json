@@ -1,0 +1,18 @@
+{
+  "$defs": {
+    "provMetadata": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "provMetadata", "readOnly": true },
+        "repositoryId": { "$ref": "#/$defs/identifier", "readOnly": true },
+        "spClientId": { "$ref": "#/$defs/clientIdentifier", "readOnly": true },
+        "crClientId": { "$ref": "#/$defs/clientIdentifier", "readOnly": true },
+        "crDate": { "type": "string", "format": "date-time", "readOnly": true },
+        "upClientId": { "$ref": "#/$defs/clientIdentifier", "readOnly": true },
+        "upDate": { "type": "string", "format": "date-time", "readOnly": true },
+        "trDate": { "type": "string", "format": "date-time", "readOnly": true }
+      },
+      "required": ["@type", "spClientId"]
+    }
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$ref": "#/$defs/domainCreateProcess.read",
+  "$defs": {
+    "domainCreateProcess.read": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "domainCreateProcess", "readOnly": true },
+        "processId": { "type": "string", "readOnly": true },
+        "period": { "$ref": "#/$defs/period", "readOnly": true }
+      },
+      "required": ["@type"]
+    }
+  }
+}

@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$ref": "#/$defs/domainTransferProcess.create",
+  "$defs": {
+    "domainTransferProcess.create": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "domainTransferProcess" },
+        "transferDir": { "type": "string", "enum": ["pull", "push"], "writeOnly": true },
+        "gainingClientId": { "$ref": "#/$defs/clientIdentifier", "writeOnly": true },
+        "transferPeriod": { "$ref": "#/$defs/period", "writeOnly": true }
+      },
+      "required": ["@type"],
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "transferDir": { "const": "push" }
+            },
+            "required": ["transferDir"]
+          },
+          "then": { "required": ["gainingClientId"] }
+        },
+        {
+          "if": {
+            "properties": {
+              "transferDir": { "const": "pull" }
+            },
+            "required": ["transferDir"]
+          },
+          "then": {
+            "not": { "required": ["gainingClientId"] }
+          }
+        }
+      ]
+    }
+  }
+}

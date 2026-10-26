@@ -1,0 +1,20 @@
+{
+  "$defs": {
+    "discoveryIdnLgr": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "discoveryIdnLgr", "readOnly": true },
+        "tld": {
+          "type": "array",
+          "items": { "type": "string" },
+          "minItems": 1,
+          "readOnly": true
+        },
+        "name": { "type": "string", "readOnly": true },
+        "url": { "type": "string", "format": "uri", "readOnly": true },
+        "default": { "type": "boolean", "readOnly": true }
+      },
+      "required": ["@type", "tld", "name", "url", "default"]
+    }
+  }
+}

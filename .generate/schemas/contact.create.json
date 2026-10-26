@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$ref": "#/$defs/contact.create",
+  "$defs": {
+    "contact.create": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "contact" },
+        "id": { "$ref": "#/$defs/identifier", "writeOnly": true },
+        "status": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/contactStatus" },
+          "minItems": 1
+        },
+        "contactInfo": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/Card" },
+          "minItems": 1,
+          "maxItems": 2
+        },
+        "authInfo": { "$ref": "#/$defs/authInfo" },
+        "disclose": { "$ref": "#/$defs/disclose" }
+      },
+      "required": ["@type", "id", "status", "contactInfo"]
+    }
+  }
+}

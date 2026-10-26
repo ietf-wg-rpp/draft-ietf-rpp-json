@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$ref": "#/$defs/organisation.reference",
+  "$defs": {
+    "organisation.reference": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "organisation" },
+        "id": { "$ref": "#/$defs/identifier" }
+      },
+      "required": ["@type", "id"]
+    }
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$ref": "#/$defs/message.create",
+  "$defs": {
+    "message.create": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "message" },
+        "data": {
+          "oneOf": [
+            { "$ref": "#/$defs/baseMessage" },
+            { "$ref": "#/$defs/reviewResponseMessage" },
+            { "$ref": "#/$defs/transferRequestMessage" },
+            { "$ref": "#/$defs/transferOutcomeMessage" },
+            { "$ref": "#/$defs/expirationDeletionMessage" },
+            { "$ref": "#/$defs/autoRenewalMessage" },
+            { "$ref": "#/$defs/serviceNoticeMessage" }
+          ],
+          "writeOnly": true
+        }
+      },
+      "required": ["@type", "data"]
+    }
+  }
+}

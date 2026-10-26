@@ -2,8 +2,8 @@
 
 Inputs:
 
-- object model `.work/draft-ietf-rpp-data-objects.yaml` (export with `unique_identifier`, `owner`, `supported_processes`, `direct_access`, `visibility`, structured subsection `tables`, and structured operation `input`/`output` items)
-- draft `src/draft-ietf-rpp-json.md` (branch `feature/generate-schemas`, commit `3a3feee`)
+- object model `.work/draft-ietf-rpp-data-objects.yaml` (export with `unique_identifier`, `owner`, `supported_processes`, `direct_access`, `visibility`, structured subsection `tables`, structured operation `input`/`output` items, `common_data_types`, element `restrictions` and object `conditions`)
+- draft `src/draft-ietf-rpp-json.md` (branch `feature/generate-schemas`, commit `e63cb0d`)
 - source text `.work/draft-ietf-rpp-data-objects.clean.txt`, checked where the YAML is silent
 
 Generator: `.scripts/gen_json_schema.py`.
@@ -14,7 +14,7 @@ Generator: `.scripts/gen_json_schema.py`.
     --compare src/draft-ietf-rpp-json.md --compare-out compare.md
 ```
 
-The generator produces 73 `$defs`. The bundle passes 2020-12 meta-schema validation, and every `$ref` in it resolves.
+The generator produces 74 `$defs`. The bundle passes 2020-12 meta-schema validation, and every `$ref` in it resolves.
 
 Generation precedence: **the draft's written rules, then the YAML content, then the shape of the draft's existing schemas**.
 - `$defs` keys follow Rule 27 of PR #104 as updated by the M1 suggestion (review comment r4363681640), with YAML identifiers used as-is: `<id>` for components, and `<id>.create`, `<id>.read`, `<id>.update`, `<id>.reference` and `<id>.query` for resources.
@@ -24,7 +24,8 @@ Generation precedence: **the draft's written rules, then the YAML content, then 
 - The elements of each view come from the operations' exported Input/Output items: the `Elements` mutabilities of the create Input `Object`, the update Input `Changes` and the read Output `Object` that name the object itself. Operation views carry the `Input Data Elements` definitions.
 - Create views carry `processes` only when the Create Input names a Process Object (`Object: Domain Create Process Object`). Only `domainName` qualifies.
 - Elements with `visibility: onDemand` are not required in read views. `direct_access` does not change the representation.
-- Prose constraints are **not** turned into keywords. Only cardinality, mutability and data type are used.
+- Prose constraints are **not** turned into keywords. Besides cardinality, mutability and data type, only the exported structured `restrictions` (→ `enum`, `minimum`/`maximum`, `pattern`, `minLength`/`maxLength`, `propertyNames`) and `conditions` (→ `if`/`then`) are used.
+- Common Data Types are built from `common_data_types`: `base_type` plus `restrictions`, under the draft's keys (`identifier`, `clientIdentifier`, `phoneNumber`).
 - A bare object name as a data type is treated as `Composition[Type]` (data-objects §8.2).
 - Output is compact like the draft's schema blocks (flat objects and arrays on one line); `--expanded` gives one value per line.
 
@@ -56,10 +57,11 @@ Without these rules, the schemas can't be reproduced the way the draft writes th
 | M18 | open | **Required elements in update schemas.** Rule 23 says *every* definition lists its cardinality-`1`/`1+` elements as required. The draft's update schemas require only `@type` (contact also requires `contactInfo`). There is no rule that distinguishes full-update schemas from the partial-update (JSON Patch) path. | all `*.update` | Rule 23 applied |
 | M19 | open | **Process data in create requests.** No rule says which create-process type to use when an object-specific one exists (`domainCreateProcess`), or that `processes` is left out when the Data Object supports no Create Process. There is also no basis for the draft's `"maxItems": 1`. | `domainObject.create.processes` | the Process Objects in the Create Input (`Object: <Process Object>`), each under the matching Processes Object element; no `processes` in create views otherwise; no `maxItems` |
 | M20 | open | **Operation parameters** (`hostsFilter`, message query `type`): the draft doesn't say whether they have any JSON representation. They are presumably URL parameters. | — | left out (the `Parameters` items of the operation Input) |
-| M21 | open | **Rule 22 needs enumerations that the model supplies only as prose.** No rule covers other constraint keywords either (`minimum`/`maximum`, `pattern`, `propertyNames`). | `period`, `dnsControls` | not generated (structure-only mode) |
+| M21 | open | **Rule 22 needs enumerations that the model supplies only as prose.** No rule covers other constraint keywords either (`minimum`/`maximum`, `pattern`, `propertyNames`). | `period`, `dnsControls` | Rule 22 `enum` from `allowed_values`; the other restrictions mapped to the matching keyword (`range` → `minimum`/`maximum`, `key_pattern` → `propertyNames`, `value_range` → `additionalProperties` bounds) |
 | M22 | open | **No rule for `Visibility: onDemand`** (data-objects §2.4). An element returned only on request cannot be required in a read schema. | `domainName.authInfo`, `contact.authInfo` | never required in read views (both are `0-1` today, so no visible effect) |
 | M23 | open | **No rule for `Direct Access`** (sub-resource addressing). It is a protocol concern, but the draft doesn't say that the inline JSON representation is unaffected. | `processes.*`, `*.processes`, `organisation.users` | ignored |
 | M24 | open | **The Processes Object is shared by all Data Objects.** No rule restricts it to the processes a Data Object supports (`supported_processes` plus owned processes). For example, `contact.read.processes` accepts `renewProcess`, `restoreProcess` and `createProcess`. | `processes` | one shared `processes` component; reported as a diagnostic |
+| M25 | open | **No rule for cross-element conditions** (data-objects prose such as "`gainingClientId` is required for push transfers"). The draft expresses it as a `oneOf` over push/pull branches. | `transferProcess.create` | `if`/`then` per exported condition (`allOf` when more than one), in every view that holds all elements the condition names |
 
 ### Rule conflicts
 
@@ -98,10 +100,10 @@ The "In source?" column says whether the information is in `draft-ietf-rpp-data-
 | Y1 | fixed | **`Unique Identifier`** object attribute | Yes | Now exported as `unique_identifier`; the reference views use it and the heuristic was removed. |
 | Y2 | fixed | **Owner Data Object** of object-specific processes | Yes | Now exported as `owner`; the identifier-prefix heuristic was removed. Together with `supported_processes` it decides the create `processes` type (M19). |
 | Y3 | fixed | **`Direct Access`** and **`Visibility`** element attributes | Yes | Now exported as `direct_access` and `visibility`; see M22 and M23. The generator also checks that a Direct Access element with cardinality above 1 targets an object with a Unique Identifier. |
-| Y4 | fixed | **Status value tables** | Yes | Now exported as structured `subsections[].tables` (columns `Status Value`, `Description`). The generator doesn't use them yet (structure-only mode), so no Rule 22 enum for `label`. |
-| Y5 | open | **Enumerations, ranges and patterns** (`period` 1–99, `y`/`m`; `trStatus`, `transferDir`, `restoreStatus`, message `status`, organisation-role and user status values; `dnsControls` key syntax) | Yes, but only as prose constraints | Not generated. A structured `allowed_values`/`range` field would make Rule 22 mechanical. |
-| Y6 | open | **Conditional requirements**: `gainingClientId` is required for `push` transfers | Prose only | The draft's `oneOf` for push/pull in `transferProcess.create` can't be derived. |
-| Y7 | open | **Common Data Types** (Identifier, Client Identifier, Phone Number syntax) | Yes (§7), as prose | Placeholder `{"type": "string"}` definitions are generated. |
+| Y4 | fixed | **Status value tables** | Yes | Now exported as structured `subsections[].tables` (columns `Status Value`, `Description`). The status labels' `allowed_values` are resolved from them, so every status `label` gets a Rule 22 `enum`. |
+| Y5 | fixed (partly) | **Enumerations, ranges and patterns** (`period` 1–99, `y`/`m`; `trStatus`, `transferDir`, `restoreStatus`, message `status`, organisation-role and user status values; `dnsControls` key syntax) | Yes, but only as prose constraints | Now exported as `restrictions` and generated. Still prose only: user `status` values, the `restoreReport.statements` count (1–2), `discoveryVersion.version` (Semantic Versioning). |
+| Y6 | fixed (partly) | **Conditional requirements**: `gainingClientId` is required for `push` transfers | Prose only | Now exported as `conditions` and generated as `if`/`then` (M25). Still prose only: the `restoreProcess` presence rules (`reportDueDate` only when `restoreStatus` is `pendingRestore`), which need a "value is not" condition the export cannot express. |
+| Y7 | fixed (partly) | **Common Data Types** (Identifier, Client Identifier, Phone Number syntax) | Yes (§7), as prose | Now exported as `common_data_types`; Client Identifier and Phone Number carry `base_type` and `restrictions`. Identifier has neither (its syntax is a reference to RFC 5730 §2.8), so only `{"type": "string"}` (Rule 21) is generated. |
 | Y8 | open | **External type** `RPP-JSContact-Profile:Card` | No (external profile) | Placeholder object. The draft's `Card` schema has to come from the profile. |
 | Y9 | open | **`Object` type structure** (`dnsRecord.rdata`, RDATA structures subsection) | Prose only | Open object. |
 | Y10 | open | **Disclose Object** has no data elements | No (source says `Description: TBD`) | Only an empty `disclose` schema can be generated. |
@@ -118,7 +120,7 @@ The "In source?" column says whether the information is in `draft-ietf-rpp-data-
 - `domainTransferProcess` redefines the inherited `processId`, which data-objects §2.5 forbids.
 - (fixed) The Output of every operation (and the Uniform interface default) listed `Elements: read-write, read-only`, so create-only elements (`domainName.name`, `contact.id`, `transferProcess.transferDir`, …) were never returned. The Output now lists `create-only, read-write, read-only`, and the generator's override was removed.
 - `contact.contactInfo` has cardinality `1-2`, which is not in the data-objects cardinality notation (§2.4).
-- (fixed) The `user` element constraints were given as `'-'` rather than `[]`.
+- The `user` element constraints are again given as `'-'` rather than `[]` (`details`, `description`, `status`, `organisationId`); this was fixed in an earlier export and has regressed.
 
 ---
 
@@ -132,6 +134,9 @@ The generator follows the YAML on all of these, so they show up as differences i
 - **`contactInfo`**: the YAML gives `1-2` (an array); the draft has a single `Card`.
 - **Process elements**: `restoreReport` is an input data element of the `restoreProcess` Create and Report operations in the YAML; the generated `restoreProcess.create` matches the draft, and the Report operation gives an extra `restoreProcess.report` view. `createProcess` has no `period` in the YAML; it is in `domainCreateProcess`.
 - **Create `processes`**: only `domainName` supports a Create Process Object in the YAML, so the generated `contact.create`, `host.create`, `organisation.create` and `user.create` have no `processes` property.
+- **Common Data Type syntax**: the YAML's Client Identifier pattern is `^\S+( \S+)*$`; the draft's is `^[a-zA-Z0-9]([-a-zA-Z0-9]*[a-zA-Z0-9])?$`. The YAML's Phone Number pattern limits the number to 14 digits and has no space before the `x` extension separator; the draft's has `( x[0-9]+)?` and no digit limit. The draft's `identifier` pattern and `maxLength` 89 have no YAML counterpart.
+- **`dnsControls` keys**: the YAML's `key_pattern` is `^[a-z][a-z0-9-]*$`; the draft's `propertyNames` pattern is `^[a-z]+$`.
+- **Enumerations the draft lacks**: `transferRequestMessage.status` (`pending`) and `transferDir` in the domain transfer and message schemas.
 - **`processId`**, inherited from `baseProcess`, is in every process read view in the YAML and absent from all of the draft's process schemas.
 
 A quick check of the draft's `# Examples` against the generated schemas confirms the main breaks. The examples fail on:

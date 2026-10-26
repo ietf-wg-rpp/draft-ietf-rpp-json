@@ -21,6 +21,16 @@
 #   no such intro (most Resource/Data Object sections start immediately with
 #   the object's own header bullets, so they have no entry here).
 #
+# common_data_types:
+#   One entry per H2 heading under "# Common Data Types" (Identifier,
+#   Client Identifier, Phone Number, ...):
+#     name:         the heading text, as used in elements' data_type
+#     anchor:       its "{#...}" anchor, or ""
+#     description:  its prose, one entry per paragraph/bullet (asides
+#                   dropped), minus any fragment mapped into restrictions
+#     restrictions: structured syntax, from prose_mappings.yaml (see
+#                   "Restrictions and conditions" below); {} if none
+#
 # components / processes / resources:
 #   One list per Object Type (Component, Process, Resource), each entry
 #   built from the object's normative definition:
@@ -74,6 +84,11 @@
 #                   identifier) of the object this one extends, e.g. a
 #                   Domain Transfer Process Object extends "Transfer Process
 #                   Object". Empty string for objects that extend nothing.
+#     conditions:   cross-element rules from prose_mappings.yaml, e.g.
+#                   {if: {transferDir: push}, require: [gainingClientId]}:
+#                   when every "if" element has the given value, the
+#                   "require" elements MUST and the "forbid" elements MUST
+#                   NOT be present. [] if none.
 #     supported_processes: the INHERITED-process bullet list from a Data
 #                   Object's "## Processes" section — the Process Objects it
 #                   supports UNMODIFIED. Processes it *extends* are not
@@ -106,6 +121,9 @@
 #                   further nesting under it (a sub-list, a numbered list)
 #                   folded into that same entry as extra newline-joined
 #                   lines, keeping the original markers (e.g. "1.", "2.").
+#                   A constraint mapped into restrictions is removed here.
+#     restrictions: structured value rules mapped from prose (see
+#                   "Restrictions and conditions" below); {} if none
 #     direct_access: the element's "* Direct Access:" bullet as a boolean;
 #                   false when absent (the draft's default)
 #     visibility:   the element's "* Visibility:" bullet, "default" or
@@ -155,7 +173,8 @@
 #                                  the draft's "* Data Elements:" list:
 #                                  identifier, name, cardinality,
 #                                  data_type, description, constraints,
-#                                  notes — same meaning as for elements
+#                                  restrictions, notes — same meaning as
+#                                  for elements
 #                   null only if neither the operation nor a default
 #                   declares it (reported as [OP IO MISSING]).
 #     output:       the operation's "* Output:" items, same rules as input.
@@ -163,6 +182,21 @@
 #                   authorisation/input/output (e.g. a further explanatory
 #                   paragraph after the Authorisation bullet). Empty list
 #                   if none.
+#
+# --- Restrictions and conditions -------------------------------------------
+#
+# Facts the draft states only in prose are exported in structured form when
+# .scripts/prose_mappings.yaml lists the exact sentence: the sentence is
+# removed from its description/constraints and replaced by these fields.
+# Prose not listed there stays as text. restrictions keys (each optional):
+#   base_type             primitive type a Common Data Type is built on
+#   allowed_values        closed list of permitted values (for a status
+#                         label, resolved from the draft's status table)
+#   range                 {min, max} of a scalar value, inclusive
+#   pattern               regular expression the whole value matches
+#   min_length/max_length length bounds of a string value
+#   key_pattern           regular expression every Dictionary key matches
+#   value_range           {min, max} of every Dictionary value, inclusive
 #
 # Every attribute bullet in the draft has a field here: an element, input
 # or parameter attribute the export does not cover makes --yaml-out fail
@@ -189,6 +223,29 @@ section_notes:
     protocol. Each specific message type extends the Base Message Object to include additional data elements
     relevant to that message type. Any of the types defined in this section may be used for the `data`
     data element defined for the Message Data Object.
+common_data_types:
+- name: Identifier
+  anchor: ''
+  description:
+  - Identifiers are character strings with a specified minimum length, a specified maximum length, and
+    a specified format outlined in [@!RFC5730, section 2.8]. Identifiers for certain object types MAY
+    have additional constraints imposed either by server policy, object specific specifications or both.
+  restrictions: {}
+- name: Client Identifier
+  anchor: ''
+  description: []
+  restrictions:
+    base_type: String
+    min_length: 3
+    max_length: 16
+    pattern: ^\S+( \S+)*$
+- name: Phone Number
+  anchor: ''
+  description:
+  - Telephone number syntax is derived from structures defined in [@!ITU.E164.2005].
+  restrictions:
+    base_type: String
+    pattern: ^\+[0-9]{1,3}\.[0-9]{1,14}(x[0-9]+)?$
 components:
 - identifier: period
   name: Period Object
@@ -205,8 +262,11 @@ components:
     mutability: read-write
     data_type: Integer
     description: The numeric value of the period.
-    constraints:
-    - The value MUST be from 1 to 99, inclusive.
+    constraints: []
+    restrictions:
+      range:
+        min: 1
+        max: 99
     direct_access: false
     visibility: default
     notes: []
@@ -216,14 +276,18 @@ components:
     mutability: read-write
     data_type: String
     description: The unit of the period.
-    constraints:
-    - 'The value MUST be one of: "y" (years) or "m" (months).'
+    constraints: []
+    restrictions:
+      allowed_values:
+      - y
+      - m
     direct_access: false
     visibility: default
     notes: []
   operations: []
   subsections: []
   supported_processes: []
+  conditions: []
 - identifier: provMetadata
   name: Provisioning Metadata Object
   object_type: Component
@@ -242,6 +306,7 @@ components:
     description: A server-assigned unique identifier for the object.
     constraints:
     - In EPP Compatibility Profile this data element MUST be provided.
+    restrictions: {}
     direct_access: false
     visibility: default
     notes: []
@@ -252,6 +317,7 @@ components:
     data_type: Client Identifier
     description: The identifier of the client that is the current sponsor of the object.
     constraints: []
+    restrictions: {}
     direct_access: false
     visibility: default
     notes: []
@@ -262,6 +328,7 @@ components:
     data_type: Client Identifier
     description: The identifier of the client that created the object.
     constraints: []
+    restrictions: {}
     direct_access: false
     visibility: default
     notes: []
@@ -273,6 +340,7 @@ components:
     description: The date and time of object creation.
     constraints:
     - The value is set by the server and cannot be specified by the client.
+    restrictions: {}
     direct_access: false
     visibility: default
     notes: []
@@ -284,6 +352,7 @@ components:
     description: The identifier of the client that last updated the object.
     constraints:
     - This element MUST NOT be present if the object has never been modified.
+    restrictions: {}
     direct_access: false
     visibility: default
     notes: []
@@ -295,6 +364,7 @@ components:
     description: The date and time of the most recent object modification.
     constraints:
     - This element MUST NOT be present if the object has never been modified.
+    restrictions: {}
     direct_access: false
     visibility: default
     notes: []
@@ -306,12 +376,14 @@ components:
     description: The date and time of the most recent successful object transfer.
     constraints:
     - This element MUST NOT be provided if the object has never been transferred.
+    restrictions: {}
     direct_access: false
     visibility: default
     notes: []
   operations: []
   subsections: []
   supported_processes: []
+  conditions: []
 - identifier: domainStatus
   name: Domain Name Status Object
   object_type: Component
@@ -327,9 +399,33 @@ components:
     mutability: create-only
     data_type: String
     description: machine-readable enum label of a status
-    constraints:
-    - Only status values defined in [Domain Status Values](#domain-status-values) and [Redemption Grace
-      Period Status Values](#rgp-status-values) are allowed.
+    constraints: []
+    restrictions:
+      allowed_values:
+      - clientDeleteProhibited
+      - serverDeleteProhibited
+      - clientHold
+      - serverHold
+      - clientRenewProhibited
+      - serverRenewProhibited
+      - clientTransferProhibited
+      - serverTransferProhibited
+      - clientUpdateProhibited
+      - serverUpdateProhibited
+      - inactive
+      - ok
+      - pendingCreate
+      - pendingDelete
+      - pendingRenew
+      - pendingTransfer
+      - pendingUpdate
+      - rgpAddPeriod
+      - rgpAutoRenewPeriod
+      - rgpRenewPeriod
+      - rgpTransferPeriod
+      - rgpRedemptionPeriod
+      - rgpPendingRestore
+      - rgpPendingDelete
     direct_access: false
     visibility: default
     notes: []
@@ -341,6 +437,7 @@ components:
     description: a human-readable text that describes the rationale for the status applied to the object.
     constraints:
     - None
+    restrictions: {}
     direct_access: false
     visibility: default
     notes: []
@@ -353,6 +450,7 @@ components:
       status. This field can be used to express lifecycle related information.
     constraints:
     - servers MAY restrict possibility to set or update this value by the client.
+    restrictions: {}
     direct_access: false
     visibility: default
     notes: []
@@ -559,6 +657,7 @@ components:
       tables: []
       subsections: []
   supported_processes: []
+  conditions: []
 - identifier: hostStatus
   name: Host Status Object
   object_type: Component
@@ -574,8 +673,19 @@ components:
     mutability: create-only
     data_type: String
     description: machine-readable enum label of a status
-    constraints:
-    - Only status values defined in [Status Values](#host-status-values) are allowed.
+    constraints: []
+    restrictions:
+      allowed_values:
+      - clientDeleteProhibited
+      - serverDeleteProhibited
+      - clientUpdateProhibited
+      - serverUpdateProhibited
+      - linked
+      - ok
+      - pendingCreate
+      - pendingDelete
+      - pendingTransfer
+      - pendingUpdate
     direct_access: false
     visibility: default
     notes: []
@@ -587,6 +697,7 @@ components:
     description: a human-readable text that describes the rationale for the status applied to the object.
     constraints:
     - None
+    restrictions: {}
     direct_access: false
     visibility: default
     notes: []
@@ -695,6 +806,7 @@ components:
         MUST NOT be combined with: Each other (mutually exclusive)
     subsections: []
   supported_processes: []
+  conditions: []
 - identifier: contactStatus
   name: Contact Status Object
   object_type: Component
@@ -710,8 +822,21 @@ components:
     mutability: create-only
     data_type: String
     description: machine-readable enum label of a status
-    constraints:
-    - Only status values defined in [Status Values](#contact-status-values) are allowed.
+    constraints: []
+    restrictions:
+      allowed_values:
+      - clientDeleteProhibited
+      - serverDeleteProhibited
+      - clientTransferProhibited
+      - serverTransferProhibited
+      - clientUpdateProhibited
+      - serverUpdateProhibited
+      - linked
+      - ok
+      - pendingCreate
+      - pendingDelete
+      - pendingTransfer
+      - pendingUpdate
     direct_access: false
     visibility: default
     notes: []
@@ -723,6 +848,7 @@ components:
     description: a human-readable text that describes the rationale for the status applied to the object.
     constraints:
     - None
+    restrictions: {}
     direct_access: false
     visibility: default
     notes: []
@@ -837,6 +963,7 @@ components:
         MUST NOT be combined with: Each other (mutually exclusive)
     subsections: []
   supported_processes: []
+  conditions: []
 - identifier: organisationRoleStatus
   name: Organisation Role Status Object
   object_type: Component
@@ -853,8 +980,13 @@ components:
     mutability: create-only
     data_type: String
     description: machine-readable enum label of a status
-    constraints:
-    - Only status values defined in [Status Values](#organisation-role-status-values) are allowed.
+    constraints: []
+    restrictions:
+      allowed_values:
+      - clientLinkProhibited
+      - serverLinkProhibited
+      - linked
+      - ok
     direct_access: false
     visibility: default
     notes: []
@@ -866,6 +998,7 @@ components:
     description: a human-readable text that describes the rationale for the status applied to the role.
     constraints:
     - None
+    restrictions: {}
     direct_access: false
     visibility: default
     notes: []
@@ -930,6 +1063,7 @@ components:
         MUST NOT be combined with: Any status other than `linked`
     subsections: []
   supported_processes: []
+  conditions: []
 - identifier: organisationStatus
   name: Organisation Status Object
   object_type: Component
@@ -947,8 +1081,22 @@ components:
     mutability: create-only
     data_type: String
     description: machine-readable enum label of a status
-    constraints:
-    - Only status values defined in [Status Values](#organisation-status-values) are allowed.
+    constraints: []
+    restrictions:
+      allowed_values:
+      - ok
+      - hold
+      - terminated
+      - linked
+      - clientLinkProhibited
+      - serverLinkProhibited
+      - clientUpdateProhibited
+      - serverUpdateProhibited
+      - clientDeleteProhibited
+      - serverDeleteProhibited
+      - pendingCreate
+      - pendingUpdate
+      - pendingDelete
     direct_access: false
     visibility: default
     notes: []
@@ -960,6 +1108,7 @@ components:
     description: a human-readable text that describes the rationale for the status applied to the object.
     constraints:
     - None
+    restrictions: {}
     direct_access: false
     visibility: default
     notes: []
@@ -1081,6 +1230,7 @@ components:
         MUST NOT be combined with: Each other (mutually exclusive)
     subsections: []
   supported_processes: []
+  conditions: []
 - identifier: dnsRecord
   name: DNS Resource Record Object
   object_type: Component
@@ -1105,6 +1255,7 @@ components:
     - The value MUST be a syntactically valid DNS host name.
     - Absolute FQDNs (with trailing dot) and relative host names are allowed, as well as the "@" symbol
       representing the domain name itself.
+    restrictions: {}
     direct_access: false
     visibility: default
     notes: []
@@ -1118,6 +1269,7 @@ components:
     - If present, the value MUST be chosen from Section 3.2.4 (CLASS values) of [@!RFC1035].
     - A client SHOULD omit this element. The server MUST assume "IN" as the default class and MAY decline
       other values.
+    restrictions: {}
     direct_access: false
     visibility: default
     notes: []
@@ -1137,6 +1289,7 @@ components:
       `a`, and `aaaa`.'
     - 'In EPP Compatibility Profile with DNSSEC Extension [@RFC5910], the following record types MUST
       additionally be supported: `ds` and `dnskey`.'
+    restrictions: {}
     direct_access: false
     visibility: default
     notes: []
@@ -1152,6 +1305,7 @@ components:
     constraints:
     - The fields within RDATA MUST match the expected structure for the given record type.
     - See (#rdata-structures) for required structures in the EPP Compatibility Profile.
+    restrictions: {}
     direct_access: false
     visibility: default
     notes: []
@@ -1177,6 +1331,7 @@ components:
     tables: []
     subsections: []
   supported_processes: []
+  conditions: []
 - identifier: dnsControls
   name: DNS Operational Controls Object
   object_type: Component
@@ -1196,10 +1351,12 @@ components:
     description: Controls the caching behaviour of DNS resource records. The dictionary is keyed by lower-case
       record type name, with values representing the TTL in seconds for that record type.
     constraints:
-    - The keys MUST be valid DNS resource record type names in lower case.
-    - The values MUST be positive Integers.
     - The allowed value ranges MAY be constrained by server policy.
     - A server MAY ignore client-specified TTL values and apply default or policy-defined values.
+    restrictions:
+      key_pattern: ^[a-z][a-z0-9-]*$
+      value_range:
+        min: 1
     direct_access: false
     visibility: default
     notes: []
@@ -1215,15 +1372,18 @@ components:
       See Section 3 of [@RFC4034] for information on the RRSIG resource record. This corresponds to the
       maxSigLife concept from [@RFC5910].
     constraints:
-    - The keys MUST be valid DNS resource record type names in lower case.
-    - The values MUST be positive Integers (minimum value of 1).
     - A server MAY ignore client-specified values and apply its own default signature expiration policy.
+    restrictions:
+      key_pattern: ^[a-z][a-z0-9-]*$
+      value_range:
+        min: 1
     direct_access: false
     visibility: default
     notes: []
   operations: []
   subsections: []
   supported_processes: []
+  conditions: []
 - identifier: dnsData
   name: DNS Data Object
   object_type: Component
@@ -1248,6 +1408,7 @@ components:
     - A server MUST support either DS or DNSKEY or both record types for DNSSEC provisioning. If provided
       with only DNSKEY, a server MUST calculate the DS record. If both record types are provided, a server
       MAY use the DNSKEY to validate the DS record.
+    restrictions: {}
     direct_access: false
     visibility: default
     notes: []
@@ -1258,12 +1419,14 @@ components:
     data_type: DNS Operational Controls Object
     description: Operational control parameters for the DNS records.
     constraints: []
+    restrictions: {}
     direct_access: false
     visibility: default
     notes: []
   operations: []
   subsections: []
   supported_processes: []
+  conditions: []
 - identifier: authInfo
   name: Authorisation Information
   object_type: Component
@@ -1284,6 +1447,7 @@ components:
     - The value MUST be one of the values registered at IANA as defined in [I-D.draft-wullink-rpp-core].
     - In EPP Compatibility Profile this value MUST be set to `authinfo` if standard password-based authorisation
       is used
+    restrictions: {}
     direct_access: false
     visibility: default
     notes: []
@@ -1299,12 +1463,14 @@ components:
       is updated) a new instance MUST be created.
     - Depending on the method and server policy Authorisation Information MAY not be available for read
       or any other operation responding with this data element.
+    restrictions: {}
     direct_access: false
     visibility: default
     notes: []
   operations: []
   subsections: []
   supported_processes: []
+  conditions: []
 - identifier: disclose
   name: Disclose
   object_type: Component
@@ -1317,6 +1483,7 @@ components:
   operations: []
   subsections: []
   supported_processes: []
+  conditions: []
 - identifier: restoreReport
   name: Restore Report Object
   object_type: Component
@@ -1339,6 +1506,7 @@ components:
       deleted.
     constraints:
     - None.
+    restrictions: {}
     direct_access: false
     visibility: default
     notes: []
@@ -1351,6 +1519,7 @@ components:
       is submitted.
     constraints:
     - None.
+    restrictions: {}
     direct_access: false
     visibility: default
     notes: []
@@ -1362,6 +1531,7 @@ components:
     description: The date and time when the object delete request was sent to the server.
     constraints:
     - None.
+    restrictions: {}
     direct_access: false
     visibility: default
     notes: []
@@ -1375,6 +1545,7 @@ components:
     - This element MAY be omitted when the restore report is submitted inline within the restore request
       in a single-step process.
     - In EPP Compatibility Profile this element MUST be present as defined in [@!RFC3915].
+    restrictions: {}
     direct_access: false
     visibility: default
     notes: []
@@ -1386,6 +1557,7 @@ components:
     description: A brief explanation of the reason for restoring the object.
     constraints:
     - None.
+    restrictions: {}
     direct_access: false
     visibility: default
     notes: []
@@ -1398,6 +1570,7 @@ components:
     constraints:
     - At least one and at most two statements MUST be provided. In EPP Compatibility Profile exactly two
       statements MUST be present as defined in [@!RFC3915].
+    restrictions: {}
     direct_access: false
     visibility: default
     notes: []
@@ -1409,12 +1582,14 @@ components:
     description: Any additional information needed to support the statements provided by the client.
     constraints:
     - None.
+    restrictions: {}
     direct_access: false
     visibility: default
     notes: []
   operations: []
   subsections: []
   supported_processes: []
+  conditions: []
 - identifier: organisationRole
   name: Organisation Role Object
   object_type: Component
@@ -1433,6 +1608,7 @@ components:
     data_type: String
     description: A third-party-assigned identifier for the role, such as an IANA ID for registrars.
     constraints: []
+    restrictions: {}
     direct_access: false
     visibility: default
     notes: []
@@ -1445,12 +1621,14 @@ components:
       value.
     constraints:
     - Possible values and combinations are specified in [Organisation Role Status Values](#organisation-role-status-values).
+    restrictions: {}
     direct_access: false
     visibility: default
     notes: []
   operations: []
   subsections: []
   supported_processes: []
+  conditions: []
 - identifier: processes
   name: Processes Object
   object_type: Component
@@ -1470,6 +1648,7 @@ components:
     data_type: Aggregation[Transfer Process Object]
     description: The transfer processes initiated on the owning Data Object.
     constraints: []
+    restrictions: {}
     direct_access: true
     visibility: default
     notes: []
@@ -1480,6 +1659,7 @@ components:
     data_type: Aggregation[Renew Process Object]
     description: The renew processes initiated on the owning Data Object.
     constraints: []
+    restrictions: {}
     direct_access: true
     visibility: default
     notes: []
@@ -1490,6 +1670,7 @@ components:
     data_type: Aggregation[Restore Process Object]
     description: The restore processes initiated on the owning Data Object.
     constraints: []
+    restrictions: {}
     direct_access: true
     visibility: default
     notes: []
@@ -1500,12 +1681,14 @@ components:
     data_type: Aggregation[Create Process Object]
     description: The create processes initiated on the owning Data Object.
     constraints: []
+    restrictions: {}
     direct_access: true
     visibility: default
     notes: []
   operations: []
   subsections: []
   supported_processes: []
+  conditions: []
 - identifier: baseProcess
   name: Base Process Object
   object_type: Component
@@ -1525,12 +1708,14 @@ components:
       Owner Data Object.
     constraints:
     - The value is set by the server and cannot be specified by the client.
+    restrictions: {}
     direct_access: false
     visibility: default
     notes: []
   operations: []
   subsections: []
   supported_processes: []
+  conditions: []
 - identifier: baseMessage
   name: Base Message Object
   object_type: Component
@@ -1550,6 +1735,7 @@ components:
       "host", "contact").
     constraints:
     - Must only be used when the `objectId` field is present.
+    restrictions: {}
     direct_access: false
     visibility: default
     notes: []
@@ -1564,6 +1750,7 @@ components:
     - For both "domainName", "host" the `objectId` must be a valid fully qualified domain name (FQDN).
     - For "contact" the `objectId` must be a valid contact identifier.
     - When the message is not related to a specific object, the `objectId` field may be empty.
+    restrictions: {}
     direct_access: false
     visibility: default
     notes: []
@@ -1575,12 +1762,14 @@ components:
     description: The transfer process the message pertains to.
     constraints:
     - Not all messages may be related to a specific process, and in such cases, this field may be empty.
+    restrictions: {}
     direct_access: false
     visibility: default
     notes: []
   operations: []
   subsections: []
   supported_processes: []
+  conditions: []
 - identifier: reviewResponseMessage
   name: Review Response Object
   object_type: Component
@@ -1601,6 +1790,7 @@ components:
     description: Whether the requested action was approved and completed.
     constraints:
     - '`false` means the action was denied and not performed.'
+    restrictions: {}
     direct_access: false
     visibility: default
     notes: []
@@ -1611,6 +1801,7 @@ components:
     data_type: String
     description: The client transaction identifier from the original request, if supplied.
     constraints: []
+    restrictions: {}
     direct_access: false
     visibility: default
     notes: []
@@ -1621,6 +1812,7 @@ components:
     data_type: String
     description: The server transaction identifier returned for the original request.
     constraints: []
+    restrictions: {}
     direct_access: false
     visibility: default
     notes: []
@@ -1631,6 +1823,7 @@ components:
     data_type: Timestamp
     description: The date and time when review of the requested action was completed.
     constraints: []
+    restrictions: {}
     direct_access: false
     visibility: default
     notes: []
@@ -1641,12 +1834,14 @@ components:
     data_type: String
     description: Human-readable message associated with the review response.
     constraints: []
+    restrictions: {}
     direct_access: false
     visibility: default
     notes: []
   operations: []
   subsections: []
   supported_processes: []
+  conditions: []
 - identifier: transferRequestMessage
   name: Transfer Request Message Object
   object_type: Component
@@ -1663,8 +1858,10 @@ components:
     mutability: read-only
     data_type: String
     description: The current state of the transfer request.
-    constraints:
-    - The value MUST be `pending`.
+    constraints: []
+    restrictions:
+      allowed_values:
+      - pending
     direct_access: false
     visibility: default
     notes: []
@@ -1675,6 +1872,7 @@ components:
     data_type: Timestamp
     description: The date and time the transfer was requested.
     constraints: []
+    restrictions: {}
     direct_access: false
     visibility: default
     notes: []
@@ -1686,12 +1884,14 @@ components:
     description: The deadline for responding before the server takes an automated action.
     constraints:
     - The action date MUST be later than the request date and is subject to server policy.
+    restrictions: {}
     direct_access: false
     visibility: default
     notes: []
   operations: []
   subsections: []
   supported_processes: []
+  conditions: []
 - identifier: transferOutcomeMessage
   name: Transfer Outcome Message Object
   object_type: Component
@@ -1707,9 +1907,14 @@ components:
     mutability: read-only
     data_type: String
     description: The final state of the transfer request.
-    constraints:
-    - The value MUST be one of `clientApproved`, `clientCancelled`, `clientRejected`, `serverApproved`,
-      or `serverCancelled`.
+    constraints: []
+    restrictions:
+      allowed_values:
+      - clientApproved
+      - clientCancelled
+      - clientRejected
+      - serverApproved
+      - serverCancelled
     direct_access: false
     visibility: default
     notes: []
@@ -1720,6 +1925,7 @@ components:
     data_type: Timestamp
     description: The date and time the transfer was requested.
     constraints: []
+    restrictions: {}
     direct_access: false
     visibility: default
     notes: []
@@ -1730,6 +1936,7 @@ components:
     data_type: Timestamp
     description: The date and time the transfer request was resolved.
     constraints: []
+    restrictions: {}
     direct_access: false
     visibility: default
     notes: []
@@ -1741,12 +1948,14 @@ components:
     description: The end of the object's validity period if the operation causes a change in the validity
       period.
     constraints: []
+    restrictions: {}
     direct_access: false
     visibility: default
     notes: []
   operations: []
   subsections: []
   supported_processes: []
+  conditions: []
 - identifier: expirationDeletionMessage
   name: Expiration Deletion Message Object
   object_type: Component
@@ -1763,12 +1972,14 @@ components:
     data_type: Timestamp
     description: The date and time the server deleted the object.
     constraints: []
+    restrictions: {}
     direct_access: false
     visibility: default
     notes: []
   operations: []
   subsections: []
   supported_processes: []
+  conditions: []
 - identifier: autoRenewalMessage
   name: Auto-Renewal Message Object
   object_type: Component
@@ -1785,6 +1996,7 @@ components:
     data_type: Timestamp
     description: The date and time the server renewed the object.
     constraints: []
+    restrictions: {}
     direct_access: false
     visibility: default
     notes: []
@@ -1795,12 +2007,14 @@ components:
     data_type: Timestamp
     description: The new expiration date of the object.
     constraints: []
+    restrictions: {}
     direct_access: false
     visibility: default
     notes: []
   operations: []
   subsections: []
   supported_processes: []
+  conditions: []
 - identifier: serviceNoticeMessage
   name: Service Notice Message Object
   object_type: Component
@@ -1821,6 +2035,7 @@ components:
     constraints:
     - The server MUST NOT misuse this field by using it for transmitting structured data or machine-readable
       information.
+    restrictions: {}
     direct_access: false
     visibility: default
     notes:
@@ -1828,6 +2043,7 @@ components:
   operations: []
   subsections: []
   supported_processes: []
+  conditions: []
 - identifier: discoveryVersion
   name: Discovery Version Object
   object_type: Component
@@ -1845,6 +2061,7 @@ components:
     description: The RPP version, for example "1.0".
     constraints:
     - The value MUST use the Semantic Versioning format.
+    restrictions: {}
     direct_access: false
     visibility: default
     notes: []
@@ -1855,12 +2072,14 @@ components:
     data_type: URL
     description: The base URL specific for the version, used as a prefix for all endpoint URL templates.
     constraints: []
+    restrictions: {}
     direct_access: false
     visibility: default
     notes: []
   operations: []
   subsections: []
   supported_processes: []
+  conditions: []
 - identifier: discoveryEnvironment
   name: Discovery Environment Object
   object_type: Component
@@ -1877,6 +2096,7 @@ components:
     data_type: String
     description: The name of the RPP server, for example "rpp.example".
     constraints: []
+    restrictions: {}
     direct_access: false
     visibility: default
     notes: []
@@ -1887,12 +2107,14 @@ components:
     data_type: String
     description: The operational status of the RPP server, for example "production", "test", or "development".
     constraints: []
+    restrictions: {}
     direct_access: false
     visibility: default
     notes: []
   operations: []
   subsections: []
   supported_processes: []
+  conditions: []
 - identifier: extension
   name: Extension Object
   object_type: Component
@@ -1909,6 +2131,7 @@ components:
     data_type: String
     description: A short name for the extension, for example "registry fee extension".
     constraints: []
+    restrictions: {}
     direct_access: false
     visibility: default
     notes: []
@@ -1919,6 +2142,7 @@ components:
     data_type: String
     description: A unique URN identifier for the extension, for example "urn:ietf:params:rpp:extension:registry-fee".
     constraints: []
+    restrictions: {}
     direct_access: false
     visibility: default
     notes: []
@@ -1930,6 +2154,7 @@ components:
     description: The version of the extension that is supported or required for the profile, for example
       "1.0".
     constraints: []
+    restrictions: {}
     direct_access: false
     visibility: default
     notes: []
@@ -1943,12 +2168,14 @@ components:
     - For standard extensions, the value MUST be the URL of the extension in the IANA registry.
     - For private extensions, the value MUST be the URL of the extension specification. The domain name
       used in the URL MUST resolve and the URL MUST be accessible to the client.
+    restrictions: {}
     direct_access: false
     visibility: default
     notes: []
   operations: []
   subsections: []
   supported_processes: []
+  conditions: []
 - identifier: discoveryIdnLgr
   name: Discovery IDN LGR Object
   object_type: Component
@@ -1966,6 +2193,7 @@ components:
     data_type: String
     description: The top-level domains (TLDs) to which the LGR applies.
     constraints: []
+    restrictions: {}
     direct_access: false
     visibility: default
     notes: []
@@ -1977,6 +2205,7 @@ components:
     description: The IANA-registered name of the LGR.
     constraints:
     - The value MUST be a valid LGR name as listed in the IANA IDN Tables registry [IDN-Tables].
+    restrictions: {}
     direct_access: false
     visibility: default
     notes: []
@@ -1987,6 +2216,7 @@ components:
     data_type: URL
     description: The location of the LGR specification in the IANA IDN Tables registry [IDN-Tables].
     constraints: []
+    restrictions: {}
     direct_access: false
     visibility: default
     notes: []
@@ -1997,12 +2227,14 @@ components:
     data_type: Boolean
     description: Indicates whether this LGR is the default for the specified TLDs.
     constraints: []
+    restrictions: {}
     direct_access: false
     visibility: default
     notes: []
   operations: []
   subsections: []
   supported_processes: []
+  conditions: []
 - identifier: discoveryNotice
   name: Discovery Notice Object
   object_type: Component
@@ -2019,6 +2251,7 @@ components:
     data_type: Timestamp
     description: The publication time of the notice.
     constraints: []
+    restrictions: {}
     direct_access: false
     visibility: default
     notes: []
@@ -2029,12 +2262,14 @@ components:
     data_type: String
     description: A human-readable description of the notice.
     constraints: []
+    restrictions: {}
     direct_access: false
     visibility: default
     notes: []
   operations: []
   subsections: []
   supported_processes: []
+  conditions: []
 processes:
 - identifier: transferProcess
   name: Transfer Process Object
@@ -2054,9 +2289,11 @@ processes:
     data_type: String
     description: Indicates whether the transfer is a "pull" or "push" transfer. Per policy, servers usually
       support only one model. If omitted, server policy determines the default.
-    constraints:
-    - 'The value MUST be one of: "pull" (initiated by the gaining client) or "push" (initiated by the
-      sponsoring client).'
+    constraints: []
+    restrictions:
+      allowed_values:
+      - pull
+      - push
     direct_access: false
     visibility: default
     notes: []
@@ -2065,9 +2302,9 @@ processes:
     cardinality: 0-1
     mutability: create-only
     data_type: Client Identifier
-    description: The identifier of the designated gaining client. This element is REQUIRED for push transfers
-      and MUST NOT be provided for pull transfers.
+    description: The identifier of the designated gaining client.
     constraints: []
+    restrictions: {}
     direct_access: false
     visibility: default
     notes: []
@@ -2077,9 +2314,15 @@ processes:
     mutability: read-only
     data_type: String
     description: The state of the transfer request.
-    constraints:
-    - 'The value MUST be one of: "pending", "clientApproved", "clientCancelled", "clientRejected", "serverApproved",
-      "serverCancelled".'
+    constraints: []
+    restrictions:
+      allowed_values:
+      - pending
+      - clientApproved
+      - clientCancelled
+      - clientRejected
+      - serverApproved
+      - serverCancelled
     direct_access: false
     visibility: default
     notes: []
@@ -2090,6 +2333,7 @@ processes:
     data_type: Client Identifier
     description: The identifier of the client that initiated the transfer request.
     constraints: []
+    restrictions: {}
     direct_access: false
     visibility: default
     notes: []
@@ -2100,6 +2344,7 @@ processes:
     data_type: Timestamp
     description: The date and time that the transfer was requested.
     constraints: []
+    restrictions: {}
     direct_access: false
     visibility: default
     notes: []
@@ -2113,6 +2358,7 @@ processes:
       SHOULD act upon the request. For all other statuses, the identifier of the client that took the
       indicated action.
     constraints: []
+    restrictions: {}
     direct_access: false
     visibility: default
     notes: []
@@ -2125,6 +2371,7 @@ processes:
       response action SHOULD be taken by the server. For all other statuses, the date and time when the
       request was completed.
     constraints: []
+    restrictions: {}
     direct_access: false
     visibility: default
     notes: []
@@ -2267,6 +2514,7 @@ processes:
         description: A human-readable text describing the rationale for rejecting the transfer request.
         constraints:
         - In EPP Compatibility Profile this data element MUST NOT be used
+        restrictions: {}
         notes: []
     output:
     - kind: Object
@@ -2279,6 +2527,15 @@ processes:
     notes: []
   subsections: []
   supported_processes: []
+  conditions:
+  - if:
+      transferDir: push
+    require:
+    - gainingClientId
+  - if:
+      transferDir: pull
+    forbid:
+    - gainingClientId
 - identifier: restoreProcess
   name: Restore Process Object
   object_type: Process
@@ -2295,8 +2552,12 @@ processes:
     mutability: read-only
     data_type: String
     description: The current state of the restore process.
-    constraints:
-    - 'The value MUST be one of: `"pendingRestore"`, `"restored"`, `"rgpPendingDelete"`'
+    constraints: []
+    restrictions:
+      allowed_values:
+      - pendingRestore
+      - restored
+      - rgpPendingDelete
     direct_access: false
     visibility: default
     notes: []
@@ -2308,6 +2569,7 @@ processes:
     description: The date and time when the restore request was submitted.
     constraints:
     - MUST NOT be present if no restore request has been submitted yet.
+    restrictions: {}
     direct_access: false
     visibility: default
     notes: []
@@ -2319,6 +2581,7 @@ processes:
     description: The date and time when the most recent restore report was accepted by the server.
     constraints:
     - MUST NOT be present if no restore report has been accepted yet.
+    restrictions: {}
     direct_access: false
     visibility: default
     notes: []
@@ -2331,6 +2594,7 @@ processes:
       to `redemptionPeriod` state. Only present when the object is in `pendingRestore` state.
     constraints:
     - MUST NOT be present when `restoreStatus` is not `"pendingRestore"`.
+    restrictions: {}
     direct_access: false
     visibility: default
     notes: []
@@ -2368,6 +2632,7 @@ processes:
         - MUST NOT be provided if the server does not require a restore report.
         - In EPP Compatibility Profile, corresponds to `op="request"` (without report) or a combined `op="request"`
           followed immediately by `op="report"` as defined in [@!RFC3915].
+        restrictions: {}
         notes: []
     output:
     - kind: Object
@@ -2431,6 +2696,7 @@ processes:
         description: The restore report to be submitted as part of the RGP process.
         constraints:
         - In EPP Compatibility Profile, corresponds to `op="report"` as defined in [@!RFC3915].
+        restrictions: {}
         notes: []
     output:
     - kind: Object
@@ -2443,6 +2709,7 @@ processes:
     notes: []
   subsections: []
   supported_processes: []
+  conditions: []
 - identifier: renewProcess
   name: Renew Process Object
   object_type: Process
@@ -2462,6 +2729,7 @@ processes:
     description: The current expiry date of the object. The server MUST validate this against the object's
       current `expiryDate` to prevent unintended duplicate renewals.
     constraints: []
+    restrictions: {}
     direct_access: false
     visibility: default
     notes: []
@@ -2474,6 +2742,7 @@ processes:
       server to calculate the new `expiryDate`. The default value MAY be defined by server policy. The
       number of units available MAY be subject to limits imposed by the server.
     constraints: []
+    restrictions: {}
     direct_access: false
     visibility: default
     notes: []
@@ -2506,6 +2775,7 @@ processes:
     notes: []
   subsections: []
   supported_processes: []
+  conditions: []
 - identifier: createProcess
   name: Create Process Object
   object_type: Process
@@ -2575,6 +2845,7 @@ processes:
     notes: []
   subsections: []
   supported_processes: []
+  conditions: []
 - identifier: domainCreateProcess
   name: Domain Create Process Object
   object_type: Process
@@ -2597,6 +2868,7 @@ processes:
     constraints:
     - The default value MAY be defined by server policy. The number of units available MAY be subject
       to limits imposed by the server.
+    restrictions: {}
     direct_access: false
     visibility: default
     notes: []
@@ -2650,6 +2922,7 @@ processes:
     notes: []
   subsections: []
   supported_processes: []
+  conditions: []
 - identifier: domainTransferProcess
   name: Domain Transfer Process Object
   object_type: Process
@@ -2669,6 +2942,7 @@ processes:
     description: The end of the domain object's registration period if the transfer caused or causes a
       change in the validity period.
     constraints: []
+    restrictions: {}
     direct_access: false
     visibility: default
     notes: []
@@ -2682,6 +2956,7 @@ processes:
       by the server.
     constraints:
     - In EPP Compatibility Profile, Transfer Period cannot be read from the Transfer Process Object
+    restrictions: {}
     direct_access: false
     visibility: default
     notes:
@@ -2719,6 +2994,7 @@ processes:
     notes: []
   subsections: []
   supported_processes: []
+  conditions: []
 resources:
 - identifier: domainName
   name: Domain Name Data Object
@@ -2742,6 +3018,7 @@ resources:
       or other domain for which the server is authoritative.
     - If the domain name is an internationalized domain name (IDN), the value MUST be a valid ACE encoded
       string representing the Unicode Name (uName).
+    restrictions: {}
     direct_access: false
     visibility: default
     notes: []
@@ -2763,6 +3040,7 @@ resources:
       in Section 2.3.2.4 of [@!RFC5890], MUST be equal to the corresponding A-label representation.
     - Any code point valid under IDNA2003 but disallowed under IDNA2008 MUST NOT be allowed in the Unicode
       Name (uName).
+    restrictions: {}
     direct_access: false
     visibility: default
     notes: []
@@ -2776,6 +3054,7 @@ resources:
     constraints:
     - MUST NOT be empty when the Unicode Name (uName) is provided.
     - MUST be a valid LGR name registered in the IANA IDN Tables registry [IDN-Tables].
+    restrictions: {}
     direct_access: false
     visibility: default
     notes: []
@@ -2786,6 +3065,7 @@ resources:
     data_type: Provisioning Metadata Object
     description: Standard metadata about the object's lifecycle and ownership.
     constraints: []
+    restrictions: {}
     direct_access: false
     visibility: default
     notes: []
@@ -2797,6 +3077,7 @@ resources:
     description: The current status descriptors associated with the domain.
     constraints:
     - Possible combinations of Status Object Labels are specified in (#domain-name-status-object).
+    restrictions: {}
     direct_access: false
     visibility: default
     notes: []
@@ -2809,6 +3090,7 @@ resources:
     constraints:
     - The relation MUST correspond to a valid Contact Data Object known to the server.
     - Servers MAY restrict association of a Contact Data Object of a different sponsoring client.
+    restrictions: {}
     direct_access: false
     visibility: default
     notes: []
@@ -2822,6 +3104,7 @@ resources:
     - Each associated contact MUST correspond to a valid Contact Data Object known to the server before
       it can be associated with the domain.
     - Maximum number of associated contacts (per role) MAY be restricted by server policy
+    restrictions: {}
     direct_access: false
     visibility: default
     notes: []
@@ -2834,6 +3117,7 @@ resources:
     constraints:
     - A Host Data Object MUST be known to the server before it can be associated with the domain.
     - MUST not be used when 1 or more DNS Data entries are specified through the DNS Data element.
+    restrictions: {}
     direct_access: false
     visibility: default
     notes: []
@@ -2856,6 +3140,7 @@ resources:
     - A server MAY forbid use of NS/A/AAAA record types if the server only supports host object model
       through Nameserver property defining those records.
     - MUST not be used when 1 or more nameservers are specified through the Nameserver element.
+    restrictions: {}
     direct_access: false
     visibility: default
     notes: []
@@ -2866,6 +3151,7 @@ resources:
     data_type: Aggregation[Host Data Object]
     description: A collection of subordinate host objects that exist under this domain.
     constraints: []
+    restrictions: {}
     direct_access: false
     visibility: default
     notes: []
@@ -2877,6 +3163,7 @@ resources:
     description: The date and time identifying the end of the domain object's registration period.
     constraints:
     - The value is set by the server and cannot be specified by the client.
+    restrictions: {}
     direct_access: false
     visibility: default
     notes: []
@@ -2889,6 +3176,7 @@ resources:
     constraints:
     - This element MUST only be returned if the querying client is the sponsoring client or if the client
       supplied valid Object Authorisation with the operation.
+    restrictions: {}
     direct_access: false
     visibility: onDemand
     notes: []
@@ -2899,6 +3187,7 @@ resources:
     data_type: Processes Object
     description: The Process Objects currently or recently initiated on the domain object.
     constraints: []
+    restrictions: {}
     direct_access: true
     visibility: default
     notes: []
@@ -2974,6 +3263,7 @@ resources:
         constraints:
         - The value MUST be one of "all", "del" (delegated), "sub" (subordinate), or "none". The default
           value is "all".
+        restrictions: {}
         notes: []
     output:
     - kind: Object
@@ -3044,6 +3334,7 @@ resources:
     constraints:
     - OPTIONAL; available only when the RGP feature is supported.
     notes: []
+  conditions: []
 - identifier: contact
   name: Contact Data Object
   object_type: Resource
@@ -3064,6 +3355,7 @@ resources:
     constraints:
     - This value MUST be supported to be provided by the client.
     - Servers MAY support server-side generation of this value.
+    restrictions: {}
     direct_access: false
     visibility: default
     notes: []
@@ -3074,6 +3366,7 @@ resources:
     data_type: Provisioning Metadata Object
     description: Standard metadata about the object's lifecycle and ownership.
     constraints: []
+    restrictions: {}
     direct_access: false
     visibility: default
     notes: []
@@ -3085,6 +3378,7 @@ resources:
     description: Status descriptors associated with the contact.
     constraints:
     - Possible combinations of Contact Status Labels are specified in [Contact Status Values](#contact-status-values).
+    restrictions: {}
     direct_access: false
     visibility: default
     notes: []
@@ -3105,6 +3399,7 @@ resources:
     - In EPP Compatibility Profile, telephone numbers MUST begin with a plus sign ("+"), followed by a
       country code defined in ITU-T E.164, followed by a dot ("."), followed by a sequence of digits,
       and MAY note an extension. Email addresses MUST conform to the syntax defined in [@!RFC5322].
+    restrictions: {}
     direct_access: false
     visibility: default
     notes: []
@@ -3115,6 +3410,7 @@ resources:
     data_type: Authorisation Information Object
     description: Authorisation information associated with the contact object.
     constraints: []
+    restrictions: {}
     direct_access: false
     visibility: onDemand
     notes: []
@@ -3128,6 +3424,7 @@ resources:
     constraints:
     - A server MUST reject any transaction that requests disclosure practices that do not conform to the
       server's announced data-collection policy.
+    restrictions: {}
     direct_access: false
     visibility: default
     notes: []
@@ -3138,6 +3435,7 @@ resources:
     data_type: Processes Object
     description: The Process Objects currently or recently initiated on the contact object.
     constraints: []
+    restrictions: {}
     direct_access: true
     visibility: default
     notes: []
@@ -3262,6 +3560,7 @@ resources:
     constraints: []
     notes:
     - Renewal semantics do not apply to contact objects.
+  conditions: []
 - identifier: host
   name: Host Data Object
   object_type: Resource
@@ -3283,6 +3582,7 @@ resources:
       other than its superordinate domain.
     - Actions that do not preserve the relationship between a host object and its superordinate domain
       object MUST be disallowed.
+    restrictions: {}
     direct_access: false
     visibility: default
     notes: []
@@ -3293,6 +3593,7 @@ resources:
     data_type: Provisioning Metadata Object
     description: Standard metadata about the object's lifecycle and ownership.
     constraints: []
+    restrictions: {}
     direct_access: false
     visibility: default
     notes: []
@@ -3304,6 +3605,7 @@ resources:
     description: The current status descriptors associated with the host.
     constraints:
     - Possible combinations of Host Status Labels are specified in [Host Status Values](#host-status-values)
+    restrictions: {}
     direct_access: false
     visibility: default
     notes: []
@@ -3321,6 +3623,7 @@ resources:
     - In EPP Compatibility Profile, IPv4 addresses MUST conform to [@!RFC0791] and IPv6 addresses MUST
       conform to [@!RFC4291]. A server MAY reject IP addresses that have not been allocated for public
       use by IANA.
+    restrictions: {}
     direct_access: false
     visibility: default
     notes: []
@@ -3331,6 +3634,7 @@ resources:
     data_type: Processes Object
     description: The Process Objects currently or recently initiated on the host object.
     constraints: []
+    restrictions: {}
     direct_access: true
     visibility: default
     notes: []
@@ -3455,6 +3759,7 @@ resources:
     - Host objects MUST NOT be transferred directly. They are transferred implicitly when their superordinate
       domain object is transferred.
     notes: []
+  conditions: []
 - identifier: organisation
   name: Organisation Data Object
   object_type: Resource
@@ -3476,6 +3781,7 @@ resources:
     constraints:
     - This value MUST be supported to be provided by the client.
     - Servers MAY support server-side generation of this value.
+    restrictions: {}
     direct_access: false
     visibility: default
     notes: []
@@ -3486,6 +3792,7 @@ resources:
     data_type: Provisioning Metadata Object
     description: Standard metadata about the object's lifecycle and ownership.
     constraints: []
+    restrictions: {}
     direct_access: false
     visibility: default
     notes: []
@@ -3499,6 +3806,7 @@ resources:
     constraints:
     - Possible combinations of Organisation Status Labels are specified in [Organisation Status Values](#organisation-status-values).
     - A client MUST NOT alter server status values set by the server itself.
+    restrictions: {}
     direct_access: false
     visibility: default
     notes: []
@@ -3513,6 +3821,7 @@ resources:
     - An organisation MAY have multiple roles with different role types.
     - Role types are registered in the IANA "EPP Organisation Role Values" registry as defined in [@!RFC8543,
       section 7.3]. Initial values include `registrar`, `reseller`, `privacyproxy`, and `dns-operator`.
+    restrictions: {}
     direct_access: false
     visibility: default
     notes: []
@@ -3526,6 +3835,7 @@ resources:
     constraints:
     - Loops MUST be prohibited. If organisation A has organisation B as its parent, organisation B MUST
       NOT have organisation A as its parent, directly or transitively.
+    restrictions: {}
     direct_access: false
     visibility: default
     notes: []
@@ -3536,6 +3846,7 @@ resources:
     data_type: External:RPP-JSContact-Profile:Card
     description: Contact information for the organisation.
     constraints: []
+    restrictions: {}
     direct_access: false
     visibility: default
     notes: []
@@ -3547,6 +3858,7 @@ resources:
     description: Identifiers of contact objects associated with the organisation.
     constraints:
     - Contact object identifiers MUST be known to the server before the contact can be associated.
+    restrictions: {}
     direct_access: false
     visibility: default
     notes: []
@@ -3559,6 +3871,7 @@ resources:
     constraints:
     - Each role value MUST be a non-empty string.
     - Allowed role values MAY be constrained by server policy.
+    restrictions: {}
     direct_access: true
     visibility: default
     notes: []
@@ -3569,6 +3882,7 @@ resources:
     data_type: Processes Object
     description: The Process Objects currently or recently initiated on the organisation object.
     constraints: []
+    restrictions: {}
     direct_access: true
     visibility: default
     notes: []
@@ -3673,6 +3987,7 @@ resources:
     - The error response SHOULD indicate the related associated objects.
   subsections: []
   supported_processes: []
+  conditions: []
 - identifier: message
   name: Message Data Object
   object_type: Resource
@@ -3691,6 +4006,7 @@ resources:
     data_type: Identifier
     description: A server-unique identifier for the message object.
     constraints: []
+    restrictions: {}
     direct_access: false
     visibility: default
     notes: []
@@ -3702,6 +4018,7 @@ resources:
     description: The date and time when the message object was created and inserted into the queue.
     constraints:
     - The value is set by the server.
+    restrictions: {}
     direct_access: false
     visibility: default
     notes: []
@@ -3711,8 +4028,12 @@ resources:
     mutability: read-only
     data_type: String
     description: The current lifecycle status of the message object.
-    constraints:
-    - 'Possible values: `queued`, `delivered` and `removed`'
+    constraints: []
+    restrictions:
+      allowed_values:
+      - queued
+      - delivered
+      - removed
     direct_access: false
     visibility: default
     notes: []
@@ -3723,6 +4044,7 @@ resources:
     data_type: Base Message Object
     description: The data related to a specific message type, such as a transfer request or a review response.
     constraints: []
+    restrictions: {}
     direct_access: false
     visibility: default
     notes: []
@@ -3789,6 +4111,7 @@ resources:
         description: The type of the message to use as a filter when retrieving message objects.
         constraints:
         - The type value MUST be a valid identifier for an RPP message component (e.g. reviewResponse).
+        restrictions: {}
         notes: []
     output:
     - kind: Object
@@ -3822,6 +4145,7 @@ resources:
     notes: []
   subsections: []
   supported_processes: []
+  conditions: []
 - identifier: user
   name: User Data Object
   object_type: Resource
@@ -3842,6 +4166,7 @@ resources:
     description: A unique identifier for the user
     constraints:
     - MUST be globally unique in the server scope
+    restrictions: {}
     direct_access: false
     visibility: default
     notes: []
@@ -3853,6 +4178,7 @@ resources:
     description: The details of the user, such as name, email, and phone number
     constraints:
     - '-'
+    restrictions: {}
     direct_access: false
     visibility: default
     notes: []
@@ -3864,6 +4190,7 @@ resources:
     description: A description of the user
     constraints:
     - '-'
+    restrictions: {}
     direct_access: false
     visibility: default
     notes: []
@@ -3875,6 +4202,7 @@ resources:
     description: The status of the user
     constraints:
     - '-'
+    restrictions: {}
     direct_access: false
     visibility: default
     notes: []
@@ -3886,6 +4214,7 @@ resources:
     description: A reference to the owner organisation object.
     constraints:
     - '-'
+    restrictions: {}
     direct_access: false
     visibility: default
     notes: []
@@ -3896,6 +4225,7 @@ resources:
     data_type: Processes Object
     description: The Process Objects currently or recently initiated on the user object.
     constraints: []
+    restrictions: {}
     direct_access: true
     visibility: default
     notes: []
@@ -3992,6 +4322,7 @@ resources:
     - The server MUST reject this operation if the User is associated with an Organisation Object.
   subsections: []
   supported_processes: []
+  conditions: []
 - identifier: discovery
   name: Discovery Data Object
   object_type: Resource
@@ -4014,6 +4345,7 @@ resources:
     constraints:
     - An operator that supports more than one incompatible version MUST deploy them on distinct base URLs
       and announce each of them.
+    restrictions: {}
     direct_access: false
     visibility: default
     notes: []
@@ -4024,6 +4356,7 @@ resources:
     data_type: Discovery Environment Object
     description: Information about the RPP server.
     constraints: []
+    restrictions: {}
     direct_access: false
     visibility: default
     notes: []
@@ -4034,6 +4367,7 @@ resources:
     data_type: String
     description: The TLDs supported by the server, for example "example" or "org".
     constraints: []
+    restrictions: {}
     direct_access: false
     visibility: default
     notes: []
@@ -4045,6 +4379,7 @@ resources:
     description: The extensions supported by the server.
     constraints:
     - The server MUST include the version of each extension.
+    restrictions: {}
     direct_access: false
     visibility: default
     notes: []
@@ -4055,6 +4390,7 @@ resources:
     data_type: String
     description: The names of the profiles supported by the server.
     constraints: []
+    restrictions: {}
     direct_access: false
     visibility: default
     notes: []
@@ -4065,6 +4401,7 @@ resources:
     data_type: String
     description: The list of identifiers of data objects supported by the server
     constraints: []
+    restrictions: {}
     direct_access: false
     visibility: default
     notes: []
@@ -4077,6 +4414,7 @@ resources:
     constraints:
     - The value MUST be expressed in UTC using the `Z` suffix, for example `2026-06-01T10:00:00Z`, and
       MUST NOT use a numeric UTC offset or any other time zone.
+    restrictions: {}
     direct_access: false
     visibility: default
     notes: []
@@ -4092,6 +4430,7 @@ resources:
     - The document MUST be accessible to the client without authentication.
     - A server SHOULD provide a link for each of the `privacy-policy` and `terms-of-service` relation
       types, defined in [@!RFC6903].
+    restrictions: {}
     direct_access: false
     visibility: default
     notes: []
@@ -4102,6 +4441,7 @@ resources:
     data_type: Discovery IDN LGR Object
     description: The Label Generation Rulesets (LGRs) supported by the server.
     constraints: []
+    restrictions: {}
     direct_access: false
     visibility: default
     notes: []
@@ -4114,6 +4454,7 @@ resources:
       "contact".
     constraints:
     - The values MUST be valid object identifiers as defined in the RPP Data Object Registry.
+    restrictions: {}
     direct_access: false
     visibility: default
     notes: []
@@ -4137,6 +4478,7 @@ resources:
     notes: []
   subsections: []
   supported_processes: []
+  conditions: []
 - identifier: profile
   name: Profile Data Object
   object_type: Resource
@@ -4162,6 +4504,7 @@ resources:
       within that namespace. It SHOULD be descriptive of the features and versions included in the profile.
     - The name of a private profile, which is not published in the IANA registry, MUST be globally unique.
       The use of reverse domain name notation is RECOMMENDED.
+    restrictions: {}
     direct_access: false
     visibility: default
     notes: []
@@ -4172,6 +4515,7 @@ resources:
     data_type: String
     description: A human-readable description of the profile and its intended use.
     constraints: []
+    restrictions: {}
     direct_access: false
     visibility: default
     notes: []
@@ -4182,6 +4526,7 @@ resources:
     data_type: String
     description: The version of the profile.
     constraints: []
+    restrictions: {}
     direct_access: false
     visibility: default
     notes: []
@@ -4192,6 +4537,7 @@ resources:
     data_type: String
     description: The minimum version of the RPP protocol that is supported or required for the profile.
     constraints: []
+    restrictions: {}
     direct_access: false
     visibility: default
     notes: []
@@ -4202,6 +4548,7 @@ resources:
     data_type: String
     description: The list of identifiers of data objects supported by the server
     constraints: []
+    restrictions: {}
     direct_access: false
     visibility: default
     notes: []
@@ -4215,6 +4562,7 @@ resources:
     constraints:
     - A profile MUST NOT list the same extension name more than once.
     - The server MUST support all extensions listed in the profile.
+    restrictions: {}
     direct_access: false
     visibility: default
     notes: []
@@ -4231,6 +4579,7 @@ resources:
       the client using other means.
     - 'The depth of inheritance MUST be limited to 1: the base profile MUST NOT itself have a base profile.'
     - A profile MUST NOT be its own base profile.
+    restrictions: {}
     direct_access: false
     visibility: default
     notes: []
@@ -4244,6 +4593,7 @@ resources:
     - The default profile MUST be published in the IANA registry for RPP profiles, or be made available
       to the client using other means.
     - Only one profile MUST be designated as the default profile.
+    restrictions: {}
     direct_access: false
     visibility: default
     notes: []
@@ -4270,3 +4620,4 @@ resources:
     notes: []
   subsections: []
   supported_processes: []
+  conditions: []

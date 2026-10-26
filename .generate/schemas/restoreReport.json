@@ -1,0 +1,21 @@
+{
+  "$defs": {
+    "restoreReport": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "restoreReport" },
+        "preData": { "type": "string" },
+        "postData": { "type": "string" },
+        "deleteTime": { "type": "string", "format": "date-time" },
+        "restoreTime": { "type": "string", "format": "date-time" },
+        "restoreReason": { "type": "string" },
+        "statements": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "other": { "type": "string" }
+      },
+      "required": ["@type"]
+    }
+  }
+}

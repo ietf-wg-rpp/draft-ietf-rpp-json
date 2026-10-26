@@ -42,7 +42,9 @@ Generation decisions (precedence: draft rules > YAML content > draft schema shap
   * Elements with Visibility "onDemand" are not required in read views.
     Direct Access does not change the representation.
   * Prose constraints are NOT converted to keywords; only the structured
-    attributes (cardinality, mutability, data type) are used.
+    attributes are used: cardinality, mutability, data type, "restrictions"
+    (enum, minimum/maximum, pattern, minLength/maxLength, propertyNames) and
+    "conditions" (if/then). Common Data Types come from "common_data_types".
 """
 
 import argparse
@@ -84,7 +86,7 @@ PRIMITIVES_NOT_IN_RULES = {
     "Fully Qualified Domain Name": {"type": "string", "format": "hostname"},
 }
 
-# Common Data Types: name -> $defs name. Their syntax is not in the YAML export.
+# Common Data Types: name -> $defs name (the draft's keys; they have no Identifier).
 COMMON_TYPES = {
     "Identifier":        "identifier",
     "Client Identifier": "clientIdentifier",
@@ -155,6 +157,11 @@ def norm_name(name):
     return n, is_ref
 
 
+def common_key(name):
+    """$defs key of a Common Data Type: the draft's key, else the camelCase name."""
+    return COMMON_TYPES.get(name) or lc_first("".join(w[:1].upper() + w[1:] for w in name.split()))
+
+
 def lc_first(s):
     return s[:1].lower() + s[1:]
 
@@ -201,6 +208,7 @@ class Model:
         self.diag = diag
         self.objs = {}
         self.by_name = {}
+        self.common = {c["name"]: c for c in data.get("common_data_types") or []}
         for section in ("components", "processes", "resources"):
             for raw in data.get(section) or []:
                 o = Obj(raw)
@@ -292,6 +300,11 @@ class Model:
             self.diag.add("yaml-issue", f"Operation {item['kind']} target '{t}' is not a defined object",
                           owner.id)
         return o
+
+    @staticmethod
+    def conditions(o):
+        """Cross-element conditions of an object, inherited first."""
+        return [c for obj in list(reversed(o.ancestors())) + [o] for c in obj.raw.get("conditions") or []]
 
     def owner_of(self, proc):
         """Owner Data Object of an object-specific process ("owner" in the export)."""
@@ -389,11 +402,10 @@ class Generator:
                 for view in self.views_for(o):
                     ordered.append((self.def_name(o, view), self.build_view(o, view)))
         defs = {}
+        for name in self.m.common:
+            self.common_used.add(common_key(name))
         for name in sorted(self.common_used):
-            defs[name] = {"type": "string",
-                          "$comment": "Common Data Type: syntax not available in the object model export"}
-            self.diag.add("yaml-gap", "Common Data Types (syntax, length, pattern) are not exported; "
-                                      "a plain string placeholder is generated", name)
+            defs[name] = self.common_schema(name)
             self.diag.add("rule-gap", "Common Data Types have no Identifier, so Rule 27 does not name "
                                       "their $defs key; the draft's key is used", name)
         for name, profile in self.external_used.items():
@@ -407,6 +419,80 @@ class Generator:
         self.check_processes()
         self.defs = defs
         return {"$schema": SCHEMA_URI, "$defs": defs}
+
+    def common_schema(self, key):
+        """Schema of a Common Data Type from its exported base type and restrictions."""
+        ct = next((c for n, c in self.m.common.items() if common_key(n) == key), None)
+        if ct is None:
+            self.diag.add("yaml-gap", "Common Data Type is not exported; a plain string placeholder "
+                                      "is generated", key)
+            return {"type": "string"}
+        r = dict(ct.get("restrictions") or {})
+        base = r.pop("base_type", "")
+        if base in PRIMITIVES:
+            schema = dict(PRIMITIVES[base])
+        else:
+            if base:
+                self.diag.add("yaml-issue", f"Unknown base type '{base}'", key)
+            elif key == "identifier":
+                pass  # Rule 21: identifier fields are strings
+            else:
+                self.diag.add("yaml-gap", "Common Data Type has no base_type; string applied", key)
+            schema = {"type": "string"}
+        if not r:
+            self.diag.add("yaml-gap", "Common Data Type syntax is given only as prose (no restrictions "
+                                      "exported); no syntax keywords generated", key)
+        return self.restrict(schema, r, key)
+
+    def restrict(self, schema, r, ctx):
+        """Add the keywords of the exported value restrictions to a value schema."""
+        for k, v in r.items():
+            if k == "allowed_values":
+                if schema.get("type") != "string":
+                    self.diag.add("rule-gap", "Enumeration on a non-string value: Rule 22 covers string "
+                                              "fields only; enum applied", ctx)
+                schema["enum"] = list(v)
+                continue
+            self.diag.add("rule-gap", f"Restriction '{k}' has no JSON rule (Rule 22 covers enumerations "
+                                      f"only); mapped to the matching JSON Schema keyword", ctx)
+            if k == "range":
+                if "min" in v:
+                    schema["minimum"] = v["min"]
+                if "max" in v:
+                    schema["maximum"] = v["max"]
+            elif k == "pattern":
+                schema["pattern"] = v
+            elif k == "min_length":
+                schema["minLength"] = v
+            elif k == "max_length":
+                schema["maxLength"] = v
+            else:
+                self.diag.add("yaml-issue", f"Restriction '{k}' does not apply to this data type", ctx)
+        return schema
+
+    def apply_conditions(self, o, view, schema):
+        """Cross-element conditions as if/then, where every element they name is in the view."""
+        clauses = []
+        for c in self.m.conditions(o):
+            names = list(c.get("if") or {}) + list(c.get("require") or []) + list(c.get("forbid") or [])
+            if not all(n in schema["properties"] for n in names):
+                continue
+            then = {}
+            if c.get("require"):
+                then["required"] = list(c["require"])
+            if c.get("forbid"):
+                forbid = [{"required": [n]} for n in c["forbid"]]
+                then["not"] = forbid[0] if len(forbid) == 1 else {"anyOf": forbid}
+            clauses.append({"if": {"properties": {k: {"const": v} for k, v in c["if"].items()},
+                                   "required": list(c["if"])},
+                            "then": then})
+            self.diag.add("rule-gap", "Cross-element conditions have no JSON rule; if/then applied",
+                          f"{o.id}.{view}")
+        if len(clauses) == 1:
+            schema.update(clauses[0])
+        elif clauses:
+            schema["allOf"] = clauses
+        return schema
 
     def build_view(self, o, view):
         if view == "query":
@@ -452,7 +538,7 @@ class Generator:
                 self.diag.add("rule-gap", "Operation parameters have no JSON representation rule; "
                                           "not included in any schema",
                               f"{o.id}.{p['identifier']}.{par['identifier']}")
-        return {"type": "object", "properties": props, "required": required}
+        return self.apply_conditions(o, view, {"type": "object", "properties": props, "required": required})
 
     def add_element(self, o, e, view, props, required):
         ident = e["identifier"]
@@ -557,12 +643,17 @@ class Generator:
             self.diag.add("yaml-issue", "Data type value has a trailing period", ctx)
             dt = dt.rstrip(".")
         card = e["cardinality"]
+        r = dict(e.get("restrictions") or {})
+        key_pattern, value_range = r.pop("key_pattern", None), r.pop("value_range", None)
 
         m = ASSOC_RE.match(dt)
         d = DICT_RE.match(dt)
+        if (key_pattern or value_range) and not d and not (m and m.group(1) in DICTIONARY):
+            self.diag.add("yaml-issue", "key_pattern/value_range on a data element that is not a "
+                                        "Dictionary", ctx)
         if m:
             assoc, target = m.group(1), m.group(2)
-            item = self.target_schema(target, assoc, view, ctx)
+            item = self.restrict(self.target_schema(target, assoc, view, ctx), r, ctx)
             if assoc in LABELLED:
                 if not (self.is_object(target)):
                     self.diag.add("rule-gap", f"{assoc} of a primitive type: Rule 9/11 only cover "
@@ -582,6 +673,9 @@ class Generator:
             self.diag.add("rule-gap", "Dictionary[Type] primitive has no mapping in Primitive Type Mappings "
                                       "(mapped to object with additionalProperties)", ctx)
             item = self.target_schema(d.group(1), None, view, ctx)
+            if value_range:
+                r["range"] = value_range
+            item = self.restrict(item, r, ctx)
             schema = self.dictionary(item, card, ctx, "Dictionary")
         else:
             # data-objects "Composition": notation "Composition[Type] or Type"
@@ -590,8 +684,12 @@ class Generator:
                 self.diag.add("rule-gap", "Bare 'Type' notation (= Composition[Type] in data-objects) is "
                                           "not mentioned in the Association Rules; embedded as composition",
                               ctx)
-            item = self.target_schema(dt, "Composition", view, ctx)
+            item = self.restrict(self.target_schema(dt, "Composition", view, ctx), r, ctx)
             schema = self.apply_cardinality(item, card, ctx, "Composition")
+        if key_pattern and isinstance(schema.get("additionalProperties"), dict):
+            self.diag.add("rule-gap", "Restriction 'key_pattern' has no JSON rule (Rule 22 covers "
+                                      "enumerations only); mapped to the matching JSON Schema keyword", ctx)
+            schema["propertyNames"] = {"pattern": key_pattern}
 
         return self.annotate(schema, e["mutability"], view, ctx)
 
@@ -657,9 +755,9 @@ class Generator:
                           + (" (Rule 24 only permits additionalProperties: true for it)"
                              if name == "Object" else ""), ctx)
             return dict(PRIMITIVES_NOT_IN_RULES[name])
-        if name in COMMON_TYPES:
-            self.common_used.add(COMMON_TYPES[name])
-            return {"$ref": f"#/$defs/{COMMON_TYPES[name]}"}
+        if name in COMMON_TYPES or name in self.m.common:
+            self.common_used.add(common_key(name))
+            return {"$ref": f"#/$defs/{common_key(name)}"}
         m = EXTERNAL_RE.match(name)
         if m:
             self.external_used[m.group(2)] = m.group(1)
@@ -932,7 +1030,8 @@ def shape(p, mapref):
         return p
     s = {}
     for k in ("type", "format", "readOnly", "writeOnly", "const", "enum", "pattern",
-              "minimum", "maximum", "minItems", "maxItems", "minProperties", "propertyNames",
+              "minimum", "maximum", "minLength", "maxLength", "minItems", "maxItems", "minProperties",
+              "propertyNames",
               "unevaluatedProperties"):
         if k in p:
             s[k] = p[k]
@@ -965,7 +1064,8 @@ def flat_paths(s, prefix=""):
     return out
 
 
-CONSTRAINT_KEYS = {"enum", "pattern", "minimum", "maximum", "propertyNames", "maxItems", "const"}
+CONSTRAINT_KEYS = {"enum", "pattern", "minimum", "maximum", "minLength", "maxLength",
+                   "propertyNames", "maxItems", "const"}
 
 
 def compare(bundle, md_path):
@@ -1009,6 +1109,14 @@ def compare(bundle, md_path):
             out.append(f"- properties only in generated: {', '.join(only_g)}")
         if sorted(dreq) != greq:
             out.append(f"- required: draft={sorted(dreq)} generated={greq}")
+        if not dprops and not gprops:  # a value type, e.g. a Common Data Type
+            a = flat_paths(shape(ddef, map_draft_ref))
+            b = flat_paths(shape(g, map_gen_ref))
+            for path in sorted(set(a) | set(b)):
+                if a.get(path) != b.get(path):
+                    tag = " [prose constraint]" if path in CONSTRAINT_KEYS and path not in b else ""
+                    out.append(f"- `{path}`: draft={json.dumps(a.get(path))} "
+                               f"generated={json.dumps(b.get(path))}{tag}")
         for k in dprops:
             if k not in gprops:
                 continue

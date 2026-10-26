@@ -1,0 +1,16 @@
+{
+  "$defs": {
+    "dnsData": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "dnsData" },
+        "records": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/dnsRecord" }
+        },
+        "controls": { "$ref": "#/$defs/dnsControls" }
+      },
+      "required": ["@type"]
+    }
+  }
+}

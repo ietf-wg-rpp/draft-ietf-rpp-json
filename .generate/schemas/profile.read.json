@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$ref": "#/$defs/profile.read",
+  "$defs": {
+    "profile.read": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "profile", "readOnly": true },
+        "name": { "type": "string", "readOnly": true },
+        "description": { "type": "string", "readOnly": true },
+        "version": { "type": "string", "readOnly": true },
+        "rppVersion": { "type": "string", "readOnly": true },
+        "objects": {
+          "type": "array",
+          "items": { "type": "string" },
+          "minItems": 1,
+          "readOnly": true
+        },
+        "extensions": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/extension" },
+          "readOnly": true
+        },
+        "baseProfile": { "$ref": "#/$defs/profile.reference", "readOnly": true },
+        "defaultProfile": { "type": "boolean", "readOnly": true }
+      },
+      "required": [
+        "@type",
+        "name",
+        "description",
+        "version",
+        "rppVersion",
+        "objects",
+        "defaultProfile"
+      ]
+    }
+  }
+}

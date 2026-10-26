@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$ref": "#/$defs/host.read",
+  "$defs": {
+    "host.read": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "host", "readOnly": true },
+        "hostName": { "type": "string", "format": "hostname" },
+        "provMetadata": { "$ref": "#/$defs/provMetadata", "readOnly": true },
+        "status": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/hostStatus" },
+          "minItems": 1
+        },
+        "dns": { "$ref": "#/$defs/dnsData" },
+        "processes": { "$ref": "#/$defs/processes", "readOnly": true }
+      },
+      "required": ["@type", "hostName", "provMetadata", "status"]
+    }
+  }
+}

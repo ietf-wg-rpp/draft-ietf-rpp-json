@@ -1,0 +1,56 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$ref": "#/$defs/domainTransferProcess.read",
+  "$defs": {
+    "domainTransferProcess.read": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "domainTransferProcess", "readOnly": true },
+        "processId": { "type": "string", "readOnly": true },
+        "transferDir": { "type": "string", "enum": ["pull", "push"], "readOnly": true },
+        "gainingClientId": { "$ref": "#/$defs/clientIdentifier", "readOnly": true },
+        "trStatus": {
+          "type": "string",
+          "enum": [
+            "pending",
+            "clientApproved",
+            "clientCancelled",
+            "clientRejected",
+            "serverApproved",
+            "serverCancelled"
+          ],
+          "readOnly": true
+        },
+        "reqClientId": { "$ref": "#/$defs/clientIdentifier", "readOnly": true },
+        "requestDate": { "type": "string", "format": "date-time", "readOnly": true },
+        "actClientId": { "$ref": "#/$defs/clientIdentifier", "readOnly": true },
+        "actionDate": { "type": "string", "format": "date-time", "readOnly": true },
+        "expiryDate": { "type": "string", "format": "date-time", "readOnly": true },
+        "transferPeriod": { "$ref": "#/$defs/period", "readOnly": true }
+      },
+      "required": ["@type", "trStatus", "reqClientId", "requestDate", "actClientId", "actionDate"],
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "transferDir": { "const": "push" }
+            },
+            "required": ["transferDir"]
+          },
+          "then": { "required": ["gainingClientId"] }
+        },
+        {
+          "if": {
+            "properties": {
+              "transferDir": { "const": "pull" }
+            },
+            "required": ["transferDir"]
+          },
+          "then": {
+            "not": { "required": ["gainingClientId"] }
+          }
+        }
+      ]
+    }
+  }
+}
