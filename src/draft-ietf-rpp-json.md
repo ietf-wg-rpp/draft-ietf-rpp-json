@@ -1022,7 +1022,7 @@ In JSON, a Client Identifier MUST be represented as a `string` value.
       "type": "string",
       "minLength": 3,
       "maxLength": 16,
-      "pattern": "^[a-zA-Z0-9]([-a-zA-Z0-9]*[a-zA-Z0-9])?$"
+      "pattern": "^\\S+( \\S+)*$"
     }
   }
 }
@@ -1037,10 +1037,7 @@ In JSON, a Phone Number MUST be represented as a `string` value conforming to th
 ```json
 {
   "$defs": {
-    "phoneNumber": {
-      "type": "string",
-      "pattern": "^\\+[0-9]{1,3}\\.[0-9]+( x[0-9]+)?$"
-    }
+    "phoneNumber": { "type": "string", "pattern": "^\\+[0-9]{1,3}\\.[0-9]{1,14}(x[0-9]+)?$" }
   }
 }
 ```
@@ -1056,15 +1053,8 @@ In JSON, a Phone Number MUST be represented as a `string` value conforming to th
       "type": "object",
       "properties": {
         "@type": { "type": "string", "const": "period" },
-        "value": {
-          "type": "integer",
-          "minimum": 1,
-          "maximum": 99
-        },
-        "unit": {
-          "type": "string",
-          "enum": ["y", "m"]
-        }
+        "value": { "type": "integer", "minimum": 1, "maximum": 99 },
+        "unit": { "type": "string", "enum": ["y", "m"] }
       },
       "required": ["@type", "value", "unit"]
     }
@@ -1086,14 +1076,14 @@ The following constraints cannot be expressed in JSON Schema and MUST be enforce
     "provMetadata": {
       "type": "object",
       "properties": {
-        "@type":       { "type": "string", "const": "provMetadata", "readOnly": true },
-        "repositoryId": { "type": "string", "readOnly": true },
-        "spClientId":  { "$ref": "#/$defs/clientIdentifier", "readOnly": true },
-        "crClientId":  { "$ref": "#/$defs/clientIdentifier", "readOnly": true },
-        "crDate":      { "type": "string", "format": "date-time", "readOnly": true },
-        "upClientId":  { "$ref": "#/$defs/clientIdentifier", "readOnly": true },
-        "upDate":      { "type": "string", "format": "date-time", "readOnly": true },
-        "trDate":      { "type": "string", "format": "date-time", "readOnly": true }
+        "@type": { "type": "string", "const": "provMetadata", "readOnly": true },
+        "repositoryId": { "$ref": "#/$defs/identifier", "readOnly": true },
+        "spClientId": { "$ref": "#/$defs/clientIdentifier", "readOnly": true },
+        "crClientId": { "$ref": "#/$defs/clientIdentifier", "readOnly": true },
+        "crDate": { "type": "string", "format": "date-time", "readOnly": true },
+        "upClientId": { "$ref": "#/$defs/clientIdentifier", "readOnly": true },
+        "upDate": { "type": "string", "format": "date-time", "readOnly": true },
+        "trDate": { "type": "string", "format": "date-time", "readOnly": true }
       },
       "required": ["@type", "spClientId"]
     }
@@ -1153,9 +1143,9 @@ All `rdata` property names MUST be written in camelCase and all values MUST use 
       "type": "object",
       "properties": {
         "@type": { "type": "string", "const": "dnsRecord" },
-        "name":  { "type": "string" },
+        "name": { "type": "string" },
         "class": { "type": "string" },
-        "type":  { "type": "string" },
+        "type": { "type": "string" },
         "rdata": { "type": "object", "unevaluatedProperties": true }
       },
       "required": ["@type", "name", "type", "rdata"]
@@ -1177,17 +1167,13 @@ The DNS Operational Controls Object contains operational control parameters that
         "@type": { "type": "string", "const": "dnsControls" },
         "ttl": {
           "type": "object",
-            "propertyNames": {
-              "pattern": "^[a-z]+$"
-            },
-          "additionalProperties": { "type": "integer", "minimum": 1 }
+          "additionalProperties": { "type": "integer", "minimum": 1 },
+          "propertyNames": { "pattern": "^[a-z][a-z0-9-]*$" }
         },
         "maxSigLifetime": {
           "type": "object",
-          "propertyNames": {
-            "pattern": "^[a-z]+$"
-          },
-          "additionalProperties": { "type": "integer", "minimum": 1 }
+          "additionalProperties": { "type": "integer", "minimum": 1 },
+          "propertyNames": { "pattern": "^[a-z][a-z0-9-]*$" }
         }
       },
       "required": ["@type"]
@@ -1236,8 +1222,8 @@ The following constraints cannot be expressed in JSON Schema and MUST be enforce
     "authInfo": {
       "type": "object",
       "properties": {
-        "@type":    { "type": "string", "const": "authInfo" },
-        "method":   { "type": "string" },
+        "@type": { "type": "string", "const": "authInfo" },
+        "method": { "type": "string" },
         "authdata": { "type": "string" }
       },
       "required": ["@type", "method", "authdata"]
@@ -1364,11 +1350,11 @@ The following constraints cannot be expressed in JSON Schema and MUST be enforce
     "restoreReport": {
       "type": "object",
       "properties": {
-        "@type":         { "type": "string", "const": "restoreReport" },
-        "preData":       { "type": "string" },
-        "postData":      { "type": "string" },
-        "deleteTime":    { "type": "string", "format": "date-time" },
-        "restoreTime":   { "type": "string", "format": "date-time" },
+        "@type": { "type": "string", "const": "restoreReport" },
+        "preData": { "type": "string" },
+        "postData": { "type": "string" },
+        "deleteTime": { "type": "string", "format": "date-time" },
+        "restoreTime": { "type": "string", "format": "date-time" },
         "restoreReason": { "type": "string" },
         "statements": {
           "type": "array",
@@ -1396,15 +1382,12 @@ The following constraints cannot be expressed in JSON Schema and MUST be enforce
     "organisationRole": {
       "type": "object",
       "properties": {
-        "@type":  { "type": "string", "const": "organisationRole" },
+        "@type": { "type": "string", "const": "organisationRole" },
+        "roleId": { "type": "string" },
         "status": {
           "type": "array",
-          "items": {
-            "type": "string",
-            "enum": ["ok", "linked", "clientLinkProhibited", "serverLinkProhibited"]
-          }
-        },
-        "roleId": { "type": "string" }
+          "items": { "$ref": "#/$defs/organisationRoleStatus" }
+        }
       },
       "required": ["@type"]
     }
@@ -1425,11 +1408,11 @@ The following constraints cannot be expressed in JSON Schema and MUST be enforce
     "extension": {
       "type": "object",
       "properties": {
-        "@type":   { "type": "string", "const": "extension", "readOnly": true },
-        "name":    { "type": "string", "readOnly": true },
-        "id":      { "type": "string", "readOnly": true },
+        "@type": { "type": "string", "const": "extension", "readOnly": true },
+        "name": { "type": "string", "readOnly": true },
+        "id": { "type": "string", "readOnly": true },
         "version": { "type": "string", "readOnly": true },
-        "url":     { "type": "string", "format": "uri", "readOnly": true }
+        "url": { "type": "string", "format": "uri", "readOnly": true }
       },
       "required": ["@type", "name", "id", "version", "url"]
     }
@@ -1451,7 +1434,7 @@ The following constraints cannot be expressed in JSON Schema and MUST be enforce
     "discoveryVersion": {
       "type": "object",
       "properties": {
-        "@type":   { "type": "string", "const": "discoveryVersion", "readOnly": true },
+        "@type": { "type": "string", "const": "discoveryVersion", "readOnly": true },
         "version": { "type": "string", "readOnly": true },
         "baseUrl": { "type": "string", "format": "uri", "readOnly": true }
       },
@@ -1469,8 +1452,8 @@ The following constraints cannot be expressed in JSON Schema and MUST be enforce
     "discoveryEnvironment": {
       "type": "object",
       "properties": {
-        "@type":  { "type": "string", "const": "discoveryEnvironment", "readOnly": true },
-        "name":   { "type": "string", "readOnly": true },
+        "@type": { "type": "string", "const": "discoveryEnvironment", "readOnly": true },
+        "name": { "type": "string", "readOnly": true },
         "status": { "type": "string", "readOnly": true }
       },
       "required": ["@type", "name", "status"]
@@ -1491,15 +1474,15 @@ The following constraints cannot be expressed in JSON Schema and MUST be enforce
     "discoveryIdnLgr": {
       "type": "object",
       "properties": {
-        "@type":   { "type": "string", "const": "discoveryIdnLgr", "readOnly": true },
+        "@type": { "type": "string", "const": "discoveryIdnLgr", "readOnly": true },
         "tld": {
           "type": "array",
           "items": { "type": "string" },
           "minItems": 1,
           "readOnly": true
         },
-        "name":    { "type": "string", "readOnly": true },
-        "url":     { "type": "string", "format": "uri", "readOnly": true },
+        "name": { "type": "string", "readOnly": true },
+        "url": { "type": "string", "format": "uri", "readOnly": true },
         "default": { "type": "boolean", "readOnly": true }
       },
       "required": ["@type", "tld", "name", "url", "default"]
@@ -1516,9 +1499,9 @@ The following constraints cannot be expressed in JSON Schema and MUST be enforce
     "discoveryNotice": {
       "type": "object",
       "properties": {
-        "@type":   { "type": "string", "const": "discoveryNotice", "readOnly": true },
+        "@type": { "type": "string", "const": "discoveryNotice", "readOnly": true },
         "pubTime": { "type": "string", "format": "date-time", "readOnly": true },
-        "text":    { "type": "string", "readOnly": true }
+        "text": { "type": "string", "readOnly": true }
       },
       "required": ["@type", "pubTime", "text"]
     }
@@ -1532,8 +1515,6 @@ The Processes Object is a read-only container grouping the currently active Proc
 
 ```json
 {
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$ref": "#/$defs/processes",
   "$defs": {
     "processes": {
       "type": "object",
@@ -1583,22 +1564,15 @@ The following constraints cannot be expressed in JSON Schema and MUST be enforce
 
 ```json
 {
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$ref": "#/$defs/baseMessage",
   "$defs": {
     "baseMessage": {
       "type": "object",
       "properties": {
-        "@type":      { "type": "string", "const": "baseMessage", "readOnly": true },
+        "@type": { "type": "string", "const": "baseMessage", "readOnly": true },
         "objectType": { "type": "string", "readOnly": true },
-        "objectId":   { "type": "string", "readOnly": true },
+        "objectId": { "type": "string", "readOnly": true },
         "process": {
-          "type": "object",
-          "properties": {
-            "@type":     { "type": "string" },
-            "processId": { "type": "string" }
-          },
-          "required": ["@type", "processId"],
+          "$ref": "#/$defs/baseProcess",
           "readOnly": true
         }
       },
@@ -1612,29 +1586,22 @@ The following constraints cannot be expressed in JSON Schema and MUST be enforce
 
 ```json
 {
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$ref": "#/$defs/reviewResponseMessage",
   "$defs": {
     "reviewResponseMessage": {
       "type": "object",
       "properties": {
-        "@type":               { "type": "string", "const": "reviewResponseMessage", "readOnly": true },
-        "objectType":          { "type": "string", "readOnly": true },
-        "objectId":            { "type": "string", "readOnly": true },
+        "@type": { "type": "string", "const": "reviewResponseMessage" },
+        "objectType": { "type": "string", "readOnly": true },
+        "objectId": { "type": "string", "readOnly": true },
         "process": {
-          "type": "object",
-          "properties": {
-            "@type":     { "type": "string" },
-            "processId": { "type": "string" }
-          },
-          "required": ["@type", "processId"],
+          "$ref": "#/$defs/baseProcess",
           "readOnly": true
         },
-        "approved":            { "type": "boolean", "readOnly": true },
+        "approved": { "type": "boolean", "readOnly": true },
         "clientTransactionId": { "type": "string", "readOnly": true },
         "serverTransactionId": { "type": "string", "readOnly": true },
-        "completionDate":      { "type": "string", "format": "date-time", "readOnly": true },
-        "message":             { "type": "string", "readOnly": true }
+        "completionDate": { "type": "string", "format": "date-time", "readOnly": true },
+        "message": { "type": "string" }
       },
       "required": ["@type", "approved", "serverTransactionId", "completionDate", "message"]
     }
@@ -1646,27 +1613,20 @@ The following constraints cannot be expressed in JSON Schema and MUST be enforce
 
 ```json
 {
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$ref": "#/$defs/transferRequestMessage",
   "$defs": {
     "transferRequestMessage": {
       "type": "object",
       "properties": {
-        "@type":       { "type": "string", "const": "transferRequestMessage", "readOnly": true },
-        "objectType":  { "type": "string", "readOnly": true },
-        "objectId":    { "type": "string", "readOnly": true },
-        "process": {
-          "type": "object",
-          "properties": {
-            "@type":     { "type": "string" },
-            "processId": { "type": "string" }
-          },
-          "required": ["@type", "processId"],
+        "@type": { "type": "string", "const": "transferRequestMessage", "readOnly": true },
+        "objectType": { "type": "string", "readOnly": true },
+        "objectId": { "type": "string", "readOnly": true },
+        "process": { 
+          "$ref": "#/$defs/transferProcess.read",
           "readOnly": true
         },
-        "status":      { "type": "string", "const": "pending", "readOnly": true },
+        "status": { "type": "string", "enum": ["pending"], "readOnly": true },
         "requestDate": { "type": "string", "format": "date-time", "readOnly": true },
-        "actionDate":  { "type": "string", "format": "date-time", "readOnly": true }
+        "actionDate": { "type": "string", "format": "date-time", "readOnly": true }
       },
       "required": ["@type", "status", "requestDate"]
     }
@@ -1678,33 +1638,31 @@ The following constraints cannot be expressed in JSON Schema and MUST be enforce
 
 ```json
 {
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$ref": "#/$defs/transferOutcomeMessage",
   "$defs": {
     "transferOutcomeMessage": {
       "type": "object",
       "properties": {
-        "@type":      { "type": "string", "const": "transferOutcomeMessage", "readOnly": true },
+        "@type": { "type": "string", "const": "transferOutcomeMessage", "readOnly": true },
         "objectType": { "type": "string", "readOnly": true },
-        "objectId":   { "type": "string", "readOnly": true },
-        "process": {
-          "type": "object",
-          "properties": {
-            "@type":     { "type": "string" },
-            "processId": { "type": "string" }
-          },
-          "required": ["@type", "processId"],
+        "objectId": { "type": "string", "readOnly": true },
+        "process": { 
+          "$ref": "#/$defs/transferProcess.read",
           "readOnly": true
         },
         "trStatus": {
           "type": "string",
-          "enum": ["clientApproved", "clientCancelled", "clientRejected",
-                   "serverApproved", "serverCancelled"],
+          "enum": [
+            "clientApproved",
+            "clientCancelled",
+            "clientRejected",
+            "serverApproved",
+            "serverCancelled"
+          ],
           "readOnly": true
         },
         "requestDate": { "type": "string", "format": "date-time", "readOnly": true },
-        "actionDate":  { "type": "string", "format": "date-time", "readOnly": true },
-        "expiryDate":  { "type": "string", "format": "date-time", "readOnly": true }
+        "actionDate": { "type": "string", "format": "date-time", "readOnly": true },
+        "expiryDate": { "type": "string", "format": "date-time", "readOnly": true }
       },
       "required": ["@type", "trStatus", "requestDate", "actionDate"]
     }
@@ -1716,22 +1674,15 @@ The following constraints cannot be expressed in JSON Schema and MUST be enforce
 
 ```json
 {
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$ref": "#/$defs/expirationDeletionMessage",
   "$defs": {
     "expirationDeletionMessage": {
       "type": "object",
       "properties": {
-        "@type":        { "type": "string", "const": "expirationDeletionMessage", "readOnly": true },
-        "objectType":   { "type": "string", "readOnly": true },
-        "objectId":     { "type": "string", "readOnly": true },
-        "process": {
-          "type": "object",
-          "properties": {
-            "@type":     { "type": "string" },
-            "processId": { "type": "string" }
-          },
-          "required": ["@type", "processId"],
+        "@type": { "type": "string", "const": "expirationDeletionMessage", "readOnly": true },
+        "objectType": { "type": "string", "readOnly": true },
+        "objectId": { "type": "string", "readOnly": true },
+        "process": { 
+          "$ref": "#/$defs/baseProcess",
           "readOnly": true
         },
         "deletionDate": { "type": "string", "format": "date-time", "readOnly": true }
@@ -1746,26 +1697,19 @@ The following constraints cannot be expressed in JSON Schema and MUST be enforce
 
 ```json
 {
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$ref": "#/$defs/autoRenewalMessage",
   "$defs": {
     "autoRenewalMessage": {
       "type": "object",
       "properties": {
-        "@type":       { "type": "string", "const": "autoRenewalMessage", "readOnly": true },
-        "objectType":  { "type": "string", "readOnly": true },
-        "objectId":    { "type": "string", "readOnly": true },
-        "process": {
-          "type": "object",
-          "properties": {
-            "@type":     { "type": "string" },
-            "processId": { "type": "string" }
-          },
-          "required": ["@type", "processId"],
+        "@type": { "type": "string", "const": "autoRenewalMessage", "readOnly": true },
+        "objectType": { "type": "string", "readOnly": true },
+        "objectId": { "type": "string", "readOnly": true },
+        "process": { 
+          "$ref": "#/$defs/baseProcess",
           "readOnly": true
         },
         "renewalDate": { "type": "string", "format": "date-time", "readOnly": true },
-        "expiryDate":  { "type": "string", "format": "date-time", "readOnly": true }
+        "expiryDate": { "type": "string", "format": "date-time", "readOnly": true }
       },
       "required": ["@type", "renewalDate", "expiryDate"]
     }
@@ -1779,25 +1723,18 @@ The Service Notice Message Object extends the Base Message Object. It is not lin
 
 ```json
 {
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$ref": "#/$defs/serviceNoticeMessage",
   "$defs": {
     "serviceNoticeMessage": {
       "type": "object",
       "properties": {
-        "@type":      { "type": "string", "const": "serviceNoticeMessage", "readOnly": true },
+        "@type": { "type": "string", "const": "serviceNoticeMessage", "readOnly": true },
         "objectType": { "type": "string", "readOnly": true },
-        "objectId":   { "type": "string", "readOnly": true },
-        "process": {
-          "type": "object",
-          "properties": {
-            "@type":     { "type": "string" },
-            "processId": { "type": "string" }
-          },
-          "required": ["@type", "processId"],
+        "objectId": { "type": "string", "readOnly": true },
+        "process": { 
+          "$ref": "#/$defs/baseProcess",
           "readOnly": true
         },
-        "message":    { "type": "string", "readOnly": true }
+        "message": { "type": "string", "readOnly": true }
       },
       "required": ["@type", "message"]
     }
@@ -1892,9 +1829,9 @@ Renew request schema (create-only properties):
     "renewProcess.create": {
       "type": "object",
       "properties": {
-        "@type":         { "type": "string", "const": "renewProcess" },
-        "expiryDate":    { "type": "string", "format": "date-time" },
-        "renewalPeriod": { "$ref": "#/$defs/period" }
+        "@type": { "type": "string", "const": "renewProcess" },
+        "expiryDate": { "type": "string", "format": "date-time", "writeOnly": true },
+        "renewalPeriod": { "$ref": "#/$defs/period", "writeOnly": true }
       },
       "required": ["@type"]
     }
@@ -1912,8 +1849,10 @@ Renew response schema (read-only properties):
     "renewProcess.read": {
       "type": "object",
       "properties": {
-        "@type":      { "type": "string", "const": "renewProcess", "readOnly": true },
-        "expiryDate": { "type": "string", "format": "date-time", "readOnly": true }
+        "@type": { "type": "string", "const": "renewProcess", "readOnly": true },
+        "processId": { "type": "string", "readOnly": true },
+        "expiryDate": { "type": "string", "format": "date-time", "readOnly": true },
+        "renewalPeriod": { "$ref": "#/$defs/period", "readOnly": true }
       },
       "required": ["@type"]
     }
@@ -1934,31 +1873,32 @@ Create request schema (create-only and read-write properties):
   "$defs": {
     "transferProcess.create": {
       "type": "object",
-      "oneOf": [
+      "properties": {
+        "@type": { "type": "string", "const": "transferProcess" },
+        "transferDir": { "type": "string", "enum": ["pull", "push"], "writeOnly": true },
+        "gainingClientId": { "$ref": "#/$defs/clientIdentifier", "writeOnly": true }
+      },
+      "required": ["@type"],
+      "allOf": [
         {
-          "properties": {
-            "@type": { "type": "string", "const": "transferProcess"},
-            "transferDir": {
-              "type": "string",
-              "const": "push"
+          "if": {
+            "properties": {
+              "transferDir": { "const": "push" }
             },
-            "gainingClientId": { "$ref": "#/$defs/clientIdentifier" }
+            "required": ["transferDir"]
           },
-          "required": [
-            "@type", "transferDir", "gainingClientId"
-          ]
+          "then": { "required": ["gainingClientId"] }
         },
         {
-          "properties": {
-            "@type": { "type": "string", "const": "transferProcess" },
-            "transferDir": {
-              "type": "string",
-              "const": "pull"
-            }
+          "if": {
+            "properties": {
+              "transferDir": { "const": "pull" }
+            },
+            "required": ["transferDir"]
           },
-          "required": [
-            "@type", "transferDir"
-          ]
+          "then": {
+            "not": { "required": ["gainingClientId"] }
+          }
         }
       ]
     }
@@ -1979,26 +1919,48 @@ Read response schema (read-write and read-only properties):
       "type": "object",
       "properties": {
         "@type": { "type": "string", "const": "transferProcess", "readOnly": true },
+        "processId": { "type": "string", "readOnly": true },
+        "transferDir": { "type": "string", "enum": ["pull", "push"], "readOnly": true },
+        "gainingClientId": { "$ref": "#/$defs/clientIdentifier", "readOnly": true },
         "trStatus": {
           "type": "string",
-          "enum": ["pending", "clientApproved", "clientCancelled",
-                    "clientRejected", "serverApproved", "serverCancelled"],
+          "enum": [
+            "pending",
+            "clientApproved",
+            "clientCancelled",
+            "clientRejected",
+            "serverApproved",
+            "serverCancelled"
+          ],
           "readOnly": true
         },
-        "transferDir": {
-          "type": "string",
-          "enum": ["pull", "push"],
-          "readOnly": true
-        },
-        "gainingClientId": { "$ref": "#/$defs/clientIdentifier", "readOnly": true },
-        "reqClientId": { "$ref": "#/$defs/clientIdentifier", "readOnly": true},
+        "reqClientId": { "$ref": "#/$defs/clientIdentifier", "readOnly": true },
         "requestDate": { "type": "string", "format": "date-time", "readOnly": true },
         "actClientId": { "$ref": "#/$defs/clientIdentifier", "readOnly": true },
-        "actionDate":  { "type": "string", "format": "date-time", "readOnly": true }
+        "actionDate": { "type": "string", "format": "date-time", "readOnly": true }
       },
-      "required": [
-        "@type", "transferDir", "trStatus", "reqClientId",
-        "requestDate", "actClientId", "actionDate"
+      "required": ["@type", "trStatus", "reqClientId", "requestDate", "actClientId", "actionDate"],
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "transferDir": { "const": "push" }
+            },
+            "required": ["transferDir"]
+          },
+          "then": { "required": ["gainingClientId"] }
+        },
+        {
+          "if": {
+            "properties": {
+              "transferDir": { "const": "pull" }
+            },
+            "required": ["transferDir"]
+          },
+          "then": {
+            "not": { "required": ["gainingClientId"] }
+          }
+        }
       ]
     }
   }
@@ -2024,12 +1986,12 @@ Reject request schema:
 ```json
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$ref": "#/$defs/transferProcess.reject",
+  "$ref": "#/$defs/transferProcess.transferReject",
   "$defs": {
-    "transferProcess.reject": {
+    "transferProcess.transferReject": {
       "type": "object",
       "properties": {
-        "@type":  { "type": "string", "const": "transferProcess" },
+        "@type": { "type": "string", "const": "transferProcess" },
         "reason": { "type": "string" }
       },
       "required": ["@type"]
@@ -2060,7 +2022,7 @@ Create request schema (create-only and read-write properties):
     "restoreProcess.create": {
       "type": "object",
       "properties": {
-        "@type":         { "type": "string", "const": "restoreProcess" },
+        "@type": { "type": "string", "const": "restoreProcess" },
         "restoreReport": { "$ref": "#/$defs/restoreReport" }
       },
       "required": ["@type"]
@@ -2079,14 +2041,15 @@ Read response schema (read-write and read-only properties):
     "restoreProcess.read": {
       "type": "object",
       "properties": {
-        "@type":         { "type": "string", "const": "restoreProcess", "readOnly": true },
+        "@type": { "type": "string", "const": "restoreProcess", "readOnly": true },
+        "processId": { "type": "string", "readOnly": true },
         "restoreStatus": {
           "type": "string",
           "enum": ["pendingRestore", "restored", "rgpPendingDelete"],
           "readOnly": true
         },
-        "requestDate":   { "type": "string", "format": "date-time", "readOnly": true },
-        "reportDate":    { "type": "string", "format": "date-time", "readOnly": true },
+        "requestDate": { "type": "string", "format": "date-time", "readOnly": true },
+        "reportDate": { "type": "string", "format": "date-time", "readOnly": true },
         "reportDueDate": { "type": "string", "format": "date-time", "readOnly": true }
       },
       "required": ["@type", "restoreStatus"]
@@ -2114,32 +2077,37 @@ Create request schema (create-only and read-write properties):
 ```json
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$ref": "#/$defs/domainObject.create",
+  "$ref": "#/$defs/domainName.create",
   "$defs": {
-    "domainObject.create": {
+    "domainName.create": {
       "type": "object",
       "properties": {
         "@type": { "type": "string", "const": "domainName" },
-        "name": { "type": "string", "writeOnly": true },
+        "name": { "type": "string", "format": "hostname", "writeOnly": true },
         "uName": { "type": "string", "writeOnly": true },
         "lgr": { "type": "string", "writeOnly": true },
-        "registrant": { "$ref": "#/$defs/contactObject.reference" },
+        "status": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/domainStatus" },
+          "minItems": 1
+        },
+        "registrant": { "$ref": "#/$defs/contact.reference" },
         "contacts": {
           "type": "array",
-          "items": { 
+          "items": {
             "type": "object",
             "properties": {
               "label": { "type": "string" },
-              "object": { "$ref": "#/$defs/contactObject.reference" }
+              "object": { "$ref": "#/$defs/contact.reference" }
             },
             "required": ["label", "object"]
-           }
+          }
         },
         "nameservers": {
           "type": "array",
-          "items": { "$ref": "#/$defs/hostObject.reference" }
+          "items": { "$ref": "#/$defs/host.reference" }
         },
-        "dns":    { "$ref": "#/$defs/dnsData" },
+        "dns": { "$ref": "#/$defs/dnsData" },
         "authInfo": { "$ref": "#/$defs/authInfo" },
         "processes": {
           "type": "object",
@@ -2147,14 +2115,13 @@ Create request schema (create-only and read-write properties):
             "@type": { "type": "string", "const": "processes" },
             "createProcess": {
               "type": "array",
-              "items": { "$ref": "#/$defs/createProcess.create" },
-              "maxItems": 1
+              "items": { "$ref": "#/$defs/domainCreateProcess.create" }
             }
           },
           "required": ["@type"]
         }
       },
-      "required": ["@type", "name"]
+      "required": ["@type", "name", "status"]
     }
   }
 }
@@ -2167,48 +2134,48 @@ Read response schema (read-write and read-only properties):
 ```json
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$ref": "#/$defs/domainObject.read",
+  "$ref": "#/$defs/domainName.read",
   "$defs": {
-    "domainObject.read": {
+    "domainName.read": {
       "type": "object",
       "properties": {
-        "@type":       { "type": "string", "const": "domainName", "readOnly": true },
-        "name":        { "type": "string", "readOnly": true },
-        "uName":       { "type": "string", "readOnly": true },
-        "lgr":         { "type": "string", "readOnly": true },
-        "provMetadata": { "$ref": "#/$defs/provMetadata" },
+        "@type": { "type": "string", "const": "domainName", "readOnly": true },
+        "name": { "type": "string", "format": "hostname", "readOnly": true },
+        "uName": { "type": "string", "readOnly": true },
+        "lgr": { "type": "string", "readOnly": true },
+        "provMetadata": { "$ref": "#/$defs/provMetadata", "readOnly": true },
         "status": {
           "type": "array",
-          "items": { "$ref": "#/$defs/status" },
-          "readOnly": true
+          "items": { "$ref": "#/$defs/domainStatus" },
+          "minItems": 1
         },
-        "registrant":  { "$ref": "#/$defs/contactObject.reference" },
+        "registrant": { "$ref": "#/$defs/contact.reference" },
         "contacts": {
           "type": "array",
-          "items": { 
+          "items": {
             "type": "object",
             "properties": {
               "label": { "type": "string" },
-              "object": { "$ref": "#/$defs/contactObject.reference" }
+              "object": { "$ref": "#/$defs/contact.reference" }
             },
             "required": ["label", "object"]
-           }
+          }
         },
         "nameservers": {
           "type": "array",
-          "items": { "$ref": "#/$defs/hostObject.reference" }
+          "items": { "$ref": "#/$defs/host.reference" }
         },
-        "dns":    { "$ref": "#/$defs/dnsData" },
+        "dns": { "$ref": "#/$defs/dnsData" },
         "subordinateHosts": {
           "type": "array",
-          "items": { "$ref": "#/$defs/hostObject.reference" },
+          "items": { "$ref": "#/$defs/host.reference" },
           "readOnly": true
         },
         "expiryDate": { "type": "string", "format": "date-time", "readOnly": true },
-        "authInfo":  { "$ref": "#/$defs/authInfo" },
+        "authInfo": { "$ref": "#/$defs/authInfo" },
         "processes": { "$ref": "#/$defs/processes", "readOnly": true }
       },
-      "required": ["@type", "name", "provMetadata"]
+      "required": ["@type", "name", "provMetadata", "status"]
     }
   }
 }
@@ -2221,32 +2188,37 @@ Update request schema (read-write properties):
 ```json
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$ref": "#/$defs/domainObject.update",
+  "$ref": "#/$defs/domainName.update",
   "$defs": {
-    "domainObject.update": {
+    "domainName.update": {
       "type": "object",
       "properties": {
         "@type": { "type": "string", "const": "domainName" },
-        "registrant": { "$ref": "#/$defs/contactObject.reference" },
+        "status": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/domainStatus" },
+          "minItems": 1
+        },
+        "registrant": { "$ref": "#/$defs/contact.reference" },
         "contacts": {
           "type": "array",
-          "items": { 
+          "items": {
             "type": "object",
             "properties": {
               "label": { "type": "string" },
-              "object": { "$ref": "#/$defs/contactObject.reference" }
+              "object": { "$ref": "#/$defs/contact.reference" }
             },
             "required": ["label", "object"]
-           }
+          }
         },
         "nameservers": {
           "type": "array",
-          "items": { "$ref": "#/$defs/hostObject.reference" }
+          "items": { "$ref": "#/$defs/host.reference" }
         },
-        "dns":    { "$ref": "#/$defs/dnsData" },
+        "dns": { "$ref": "#/$defs/dnsData" },
         "authInfo": { "$ref": "#/$defs/authInfo" }
       },
-      "required": ["@type"]
+      "required": ["@type", "status"]
     }
   }
 }
@@ -2276,14 +2248,36 @@ Create request for Domain Transfer Process Object schema (create-only and read-w
 ```json
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$ref": "#/$defs/transferProcess.create.domain",
+  "$ref": "#/$defs/domainTransferProcess.create",
   "$defs": {
-    "transferProcess.create.domain": {
+    "domainTransferProcess.create": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "domainTransferProcess" },
+        "transferDir": { "type": "string", "enum": ["pull", "push"], "writeOnly": true },
+        "gainingClientId": { "$ref": "#/$defs/clientIdentifier", "writeOnly": true },
+        "transferPeriod": { "$ref": "#/$defs/period", "writeOnly": true }
+      },
+      "required": ["@type"],
       "allOf": [
-        { "$ref": "#/$defs/transferProcess.create" },
         {
-          "properties": {
-            "transferPeriod": { "$ref": "#/$defs/period" }
+          "if": {
+            "properties": {
+              "transferDir": { "const": "push" }
+            },
+            "required": ["transferDir"]
+          },
+          "then": { "required": ["gainingClientId"] }
+        },
+        {
+          "if": {
+            "properties": {
+              "transferDir": { "const": "pull" }
+            },
+            "required": ["transferDir"]
+          },
+          "then": {
+            "not": { "required": ["gainingClientId"] }
           }
         }
       ]
@@ -2297,14 +2291,54 @@ Read response for Domain Transfer Process Object schema (read-write and read-onl
 ```json
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$ref": "#/$defs/transferProcess.read.domain",
+  "$ref": "#/$defs/domainTransferProcess.read",
   "$defs": {
-    "transferProcess.read.domain": {
+    "domainTransferProcess.read": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "domainTransferProcess", "readOnly": true },
+        "processId": { "type": "string", "readOnly": true },
+        "transferDir": { "type": "string", "enum": ["pull", "push"], "readOnly": true },
+        "gainingClientId": { "$ref": "#/$defs/clientIdentifier", "readOnly": true },
+        "trStatus": {
+          "type": "string",
+          "enum": [
+            "pending",
+            "clientApproved",
+            "clientCancelled",
+            "clientRejected",
+            "serverApproved",
+            "serverCancelled"
+          ],
+          "readOnly": true
+        },
+        "reqClientId": { "$ref": "#/$defs/clientIdentifier", "readOnly": true },
+        "requestDate": { "type": "string", "format": "date-time", "readOnly": true },
+        "actClientId": { "$ref": "#/$defs/clientIdentifier", "readOnly": true },
+        "actionDate": { "type": "string", "format": "date-time", "readOnly": true },
+        "expiryDate": { "type": "string", "format": "date-time", "readOnly": true },
+        "transferPeriod": { "$ref": "#/$defs/period", "readOnly": true }
+      },
+      "required": ["@type", "trStatus", "reqClientId", "requestDate", "actClientId", "actionDate"],
       "allOf": [
-        { "$ref": "#/$defs/transferProcess.read" },
         {
-          "properties": {
-            "expiryDate":  { "type": "string", "format": "date-time", "readOnly": true }
+          "if": {
+            "properties": {
+              "transferDir": { "const": "push" }
+            },
+            "required": ["transferDir"]
+          },
+          "then": { "required": ["gainingClientId"] }
+        },
+        {
+          "if": {
+            "properties": {
+              "transferDir": { "const": "pull" }
+            },
+            "required": ["transferDir"]
+          },
+          "then": {
+            "not": { "required": ["gainingClientId"] }
           }
         }
       ]
@@ -2348,10 +2382,15 @@ Reject request Domain Object schema:
 ```json
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$ref": "#/$defs/transferProcess.reject.domain",
+  "$ref": "#/$defs/domainTransferProcess.transferReject",
   "$defs": {
-    "transferProcess.reject.domain": {
-      "$ref": "#/$defs/transferProcess.reject"
+    "domainTransferProcess.transferReject": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "domainTransferProcess" },
+        "reason": { "type": "string" }
+      },
+      "required": ["@type"]
     }
   }
 }
@@ -2378,13 +2417,13 @@ Reference schema (identifier only):
 ```json
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$ref": "#/$defs/domainObject.reference",
+  "$ref": "#/$defs/domainName.reference",
   "$defs": {
-    "domainObject.reference": {
+    "domainName.reference": {
       "type": "object",
       "properties": {
-        "@type":       { "type": "string", "const": "domainName", "readOnly": true },
-        "name":        { "type": "string", "readOnly": true }
+        "@type": { "type": "string", "const": "domainName" },
+        "name": { "type": "string", "format": "hostname" }
       },
       "required": ["@type", "name"]
     }
@@ -2414,18 +2453,23 @@ Create request schema (create-only and read-write properties):
 ```json
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$ref": "#/$defs/contactObject.create",
+  "$ref": "#/$defs/contact.create",
   "$defs": {
-    "contactObject.create": {
+    "contact.create": {
       "type": "object",
       "properties": {
-        "@type":  { "type": "string", "const": "contact" },
-        "id":     { "type": "string" },
-        "contactInfo":   { "$ref": "#/$defs/Card" },
-        "authInfo": { "$ref": "#/$defs/authInfo" }
+        "@type": { "type": "string", "const": "contact" },
+        "id": { "$ref": "#/$defs/identifier", "writeOnly": true },
+        "status": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/contactStatus" },
+          "minItems": 1
+        },
+        "contactInfo": { "$ref": "#/$defs/Card" },
+        "authInfo": { "$ref": "#/$defs/authInfo" },
+        "disclose": { "$ref": "#/$defs/disclose" }
       },
-      "required": ["@type", "id", "contactInfo"],
-      "unevaluatedProperties": false
+      "required": ["@type", "id", "status", "contactInfo"]
     }
   }
 }
@@ -2438,24 +2482,25 @@ Read response schema (read-write and read-only properties):
 ```json
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$ref": "#/$defs/contactObject.read",
+  "$ref": "#/$defs/contact.read",
   "$defs": {
-    "contactObject.read": {
+    "contact.read": {
       "type": "object",
       "properties": {
-        "@type":  { "type": "string", "const": "contact", "readOnly": true },
-        "id":     { "type": "string", "readOnly": true },
-        "provMetadata": { "$ref": "#/$defs/provMetadata" },
+        "@type": { "type": "string", "const": "contact", "readOnly": true },
+        "id": { "$ref": "#/$defs/identifier", "readOnly": true },
+        "provMetadata": { "$ref": "#/$defs/provMetadata", "readOnly": true },
         "status": {
           "type": "array",
-          "items": { "$ref": "#/$defs/status" },
-          "readOnly": true
+          "items": { "$ref": "#/$defs/contactStatus" },
+          "minItems": 1
         },
-        "contactInfo":   { "$ref": "#/$defs/Card" },
-        "authInfo": { "$ref": "#/$defs/authInfo" }
+        "contactInfo": { "$ref": "#/$defs/Card" },
+        "authInfo": { "$ref": "#/$defs/authInfo" },
+        "disclose": { "$ref": "#/$defs/disclose" },
+        "processes": { "$ref": "#/$defs/processes", "readOnly": true }
       },
-      "required": ["@type", "id", "provMetadata", "contactInfo"],
-      "unevaluatedProperties": false
+      "required": ["@type", "id", "provMetadata", "status", "contactInfo"]
     }
   }
 }
@@ -2468,18 +2513,22 @@ Update request schema (read-write properties):
 ```json
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$ref": "#/$defs/contactObject.update",
+  "$ref": "#/$defs/contact.update",
   "$defs": {
-    "contactObject.update": {
+    "contact.update": {
       "type": "object",
       "properties": {
-        "@type":  { "type": "string", "const": "contact" },
-        "contactInfo":   { "$ref": "#/$defs/Card" },
+        "@type": { "type": "string", "const": "contact" },
+        "status": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/contactStatus" },
+          "minItems": 1
+        },
+        "contactInfo": { "$ref": "#/$defs/Card" },
         "authInfo": { "$ref": "#/$defs/authInfo" },
-        "processes": { "$ref": "#/$defs/processes", "readOnly": true }
+        "disclose": { "$ref": "#/$defs/disclose" }
       },
-      "required": ["@type", "contactInfo"],
-      "unevaluatedProperties": false
+      "required": ["@type", "status", "contactInfo"]
     }
   }
 }
@@ -2508,13 +2557,13 @@ Reference schema (identifier only):
 ```json
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$ref": "#/$defs/contactObject.reference",
+  "$ref": "#/$defs/contact.reference",
   "$defs": {
-    "contactObject.reference": {
+    "contact.reference": {
       "type": "object",
       "properties": {
-        "@type":         { "type": "string", "const": "contact", "readOnly": true },
-        "id":            { "type": "string", "readOnly": true }
+        "@type": { "type": "string", "const": "contact" },
+        "id": { "$ref": "#/$defs/identifier" }
       },
       "required": ["@type", "id"]
     }
@@ -2536,16 +2585,21 @@ Create request schema (create-only and read-write properties):
 ```json
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$ref": "#/$defs/hostObject.create",
+  "$ref": "#/$defs/host.create",
   "$defs": {
-    "hostObject.create": {
+    "host.create": {
       "type": "object",
       "properties": {
-        "@type":    { "type": "string", "const": "host" },
+        "@type": { "type": "string", "const": "host" },
         "hostName": { "type": "string", "format": "hostname" },
-        "dns":      { "$ref": "#/$defs/dnsData" }
+        "status": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/hostStatus" },
+          "minItems": 1
+        },
+        "dns": { "$ref": "#/$defs/dnsData" }
       },
-      "required": ["@type", "hostName"]
+      "required": ["@type", "hostName", "status"]
     }
   }
 }
@@ -2558,23 +2612,23 @@ Read response schema (read-write and read-only properties):
 ```json
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$ref": "#/$defs/hostObject.read",
+  "$ref": "#/$defs/host.read",
   "$defs": {
-    "hostObject.read": {
+    "host.read": {
       "type": "object",
       "properties": {
-        "@type":         { "type": "string", "const": "host", "readOnly": true },
-        "hostName":      { "type": "string", "format": "hostname" },
-        "provMetadata":  { "$ref": "#/$defs/provMetadata" },
+        "@type": { "type": "string", "const": "host", "readOnly": true },
+        "hostName": { "type": "string", "format": "hostname" },
+        "provMetadata": { "$ref": "#/$defs/provMetadata", "readOnly": true },
         "status": {
           "type": "array",
-          "items": { "$ref": "#/$defs/status" },
-          "readOnly": true
+          "items": { "$ref": "#/$defs/hostStatus" },
+          "minItems": 1
         },
-        "dns":           { "$ref": "#/$defs/dnsData" },
-        "processes":     { "$ref": "#/$defs/processes", "readOnly": true }
+        "dns": { "$ref": "#/$defs/dnsData" },
+        "processes": { "$ref": "#/$defs/processes", "readOnly": true }
       },
-      "required": ["@type", "hostName", "provMetadata"]
+      "required": ["@type", "hostName", "provMetadata", "status"]
     }
   }
 }
@@ -2591,13 +2645,13 @@ Reference schema (identifier only):
 ```json
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$ref": "#/$defs/hostObject.reference",
+  "$ref": "#/$defs/host.reference",
   "$defs": {
-    "hostObject.reference": {
+    "host.reference": {
       "type": "object",
       "properties": {
-        "@type":         { "type": "string", "const": "host", "readOnly": true },
-        "hostName":      { "type": "string", "format": "hostname", "readOnly": true }
+        "@type": { "type": "string", "const": "host" },
+        "hostName": { "type": "string", "format": "hostname" }
       },
       "required": ["@type", "hostName"]
     }
@@ -2621,33 +2675,49 @@ Create request schema (create-only and read-write properties):
 ```json
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$ref": "#/$defs/organisationObject.create",
+  "$ref": "#/$defs/organisation.create",
   "$defs": {
-    "organisationObject.create": {
+    "organisation.create": {
       "type": "object",
       "properties": {
-        "@type":       { "type": "string", "const": "organisation" },
-        "id":          { "$ref": "#/$defs/identifier" },
-        "roles":       {
+        "@type": { "type": "string", "const": "organisation" },
+        "id": { "$ref": "#/$defs/identifier", "writeOnly": true },
+        "status": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/organisationStatus" },
+          "minItems": 1
+        },
+        "roles": {
           "type": "object",
           "additionalProperties": { "$ref": "#/$defs/organisationRole" },
           "minProperties": 1
         },
-        "parent":    { "$ref": "#/$defs/organisationObject.reference" },
+        "parent": { "$ref": "#/$defs/organisation.reference" },
         "contactInfo": { "$ref": "#/$defs/Card" },
         "contacts": {
           "type": "array",
-          "items": { 
+          "items": {
             "type": "object",
             "properties": {
               "label": { "type": "string" },
-              "object": { "$ref": "#/$defs/contactObject.reference" }
+              "object": { "$ref": "#/$defs/contact.reference" }
             },
             "required": ["label", "object"]
-           }
+          }
+        },
+        "users": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "label": { "type": "string" },
+              "object": { "$ref": "#/$defs/user.reference" }
+            },
+            "required": ["label", "object"]
+          }
         }
       },
-      "required": ["@type", "id", "roles"]      
+      "required": ["@type", "id", "status", "roles"]
     }
   }
 }
@@ -2660,34 +2730,51 @@ Read response schema (read-write and read-only properties):
 ```json
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$ref": "#/$defs/organisationObject.read",
+  "$ref": "#/$defs/organisation.read",
   "$defs": {
-    "organisationObject.read": {
-      "allOf": [
-        { "$ref": "#/$defs/organisationObject.create" },
-        {
-          "properties": {
-            "provMetadata": { "$ref": "#/$defs/provMetadata", "readOnly": true },
-            "status": {
-              "type": "array",
-              "items": { "$ref": "#/$defs/status" },
-              "readOnly": true
+    "organisation.read": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "organisation", "readOnly": true },
+        "id": { "$ref": "#/$defs/identifier", "readOnly": true },
+        "provMetadata": { "$ref": "#/$defs/provMetadata", "readOnly": true },
+        "status": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/organisationStatus" },
+          "minItems": 1
+        },
+        "roles": {
+          "type": "object",
+          "additionalProperties": { "$ref": "#/$defs/organisationRole" },
+          "minProperties": 1
+        },
+        "parent": { "$ref": "#/$defs/organisation.reference" },
+        "contactInfo": { "$ref": "#/$defs/Card" },
+        "contacts": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "label": { "type": "string" },
+              "object": { "$ref": "#/$defs/contact.reference" }
             },
-            "users": {
-              "type": "array",
-              "items": { 
-                "type": "object",
-                "properties": {
-                  "label": { "type": "string" },
-                  "object": { "$ref": "#/$defs/userObject.reference" }
-                },
-                "required": ["label", "object"]
-              }
-            }
-          },
-          "required": ["provMetadata", "status"]
-        }
-      ]
+            "required": ["label", "object"]
+          }
+        },
+        "users": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "label": { "type": "string" },
+              "object": { "$ref": "#/$defs/user.reference" }
+            },
+            "required": ["label", "object"]
+          }
+        },
+        "processes": { "$ref": "#/$defs/processes", "readOnly": true }
+      },
+      "required": ["@type", "id", "provMetadata", "status", "roles"]
     }
   }
 }
@@ -2700,47 +2787,48 @@ Update request schema (read-write properties):
 ```json
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$ref": "#/$defs/organisationObject.update",
+  "$ref": "#/$defs/organisation.update",
   "$defs": {
-    "organisationObject.update": {
+    "organisation.update": {
       "type": "object",
       "properties": {
-        "@type":       { "type": "string", "const": "organisation" },
-        "roles":       {
-          "type": "object",
-          "additionalProperties": { "$ref": "#/$defs/organisationRole" }
+        "@type": { "type": "string", "const": "organisation" },
+        "status": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/organisationStatus" },
+          "minItems": 1
         },
-        "parent":    { "$ref": "#/$defs/organisationObject.reference" },
+        "roles": {
+          "type": "object",
+          "additionalProperties": { "$ref": "#/$defs/organisationRole" },
+          "minProperties": 1
+        },
+        "parent": { "$ref": "#/$defs/organisation.reference" },
         "contactInfo": { "$ref": "#/$defs/Card" },
         "contacts": {
-            "type": "array",
-            "items": { 
-              "type": "object",
-              "properties": {
-                "label": { "type": "string" },
-                "object": { "$ref": "#/$defs/contactObject.reference" }
-              },
-              "required": ["label", "object"]
-            }
-        },
-        "status": {
-              "type": "array",
-              "items": { "$ref": "#/$defs/status" },
-              "readOnly": true
-        },
-        "users":       {
           "type": "array",
-          "items": { 
+          "items": {
             "type": "object",
             "properties": {
               "label": { "type": "string" },
-              "object": { "$ref": "#/$defs/userObject.reference" }
+              "object": { "$ref": "#/$defs/contact.reference" }
+            },
+            "required": ["label", "object"]
+          }
+        },
+        "users": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "label": { "type": "string" },
+              "object": { "$ref": "#/$defs/user.reference" }
             },
             "required": ["label", "object"]
           }
         }
       },
-      "required": ["@type"]
+      "required": ["@type", "status", "roles"]
     }
   }
 }
@@ -2753,13 +2841,13 @@ Reference schema (identifier only):
 ```json
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$ref": "#/$defs/organisationObject.reference",
+  "$ref": "#/$defs/organisation.reference",
   "$defs": {
-    "organisationObject.reference": {
+    "organisation.reference": {
       "type": "object",
       "properties": {
-        "@type": { "type": "string", "const": "organisation", "readOnly": true },
-        "id":    { "$ref": "#/$defs/identifier", "readOnly": true }
+        "@type": { "type": "string", "const": "organisation" },
+        "id": { "$ref": "#/$defs/identifier" }
       },
       "required": ["@type", "id"]
     }
@@ -2780,12 +2868,12 @@ Create request schema. Only the server is authorised to create Message Data Obje
 ```json
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$ref": "#/$defs/messageObject.create",
+  "$ref": "#/$defs/message.create",
   "$defs": {
-    "messageObject.create": {
+    "message.create": {
       "type": "object",
       "properties": {
-        "@type":        { "type": "string", "const": "message" },
+        "@type": { "type": "string", "const": "message" },
         "data": {
           "oneOf": [
             { "$ref": "#/$defs/baseMessage" },
@@ -2813,15 +2901,15 @@ Read response schema (read-only properties):
 ```json
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$ref": "#/$defs/messageObject.read",
+  "$ref": "#/$defs/message.read",
   "$defs": {
-    "messageObject.read": {
+    "message.read": {
       "type": "object",
       "properties": {
-        "@type":        { "type": "string", "const": "message", "readOnly": true },
-        "id":           { "$ref": "#/$defs/identifier", "readOnly": true },
+        "@type": { "type": "string", "const": "message", "readOnly": true },
+        "id": { "$ref": "#/$defs/identifier", "readOnly": true },
         "creationDate": { "type": "string", "format": "date-time", "readOnly": true },
-        "status":       { "type": "string", "enum": ["queued", "delivered", "removed"], "readOnly": true },
+        "status": { "type": "string", "enum": ["queued", "delivered", "removed"], "readOnly": true },
         "data": {
           "oneOf": [
             { "$ref": "#/$defs/baseMessage" },
@@ -2849,11 +2937,11 @@ Query response schema (array of message read representations):
 ```json
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$ref": "#/$defs/messageObject.query",
+  "$ref": "#/$defs/message.query",
   "$defs": {
-    "messageObject.query": {
+    "message.query": {
       "type": "array",
-      "items": { "$ref": "#/$defs/messageObject.read" }
+      "items": { "$ref": "#/$defs/message.read" }
     }
   }
 }
@@ -2866,13 +2954,13 @@ Reference schema (identifier only):
 ```json
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$ref": "#/$defs/messageObject.reference",
+  "$ref": "#/$defs/message.reference",
   "$defs": {
-    "messageObject.reference": {
+    "message.reference": {
       "type": "object",
       "properties": {
-        "@type": { "type": "string", "const": "message", "readOnly": true },
-        "id":    { "$ref": "#/$defs/identifier", "readOnly": true }
+        "@type": { "type": "string", "const": "message" },
+        "id": { "$ref": "#/$defs/identifier", "readOnly": true }
       },
       "required": ["@type", "id"]
     }
@@ -2982,13 +3070,13 @@ Reference schema (identifier only):
 ```json
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$ref": "#/$defs/userObject.reference",
+  "$ref": "#/$defs/user.reference",
   "$defs": {
-    "userObject.reference": {
+    "user.reference": {
       "type": "object",
       "properties": {
-        "@type":  { "type": "string", "const": "user", "readOnly": true },
-        "id": { "$ref": "#/$defs/identifier", "readOnly": true }
+        "@type": { "type": "string", "const": "user" },
+        "id": { "$ref": "#/$defs/identifier" }
       },
       "required": ["@type", "id"]
     }
@@ -3014,9 +3102,9 @@ Read response schema (read-only properties).
 ```json
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$ref": "#/$defs/discoveryObject.read",
+  "$ref": "#/$defs/discovery.read",
   "$defs": {
-    "discoveryObject.read": {
+    "discovery.read": {
       "type": "object",
       "properties": {
         "@type": { "type": "string", "const": "discovery", "readOnly": true },
@@ -3055,8 +3143,8 @@ Read response schema (read-only properties).
           "items": {
             "type": "object",
             "properties": {
-              "label":  { "type": "string" },
-              "object": { "type": "string", "format": "uri", "pattern": "^https://" }
+              "label": { "type": "string" },
+              "object": { "type": "string" }
             },
             "required": ["label", "object"]
           },
@@ -3097,16 +3185,16 @@ Read response schema (read-only properties):
 ```json
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$ref": "#/$defs/profileObject.read",
+  "$ref": "#/$defs/profile.read",
   "$defs": {
-    "profileObject.read": {
+    "profile.read": {
       "type": "object",
       "properties": {
-        "@type":       { "type": "string", "const": "profile", "readOnly": true },
-        "name":        { "type": "string", "readOnly": true },
+        "@type": { "type": "string", "const": "profile", "readOnly": true },
+        "name": { "type": "string", "readOnly": true },
         "description": { "type": "string", "readOnly": true },
-        "version":     { "type": "string", "readOnly": true },
-        "rppVersion":  { "type": "string", "readOnly": true },
+        "version": { "type": "string", "readOnly": true },
+        "rppVersion": { "type": "string", "readOnly": true },
         "objects": {
           "type": "array",
           "items": { "type": "string" },
@@ -3118,10 +3206,18 @@ Read response schema (read-only properties):
           "items": { "$ref": "#/$defs/extension" },
           "readOnly": true
         },
-        "baseProfile":    { "$ref": "#/$defs/profileObject.reference" },
+        "baseProfile": { "$ref": "#/$defs/profile.reference", "readOnly": true },
         "defaultProfile": { "type": "boolean", "readOnly": true }
       },
-      "required": ["@type", "name", "description", "version", "rppVersion", "objects", "defaultProfile"]
+      "required": [
+        "@type",
+        "name",
+        "description",
+        "version",
+        "rppVersion",
+        "objects",
+        "defaultProfile"
+      ]
     }
   }
 }
@@ -3134,13 +3230,13 @@ Reference schema (identifier only):
 ```json
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$ref": "#/$defs/profileObject.reference",
+  "$ref": "#/$defs/profile.reference",
   "$defs": {
-    "profileObject.reference": {
+    "profile.reference": {
       "type": "object",
       "properties": {
-        "@type": { "type": "string", "const": "profile", "readOnly": true },
-        "name":  { "type": "string", "readOnly": true }
+        "@type": { "type": "string", "const": "profile" },
+        "name": { "type": "string", "readOnly": true }
       },
       "required": ["@type", "name"]
     }

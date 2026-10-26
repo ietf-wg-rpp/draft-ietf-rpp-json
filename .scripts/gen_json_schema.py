@@ -34,12 +34,13 @@ Generation decisions (precedence: draft rules > YAML content > draft schema shap
     carries input data elements, keyed by the operation Identifier
     (e.g. "transferProcess.transferReject"). Derived objects use their own id.
   * Inheritance ("extends") is flattened (draft section "Inheritance").
-  * Polymorphism: a reference to a base object accepts every object extending
-    it, expressed as "oneOf" over the candidates (each fixed by its "@type").
+  * Polymorphism: a reference to a base object references only the base object;
+    objects extending it are not offered in its place (no rule in the draft).
   * Reference views use the exported "unique_identifier"; objects without
     one get no reference view.
   * View elements follow the "Elements" of the operations' Input/Output items
-    (create Input Object, update Input Changes, read Output Object). Operation views carry the operation's
+    (create Input Object, read Output Object); update views hold the read-write
+    elements (Rules 5-7). Operation views carry the operation's
     Input Data Elements; Parameters are left out.
   * Create views carry "processes" only when the Create Input names a
     Process Object.
@@ -86,7 +87,7 @@ PRIMITIVES = {
     "Binary":    {"type": "string", "contentEncoding": "base64"},
 }
 PRIMITIVES_NOT_IN_RULES = {
-    "Object":                      {"type": "object", "additionalProperties": True},
+    "Object":                      {"type": "object", "unevaluatedProperties": True},
     "Fully Qualified Domain Name": {"type": "string", "format": "hostname"},
 }
 
@@ -293,7 +294,7 @@ class Model:
                 for d in item.get("definitions") or []]
 
     def io_target(self, item, owner):
-        """Object named by a Reference/Object/Changes item, resolved against the defining object."""
+        """Object named by a Reference/Object item, resolved against the defining object."""
         t = item["target"]
         if t == "This Object":
             return owner
@@ -605,9 +606,9 @@ class Generator:
         return p
 
     # Input/Output item that defines the elements of each view
-    VIEW_IO = {"create": ("input", "Object"), "update": ("input", "Changes"),
-               "read": ("output", "Object"), "query": ("output", "Object")}
-    DEFAULT_MUTS = {"create": {"create-only", "read-write"}, "update": {"read-write"},
+    VIEW_IO = {"create": ("input", "Object"), "read": ("output", "Object"),
+               "query": ("output", "Object")}
+    DEFAULT_MUTS = {"create": {"create-only", "read-write"},
                     "read": {"create-only", "read-write", "read-only"}}
 
     def view_items(self, o, view, ops=None):
@@ -627,6 +628,8 @@ class Generator:
         """Mutability values of the elements in a view, from the operations' Input/Output."""
         if view is None:  # a component has a single schema
             return self.DEFAULT_MUTS["read"]
+        if view == "update":  # Rules 5-7: only read-write elements can be changed
+            return {"read-write"}
         items = self.view_items(o, view)
         if not items and view == "read":
             # a process without a Read operation: the representation its operations return
@@ -634,7 +637,7 @@ class Generator:
         if not items:
             self.diag.add("heuristic", "No operation Input/Output describes this view; elements "
                                        "selected by mutability (create: create-only, read-write; "
-                                       "update: read-write; read: all)", f"{o.id}.{view}")
+                                       "read: all)", f"{o.id}.{view}")
             return self.DEFAULT_MUTS[view]
         return {m for item in items for m in item["elements"]}
 
@@ -760,8 +763,8 @@ class Generator:
             return dict(PRIMITIVES[name])
         if name in PRIMITIVES_NOT_IN_RULES:
             self.diag.add("rule-gap", f"Primitive type '{name}' is not listed in Primitive Type Mappings"
-                          + (" (Rule 24 only permits additionalProperties: true for it)"
-                             if name == "Object" else ""), ctx)
+                          + ("; unevaluatedProperties: true applied (composable; Rule 24 names "
+                             "additionalProperties: true)" if name == "Object" else ""), ctx)
             return dict(PRIMITIVES_NOT_IN_RULES[name])
         if name in COMMON_TYPES or name in self.m.common:
             self.common_used.add(common_key(name))
@@ -776,14 +779,11 @@ class Generator:
             self.diag.add("yaml-issue", f"Unknown data type '{name}'", ctx)
             return {}
         is_ref = norm_name(name)[1]
-        cands = [o] + o.descendants()
-        refs = [{"$ref": f"#/$defs/{self.ref_name(c, assoc, view, is_ref, ctx)}"} for c in cands]
-        if len(refs) == 1:
-            return refs[0]
-        self.diag.add("rule-gap", "Polymorphism (an object extending the referenced base object may be "
-                                  "used in its place) has no JSON rule; oneOf over all candidates applied",
-                      f"{ctx} -> {', '.join(c.id for c in cands)}")
-        return {"oneOf": refs}
+        if o.children:
+            self.diag.add("rule-gap", "Polymorphism (an object extending the referenced base object may be "
+                                      "used in its place) has no JSON rule; only the base object is referenced",
+                          f"{ctx} -> {o.id} (not: {', '.join(c.id for c in o.descendants())})")
+        return {"$ref": f"#/$defs/{self.ref_name(o, assoc, view, is_ref, ctx)}"}
 
     def ref_name(self, o, assoc, view, is_ref, ctx):
         if o.kind == "Component":
