@@ -469,7 +469,23 @@ Rule 26: When a transfer request or other operation requires authorization infor
 
 ## JSON Schema Composition Rules
 
-Rule 27: The JSON Schema definitions of all RPP component objects and data objects MUST be located in a single shared `$defs` object at the top level of the RPP schema document. The key of a definition in the shared `$defs` object MUST be its Identifier for a component object. For a data object, the key MUST be its Identifier, followed by a `.` and the name of the operation, such as `createProcess.read`. Types defined by an external specification, for example the JSContact `Card`, are not subject to this rule; they are embedded as described in the External Type Embedding Rules and MAY use a key that is not derived from an RPP Identifier.
+Rule 27: The JSON Schema definitions of all RPP objects MUST be located in a single shared `$defs` object at the top level of the RPP schema document. A schema that refers to another definition MUST use the `$ref` keyword with a JSON Pointer fragment to the definition in the shared `$defs` object.
+
+The key of a definition in the shared `$defs` object MUST be formed as follows, using Identifiers exactly as defined in [@!I-D.ietf-rpp-data-objects]:
+
+- Component Object: its Identifier.
+- Data Object or Process Object: its Identifier, followed by a `.` and the name of the view. An object that extends another object uses its own Identifier, not the Identifier of the object it extends.
+
+The view names are:
+
+- `create`: the request body of the Create operation.
+- `read`: the object representation returned in responses.
+- `update`: the request body of the Update operation.
+- `reference`: the limited representation of an aggregated object (see Aggregation), containing `@type` and the object's Unique Identifier as defined in [@!I-D.ietf-rpp-data-objects].
+- `query`: the response body of the Query operation.
+- Any other operation of a Process Object that has input data elements: the Identifier of the operation.
+
+Each key MUST be unique within the shared `$defs` object. Common Data Types and types defined by an external specification are not subject to this rule. They MAY use a key that is not derived from an RPP Identifier.
 
 A schema that refers to another component object or data object MUST use the `$ref` keyword with a JSON Pointer fragment to the definition in the shared `$defs` object, for example `{ "$ref": "#/$defs/period" }`.
 
