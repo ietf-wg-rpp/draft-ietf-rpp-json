@@ -9,6 +9,7 @@ following the JSON Representation Rules of draft-ietf-rpp-json.
 Usage:
     python3 gen_json_schema.py MODEL.yaml [-o OUT.json] [--split DIR]
                                [--compare DRAFT.md] [--compare-out FILE]
+                               [--replace DRAFT.md] [--replace-out FILE]
                                [--diagnostics FILE] [--expanded] [-q]
 
   MODEL.yaml        object model export (e.g. .work/draft-ietf-rpp-data-objects.yaml)
@@ -18,6 +19,9 @@ Usage:
   --compare DRAFT   compare generated definitions with the schemas in the
                     "JSON Schema Definitions" chapter of DRAFT
   --compare-out F   write the comparison to F instead of stdout
+  --replace DRAFT   replace the schema blocks of DRAFT in place with their generated
+                    counterparts (Rule 27 keys) and print the generated schemas left unused
+  --replace-out F   write the updated draft to F instead of DRAFT
   --diagnostics F   write generator diagnostics (rule gaps, YAML gaps, heuristics) to F
   -q                do not print diagnostics to stderr
 
@@ -352,6 +356,7 @@ class Generator:
         self.diag = diag
         self.defs = {}
         self.common_used = set()
+        self.placeholders = set()  # $defs keys whose content is not taken from the model
         self.external_used = {}
 
     # -- views -------------------------------------------------------------
@@ -409,6 +414,7 @@ class Generator:
             self.diag.add("rule-gap", "Common Data Types have no Identifier, so Rule 27 does not name "
                                       "their $defs key; the draft's key is used", name)
         for name, profile in self.external_used.items():
+            self.placeholders.add(name)
             defs[name] = {"type": "object",
                           "$comment": f"External type from {profile}: definition not available "
                                       f"in the object model export"}
@@ -426,6 +432,7 @@ class Generator:
         if ct is None:
             self.diag.add("yaml-gap", "Common Data Type is not exported; a plain string placeholder "
                                       "is generated", key)
+            self.placeholders.add(key)
             return {"type": "string"}
         r = dict(ct.get("restrictions") or {})
         base = r.pop("base_type", "")
@@ -442,6 +449,7 @@ class Generator:
         if not r:
             self.diag.add("yaml-gap", "Common Data Type syntax is given only as prose (no restrictions "
                                       "exported); no syntax keywords generated", key)
+            self.placeholders.add(key)
         return self.restrict(schema, r, key)
 
     def restrict(self, schema, r, ctx):
@@ -920,10 +928,11 @@ def self_check(bundle):
 # Comparison with the draft
 # ---------------------------------------------------------------------------
 
-def extract_draft_defs(md_path):
-    """$defs of every schema block in the "JSON Schema Definitions" chapter."""
-    lines = Path(md_path).read_text(encoding="utf-8").splitlines()
-    defs, dupes = {}, []
+def draft_schema_blocks(lines):
+    """(start, end, parsed block) of every ```json block in the "JSON Schema Definitions" chapter.
+
+    lines[start:end] is the block content, without the fences; the block is {} if not valid JSON."""
+    blocks = []
     h1 = ""
     in_code = False
     i = 0
@@ -939,10 +948,7 @@ def extract_draft_defs(md_path):
                     block = json.loads("\n".join(lines[start:j]))
                 except json.JSONDecodeError:
                     block = {}
-                for name, d in (block.get("$defs") or {}).items():
-                    if name in defs:
-                        dupes.append((name, start))
-                    defs[name] = (d, start)
+                blocks.append((start, j, block if isinstance(block, dict) else {}))
                 i = j + 1
                 continue
             in_code = not in_code
@@ -951,7 +957,70 @@ def extract_draft_defs(md_path):
             if m:
                 h1 = m.group(1)
         i += 1
+    return blocks
+
+
+def extract_draft_defs(md_path):
+    """$defs of every schema block in the "JSON Schema Definitions" chapter."""
+    lines = Path(md_path).read_text(encoding="utf-8").splitlines()
+    defs, dupes = {}, []
+    for start, _, block in draft_schema_blocks(lines):
+        for name, d in (block.get("$defs") or {}).items():
+            if name in defs:
+                dupes.append((name, start))
+            defs[name] = (d, start)
     return defs, dupes
+
+
+def replace_in_draft(bundle, kinds, placeholders, md_path, out_path, expanded=False):
+    """Replace every draft schema block that has a generated counterpart; returns a report.
+
+    A block is replaced by the generated definition under its Rule 27 key, shaped like
+    --split. Blocks without a counterpart, with more than one $defs entry, or whose
+    counterpart is already placed by an earlier block or is only a placeholder (an
+    external type, a Common Data Type without exported syntax) are left untouched. The report
+    ends with every generated definition that has no place in the draft."""
+    gen = bundle["$defs"]
+    text = Path(md_path).read_text(encoding="utf-8")
+    lines = text.splitlines()
+    blocks = draft_schema_blocks(lines)
+    ddefs, _ = extract_draft_defs(md_path)
+    placed, replaced, untouched, edits = set(), [], [], []
+    for start, end, block in blocks:
+        names = list((block.get("$defs") or {}).keys())
+        if len(names) != 1:
+            untouched.append((start, ", ".join(names) or "(no $defs)",
+                              "invalid JSON" if not block else f"{len(names)} $defs entries"))
+            continue
+        dname = names[0]
+        gname = map_draft_name(dname, ddefs, gen)
+        if gname is None:
+            untouched.append((start, dname, "no generated counterpart"))
+        elif gname in placeholders:
+            placed.add(gname)
+            untouched.append((start, dname, f"`{gname}` is generated only as a placeholder"))
+        elif gname in placed:
+            untouched.append((start, dname, f"`{gname}` already placed by an earlier block"))
+        else:
+            placed.add(gname)
+            doc = split_doc(gname, gen[gname], kinds.get(gname, "Common"))
+            edits.append((start, end, dump(doc, expanded).rstrip("\n").split("\n")))
+            replaced.append((start, dname, gname))
+    for start, end, new in reversed(edits):
+        lines[start:end] = new
+    Path(out_path).write_text("\n".join(lines) + ("\n" if text.endswith("\n") else ""), encoding="utf-8")
+
+    out = [f"# Schema replacement in {md_path}" + (f" (written to {out_path})" if out_path != md_path else ""),
+           "", f"## Replaced: {len(replaced)}", ""]
+    out += [f"- line {s + 1}: `{d}` -> `{g}`" + ("" if d == g else " (key renamed)") for s, d, g in replaced]
+    out += ["", f"## Left untouched: {len(untouched)}", ""]
+    out += [f"- line {s + 1}: `{d}`: {why}" for s, d, why in untouched]
+    unused = [n for n in gen if n not in placed]
+    out += ["", f"## Unused generated schemas (no place in the draft): {len(unused)}", ""]
+    for n in unused:
+        out += [f"### `{n}`", "", "```json",
+                dump(split_doc(n, gen[n], kinds.get(n, "Common")), expanded).rstrip("\n"), "```", ""]
+    return "\n".join(out) + "\n"
 
 
 def flatten_draft(defn, ddefs, notes, seen=None):
@@ -1155,6 +1224,11 @@ def main():
     ap.add_argument("--split", metavar="DIR", help="also write one file per definition")
     ap.add_argument("--compare", metavar="DRAFT", help="compare with the schemas in DRAFT (.md)")
     ap.add_argument("--compare-out", metavar="FILE", help="comparison output file (default: stdout)")
+    ap.add_argument("--replace", metavar="DRAFT",
+                    help="replace the schema blocks of DRAFT (.md) in place with their generated "
+                         "counterparts and print the generated schemas left unused")
+    ap.add_argument("--replace-out", metavar="FILE",
+                    help="write the updated draft to FILE instead of DRAFT")
     ap.add_argument("--diagnostics", metavar="FILE", help="write diagnostics to FILE")
     ap.add_argument("-q", "--quiet", action="store_true", help="do not print diagnostics to stderr")
     ap.add_argument("--expanded", action="store_true",
@@ -1167,16 +1241,19 @@ def main():
     gen = Generator(model, diag)
     bundle = gen.build()
 
+    if args.replace_out and not args.replace:
+        ap.error("--replace-out requires --replace")
+
     text = dump(bundle, args.expanded)
     if args.output:
         Path(args.output).write_text(text, encoding="utf-8")
-    elif not args.compare or args.compare_out:
+    elif not args.replace and (not args.compare or args.compare_out):
         sys.stdout.write(text)
 
+    kinds = {gen.def_name(o, v): o.kind for o in model.objs.values() for v in gen.views_for(o)}
     if args.split:
         outdir = Path(args.split)
         outdir.mkdir(parents=True, exist_ok=True)
-        kinds = {gen.def_name(o, v): o.kind for o in model.objs.values() for v in gen.views_for(o)}
         for name, defn in bundle["$defs"].items():
             doc = split_doc(name, defn, kinds.get(name, "Common"))
             (outdir / f"{name}.json").write_text(dump(doc, args.expanded), encoding="utf-8")
@@ -1197,6 +1274,10 @@ def main():
             Path(args.compare_out).write_text(cmp_text, encoding="utf-8")
         else:
             sys.stdout.write(cmp_text)
+
+    if args.replace:  # after --compare, which may read the same draft
+        sys.stdout.write(replace_in_draft(bundle, kinds, gen.placeholders, args.replace,
+                                          args.replace_out or args.replace, args.expanded))
 
     return 1 if any(not p.startswith("jsonschema not installed") for p in problems) else 0
 

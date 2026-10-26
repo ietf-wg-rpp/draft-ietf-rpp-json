@@ -10,4 +10,4 @@ if [[ ! -x .venv/bin/python ]]; then
     ./.venv/bin/pip install --quiet -r requirements.txt
 fi
 
-./.venv/bin/python ./gen_json_schema.py --split ../.generate/schemas/ --compare ../src/draft-ietf-rpp-json.md --compare-out ../.generate/compare.md --diagnostics ../.generate/diag.md -o ../.generate/schema.json ../.work/draft-ietf-rpp-data-objects.yaml
+./.venv/bin/python ./gen_json_schema.py --split ../.generate/schemas/ --compare ../src/draft-ietf-rpp-json.md --compare-out ../.generate/compare.md --diagnostics ../.generate/diag.md -o ../.generate/schema.json ../.work/draft-ietf-rpp-data-objects.yaml --replace ../src/draft-ietf-rpp-json.md
