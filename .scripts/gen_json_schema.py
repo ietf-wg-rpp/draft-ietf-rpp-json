@@ -33,7 +33,9 @@ Generation decisions (precedence: draft rules > YAML content > draft schema shap
     "<id>.create|read|update|query|reference",
     processes "<id>.create|read[|update]" plus one view per other operation that
     carries input data elements, keyed by the operation Identifier
-    (e.g. "transferProcess.transferReject"). Derived objects use their own id.
+    (e.g. "transferProcess.transferReject"). An operation whose output is not
+    the read view (Output Data Elements, or other Output Object elements) also
+    gets "<id>.<view>.output". Derived objects use their own id.
   * Inheritance ("extends") is flattened (draft section "Inheritance").
   * Polymorphism: a reference to a base object accepts every object extending
     it, expressed as "oneOf" over the candidates (each fixed by its "@type").
@@ -115,6 +117,7 @@ DICT_RE = re.compile(r"^Dictionary\[(.+)\]$")
 EXTERNAL_RE = re.compile(r"^External:([^:]+):(.+)$")
 
 STANDARD_VIEWS = ("create", "read", "update", "query")
+OUTPUT_SUFFIX = ".output"  # response view of an operation whose output differs from "read"
 REQUEST_VIEWS = ("create", "update")
 RESPONSE_VIEWS = ("read", "query", "reference")
 WRITABLE = ("create-only", "read-write")
@@ -303,9 +306,10 @@ class Model:
         return items
 
     @staticmethod
-    def definitions(op, kind):
-        """Definitions of the "Input Data Elements" or "Parameters" item of an operation."""
-        return [d for item in op.get("input") or [] if item["kind"] == kind
+    def definitions(op, kind, side="input"):
+        """Definitions of the "Input Data Elements", "Output Data Elements" or "Parameters"
+        item of an operation."""
+        return [d for item in op.get(side) or [] if item["kind"] == kind
                 for d in item.get("definitions") or []]
 
     def io_target(self, item, owner):
@@ -395,14 +399,40 @@ class Generator:
                 v = self.view_of(op, owner)
                 if Model.definitions(op, "Input Data Elements") and v not in views:
                     views.append(v)
+            views += [v for v in self.output_views(o) if v not in views]
             if self.m.unique_id(o) is not None:
                 views.append("reference")
             return views
         views = [v for v in ("create", "read", "update") if v in sfx]
         if "query" in sfx and "read" in views:
             views.append("query")
+        views += [v for v in self.output_views(o) if v not in views]
         if self.m.unique_id(o) is not None:
             views.append("reference")
+        return views
+
+    def output_items(self, o, op, owner):
+        """Output Object items of an operation that name the object itself."""
+        return [item for item in self.m.io(op, owner, "output") if item["kind"] == "Object"
+                and (t := self.m.io_target(item, owner)) is not None and o.is_a(t)]
+
+    def output_views(self, o):
+        """"<view>.output" for each operation whose output is not the read view of the object:
+        it has Output Data Elements, or its Output Object selects other elements than "read"."""
+        views = []
+        read_muts = None
+        for op, owner in o.operations:
+            v = self.view_of(op, owner)
+            if v in ("read", "query"):
+                continue  # these outputs define the read and query views themselves
+            items = self.output_items(o, op, owner)
+            if not items and not Model.definitions(op, "Output Data Elements", "output"):
+                continue  # returns another object, or nothing
+            if read_muts is None:
+                read_muts = self.view_mutabilities(o, "read")
+            muts = {m for item in items for m in item["elements"]}
+            if Model.definitions(op, "Output Data Elements", "output") or muts != read_muts:
+                views.append(v + OUTPUT_SUFFIX)
         return views
 
     @staticmethod
@@ -538,6 +568,9 @@ class Generator:
             required.append(uid["identifier"])
             return {"type": "object", "properties": props, "required": required}
 
+        if view.endswith(OUTPUT_SUFFIX):
+            return self.build_output_view(o, view)
+
         op_inputs = []
         for op, owner in o.operations:
             if self.view_of(op, owner) == view:
@@ -567,6 +600,25 @@ class Generator:
                                           "not included in any schema",
                               f"{o.id}.{p['identifier']}.{par['identifier']}")
         return self.apply_conditions(o, view, {"type": "object", "properties": props, "required": required})
+
+    def build_output_view(self, o, view):
+        """Response content of an operation whose output differs from the read view: the
+        elements its Output Object selects plus its Output Data Elements, as response content."""
+        op_view = view[:-len(OUTPUT_SUFFIX)]
+        ops = [(op, ow) for op, ow in o.operations if self.view_of(op, ow) == op_view]
+        props = {"@type": self.type_prop(o, "read")}
+        required = ["@type"]
+        muts = {m for op, ow in ops for item in self.output_items(o, op, ow) for m in item["elements"]}
+        for e in o.elements:
+            if e["mutability"] in muts:
+                self.add_element(o, e, "read", props, required)
+        for op, _ in ops:
+            for out in Model.definitions(op, "Output Data Elements", "output"):
+                # Output Data Elements have no Mutability: server-provided content
+                e = dict(out)
+                e.setdefault("mutability", "read-only")
+                self.add_element(o, e, "read", props, required)
+        return self.apply_conditions(o, "read", {"type": "object", "properties": props, "required": required})
 
     def add_element(self, o, e, view, props, required):
         ident = e["identifier"]

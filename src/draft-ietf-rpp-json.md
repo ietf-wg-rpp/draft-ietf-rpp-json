@@ -482,7 +482,8 @@ The view names are:
 - `update`: the request content of the Update operation.
 - `reference`: the limited representation of an aggregated object (see Aggregation), containing `@type` and the object's Unique Identifier as defined in [@!I-D.ietf-rpp-data-objects].
 - `query`: the response content of the Query operation.
-- The Identifier of the operation: the request or response content of any other operation.
+- The Identifier of the operation: the request content of any other operation.
+- The Identifier of the operation followed by `.output`: the response content of an operation, other than Read and Query, whose output is not an existing view of the object.
 
 A Component Object has a `read` view. A Component Object that has at least one data element with mutability `create-only` or `read-write` also has a `create` view. A Component Object has no other views.
 
@@ -2750,16 +2751,16 @@ Read response schema (read-write and read-only properties):
 }
 ```
 
-The Report request applies only to servers that support or require submission of a restore report.
+The Update request applies only to servers that support or require submission of a restore report.
 
-Report request schema (create-only and read-write properties):
+Update request schema (read-write properties):
 
 ```json
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$ref": "#/$defs/restoreProcess.report",
+  "$ref": "#/$defs/restoreProcess.update",
   "$defs": {
-    "restoreProcess.report": {
+    "restoreProcess.update": {
       "type": "object",
       "properties": {
         "@type": { "type": "string", "const": "restoreProcess" },
@@ -3016,22 +3017,6 @@ Update request schema (read-write properties):
 }
 ```
 
-### Renew
-
-Renew minimal response schema (only expire date):
-
-
-```json
-{
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$ref": "#/$defs/renewProcess.create.domain",
-  "$defs": {
-    "renewProcess.create.domain": {
-       "$ref": "#/$defs/renewProcess.create"
-    }
-  }
-}
-```
 
 ### Transfer
 
@@ -3141,33 +3126,7 @@ Read response for Domain Transfer Process Object schema (read-write and read-onl
 
 Both Approve and Delete (Cancel) operations have no request body, the server can identify the transfer process to be approved or cancelled based on the request URL and the authenticated client's permissions.
 
-Delete (Cancel) response Domain Transfer Process Object schema (read-write and read-only properties):
-
-```json
-{
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$ref": "#/$defs/transferProcess.delete.domain",
-  "$defs": {
-    "transferProcess.delete.domain": {
-      "$ref": "#/$defs/transferProcess.read.domain"
-    }
-  }
-}
-```
-
-Approve response Domain Transfer Process Object schema (read-write and read-only properties):
-
-```json
-{
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$ref": "#/$defs/transferProcess.approve.domain",
-  "$defs": {
-    "transferProcess.approve.domain": {
-      "$ref": "#/$defs/transferProcess.read.domain"
-    }
-  }
-}
-```
+Approve and Delete response schemas are the `read` schema of `domainTransferProcess`.
 
 Reject request Domain Object schema:
 
@@ -3188,19 +3147,7 @@ Reject request Domain Object schema:
 }
 ```
 
-Reject response schema (read-write and read-only properties):
-
-```json
-{
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$ref": "#/$defs/transferProcess.reject.domain",
-  "$defs": {
-    "transferProcess.reject.domain": {
-      "$ref": "#/$defs/transferProcess.read.domain"
-    }
-  }
-}
-```
+Reject response schema is the `read` schema of `domainTransferProcess`.
 
 Reference for Domain Transfer Process Object schema (identifier only):
 
@@ -3338,22 +3285,6 @@ Update request schema (read-write properties):
         "disclose": { "$ref": "#/$defs/disclose.read" }
       },
       "required": ["@type", "contactInfo"]
-    }
-  }
-}
-```
-
-### Transfer
-
-Transfer create request for Contact Object schema (create-only and read-write properties):
-
-```json
-{
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$ref": "#/$defs/transferProcess.create.contact",
-  "$defs": {
-    "transferProcess.create.contact": {
-      "$ref": "#/$defs/transferProcess.create"
     }
   }
 }
@@ -4333,7 +4264,7 @@ Example domain update request (read-write properties):
 ```json
 {
     "@type": "domainName",
-    "registrant": { "@type": "contact", "id": "sh8013" },
+    "registrant": { "@type": "contact", "id": "SH-8013" },
     "authInfo": {
         "@type": "authInfo",
         "method": "authinfo",
@@ -5864,7 +5795,7 @@ TODO
 - Added User Status Object to (#status-objects).
 - Aligned domain name, host, organisation, user, and profile examples with the updated JSON Schema definitions.
 - Added Disclose Object, Base Process Object, and Domain Create Process Object schemas.
-- Added Restore Process Object report request schema and Host Data Object update request schema.
+- Added Restore Process Object update request schema and Host Data Object update request schema.
 - Clarified Create Process Object description.
 - Aligned the Aggregation description with Rule 8 in Association Rules.
 - Removed the statement that Composition and Aggregation share the same JSON representation from Association Rules.
@@ -5877,6 +5808,10 @@ TODO
 - Changed the Component Object `$defs` keys to `read` and `create` views in JSON Schema Composition Rules.
 - Clarified `create-only` for Component Objects in Mutability Rules.
 - Added Component Object create schemas to Component Objects Schemas.
+- Added the operation output view to the `$defs` key naming in JSON Schema Composition Rules.
+- Removed the Domain Transfer Process response schemas from Domain Name Data Object.
+- Removed the Renew Process alias schema from Domain Name Data Object and the Transfer Process alias schema from Contact Data Object.
+- Fixed the registrant identifier in the domain update request example in Examples.
 
 ## Version draft-wullink-rpp-json-02 to draft-ietf-rpp-json-00
 

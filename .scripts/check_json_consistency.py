@@ -102,6 +102,13 @@ SCHEMA_SUBCHAPTER_NEEDS_TOPLEVEL_EXAMPLE: set[str] = {
     "Profile Data Object",
 }
 
+# Base (abstract) types: only their descendants appear in instances, so no
+# top-level example is expected for them.
+ABSTRACT_TYPES: set[str] = {
+    "baseProcess",
+    "createProcess",
+}
+
 
 def parse_markdown(md_path: Path):
     """
@@ -335,6 +342,7 @@ def schema_find_type_const(defn: dict, all_defs: dict, _seen: Optional[set] = No
     - allOf: at least one branch defines/constrains "@type" (or is a $ref that does)
     - anyOf / oneOf: all branches define/constrain "@type" (or are $ref that do)
     - $ref: follows the reference into all_defs (cycle-safe)
+    - items: for array schemas, the @type of the item schema
 
     Returns None if no @type const is found. This is used when `--deep-type-check` is active.
     """
@@ -378,6 +386,11 @@ def schema_find_type_const(defn: dict, all_defs: dict, _seen: Optional[set] = No
             unique = {v for v in values if v is not None}
             if len(unique) == 1:
                 return unique.pop()
+
+    # items: array of typed objects
+    items = defn.get("items")
+    if isinstance(items, dict):
+        return schema_find_type_const(items, all_defs, _seen)
 
     return None
 
@@ -708,7 +721,9 @@ def run_checks(md_path: Path, deep_type_check: bool = True) -> int:
     for type_const, entries in sorted(schemas_by_type.items()):
         for se in entries:
             needs_toplevel = se.subchapter in SCHEMA_SUBCHAPTER_NEEDS_TOPLEVEL_EXAMPLE
-            if needs_toplevel:
+            if type_const in ABSTRACT_TYPES:
+                info(f"  '{se.def_name}' (@type='{type_const}'): abstract type — no example expected")
+            elif needs_toplevel:
                 if type_const not in types_with_examples:
                     err(f"  Line {se.block.line_start:4d} '{se.def_name}': "
                         f"no top-level example found for @type='{type_const}'")

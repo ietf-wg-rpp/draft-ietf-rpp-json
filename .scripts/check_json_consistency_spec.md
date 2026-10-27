@@ -47,6 +47,7 @@ The sub-chapter determines what `@type` rules apply:
       - `allOf`: at least one branch must define/constrain `@type`
       - `anyOf`/`oneOf`: **all** branches must define/constrain `@type`
       - `$ref`: followed into the combined `$defs` (cycle-safe)
+      - `items`: for an array schema, the `@type` of the item schema
 - All `$ref: #/$defs/<name>` pointers are checked against the combined `$defs` map — **error** if unresolved
 - Schema must be a valid JSON Schema (draft 2020-12) — `check_schema()` is called
 - Cross-references are resolved by merging all schemas into one combined `$defs` map
@@ -70,6 +71,7 @@ For each schema with a `@type` const, example coverage is checked according to t
 
 - **Top-level required** (Process Objects, Data Objects): the `@type` value must appear as the top-level `"@type"` of at least one example — **error** if missing
 - **Nested sufficient** (Component Objects): the `@type` value must appear at any depth in any example — **warning** if missing
+- **Abstract types** (`ABSTRACT_TYPES` in the script, currently `baseProcess` and `createProcess`): base types that only occur through their descendants are exempt from example coverage. The draft has no marker for them yet, so the list is maintained by hand.
 
 ---
 
