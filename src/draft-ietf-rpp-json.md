@@ -1283,6 +1283,28 @@ The following constraints cannot be expressed in JSON Schema and MUST be enforce
 }
 ```
 
+#### User Status Object
+
+The following constraints cannot be expressed in JSON Schema and MUST be enforced by implementations:
+
+- The `"pending"` label is server-managed; `"suspended"` and `"deactivated"` are server-managed and MAY additionally be client-managed by a client with permission to manage users.
+
+```json
+{
+  "$defs": {
+    "userStatus": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "userStatus" },
+        "label": { "type": "string" },
+        "reason": { "type": "string" }
+      },
+      "required": ["@type", "label"]
+    }
+  }
+}
+```
+
 ### DNS Resource Record Object
 
 The following constraints cannot be expressed in JSON Schema and MUST be enforced by implementations:
@@ -3093,7 +3115,8 @@ Reference schema (identifier only):
 
 The User Data Object represents a user linked to an Organisation Object. The lifecycle of a User Object is bound to its owning Organisation Object.
 
-Note: User status values are plain strings, not Status Objects.
+The following constraints cannot be expressed in JSON Schema and MUST be enforced by implementations:
+- The `"status"` array MUST contain exactly one of the labels `"active"`, `"pending"`, `"suspended"`, or `"deactivated"`.
 
 ### Create
 
@@ -5090,6 +5113,7 @@ TODO
 - Added "inheritance" section (Issue #88)
 - Added section describing the representation of undefined values. (Issue #97)
 - Replaced the generic Status Object with type-specific status objects in (#status-objects).
+- Added User Status Object to (#status-objects).
 
 ## Version draft-wullink-rpp-json-02 to draft-ietf-rpp-json-00
 
