@@ -479,6 +479,59 @@ Rule 30: When the status values of a status object in [@!I-D.ietf-rpp-data-objec
 
 Rule 31: When the status values of a status object in [@!I-D.ietf-rpp-data-objects] state that a server MUST assign at least one status value to the object, the status data element MUST be listed under `"required"` in the read response schema, with `"minItems": 1` when it is an array.
 
+## JSON Schema Composition Rules
+
+Rule 27: The JSON Schema definitions of all RPP objects MUST be located in a single shared `$defs` object at the top level of the RPP schema document. A schema that refers to another definition MUST use the `$ref` keyword with a JSON Pointer fragment to the definition in the shared `$defs` object.
+
+The key of a definition in the shared `$defs` object MUST be formed as follows, using Identifiers exactly as defined in [@!I-D.ietf-rpp-data-objects]:
+
+- Component Object: its Identifier.
+- Data Object or Process Object: its Identifier, followed by a `.` and the name of the view. An object that extends another object uses its own Identifier, not the Identifier of the object it extends.
+
+The view names are:
+
+- `create`: the request content of the Create operation.
+- `read`: the object representation returned in responses.
+- `update`: the request content of the Update operation.
+- `reference`: the limited representation of an aggregated object (see Aggregation), containing `@type` and the object's Unique Identifier as defined in [@!I-D.ietf-rpp-data-objects].
+- `query`: the response content of the Query operation.
+- The Identifier of the operation: the request or response content of any other operation.
+
+Each key MUST be unique within the shared `$defs` object. Common Data Types and types defined by an external specification are not subject to this rule. They MAY use a key that is not derived from an RPP Identifier.
+
+A schema that refers to another component object or data object MUST use the `$ref` keyword with a JSON Pointer fragment to the definition in the shared `$defs` object, for example `{ "$ref": "#/$defs/period" }`.
+
+The final RPP schema document, containing the shared `$defs` object with all sub-schemas, MUST have an `$id` keyword whose value is an absolute URI without a fragment, serving as the stable identifier of the complete RPP schema document.
+
+Example (structure of the final RPP schema document):
+
+```json
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:ietf:params:rpp:schema:json-1.0",
+  "$defs": {
+    "period": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "period" },
+        "value": { "type": "integer" },
+        "unit":  { "type": "string", "enum": ["y", "m"] }
+      },
+      "required": ["@type", "value", "unit"]
+    },
+    "domainCreateProcess.create": {
+      "type": "object",
+      "properties": {
+        "@type":     { "type": "string", "const": "domainCreateProcess" },
+        "processId": { "type": "string", "readOnly": true },
+        "period":    { "$ref": "#/$defs/period" }
+      },
+      "required": ["@type"]
+    }
+  }
+}
+```
+
 ### Inheritance
 
 RPP Data Objects and Component Objects MAY inherit the data elements and operations of another object. The JSON schema for an object must include all the inherited data elements and constraints from its base object, using a flat structure where all properties are defined at the top level of the schema, rather than nested under an `"allOf"` or `"anyOf"` construct.
@@ -997,7 +1050,7 @@ Example of a partial update request for a organisation object to add status "lin
 
 This section provides normative JSON Schema definitions for RPP component objects and resource objects. All schemas use JSON Schema draft 2020-12 [@!I-D.ietf-jsonschema-json-schema].
 
-<!-- TODO: can we say normative for json schema definitions? -->
+
 
 ## Common Data Types Schemas
 
@@ -5552,6 +5605,7 @@ TODO
 
 ## Version draft-ietf-rpp-json-00 to draft-ietf-rpp-json-01
 
+- Added section "JSON Schema Composition Rules". (Issue #102)
 - Added schemas and examples for the Discovery and Profile Data Objects. (Issue #92)
 - Added schemas and examples related to service messages. (Issue #82)
 - Added IANA registration for the "application/rpp+json" media type (Issue #84)
