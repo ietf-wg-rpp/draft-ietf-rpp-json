@@ -8,13 +8,13 @@
         "@type": { "type": "string", "const": "message" },
         "data": {
           "oneOf": [
-            { "$ref": "#/$defs/baseMessage" },
-            { "$ref": "#/$defs/reviewResponseMessage" },
-            { "$ref": "#/$defs/transferRequestMessage" },
-            { "$ref": "#/$defs/transferOutcomeMessage" },
-            { "$ref": "#/$defs/expirationDeletionMessage" },
-            { "$ref": "#/$defs/autoRenewalMessage" },
-            { "$ref": "#/$defs/serviceNoticeMessage" }
+            { "$ref": "#/$defs/baseMessage.read" },
+            { "$ref": "#/$defs/reviewResponseMessage.read" },
+            { "$ref": "#/$defs/transferRequestMessage.read" },
+            { "$ref": "#/$defs/transferOutcomeMessage.read" },
+            { "$ref": "#/$defs/expirationDeletionMessage.read" },
+            { "$ref": "#/$defs/autoRenewalMessage.read" },
+            { "$ref": "#/$defs/serviceNoticeMessage.read" }
           ],
           "writeOnly": true
         }

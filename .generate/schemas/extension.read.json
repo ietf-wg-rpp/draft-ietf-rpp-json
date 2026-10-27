@@ -1,0 +1,15 @@
+{
+  "$defs": {
+    "extension.read": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "extension", "readOnly": true },
+        "name": { "type": "string", "readOnly": true },
+        "id": { "type": "string", "readOnly": true },
+        "version": { "type": "string", "readOnly": true },
+        "url": { "type": "string", "format": "uri", "readOnly": true }
+      },
+      "required": ["@type", "name", "id", "version", "url"]
+    }
+  }
+}

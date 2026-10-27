@@ -4,8 +4,8 @@
 
 - Restriction 'range' has no JSON rule (Rule 22 covers enumerations only); mapped to the matching JSON Schema keyword
   (period.value, dnsControls.ttl, dnsControls.maxSigLifetime)
-- Create-only element in a component object: components have a single schema, Rule 6 (writeOnly in requests, excluded from update) cannot be applied; no annotation
-  (domainStatus.label, domainStatus.reason, hostStatus.label, hostStatus.reason, contactStatus.label, contactStatus.reason, organisationRoleStatus.label, organisationRoleStatus.reason, organisationStatus.label, organisationStatus.reason, userStatus.label, userStatus.reason, authInfo.method, authInfo.authdata)
+- Annotation of create-only elements in read responses is not defined (Rule 6 covers requests only); readOnly applied following the draft schemas
+  (domainStatus.label, domainStatus.reason, hostStatus.label, hostStatus.reason, contactStatus.label, contactStatus.reason, organisationRoleStatus.label, organisationRoleStatus.reason, organisationStatus.label, organisationStatus.reason, userStatus.label, userStatus.reason, authInfo.method, authInfo.authdata, transferProcess.transferDir, transferProcess.gainingClientId, renewProcess.expiryDate, renewProcess.renewalPeriod, domainCreateProcess.period, domainTransferProcess.transferDir, domainTransferProcess.gainingClientId, domainTransferProcess.transferPeriod, domainName.name, domainName.uName, domainName.lgr, contact.id, organisation.id, message.data, user.id)
 - Primitive type 'Object' is not listed in Primitive Type Mappings; unevaluatedProperties: true applied (composable; Rule 24 names additionalProperties: true)
   (dnsRecord.rdata)
 - Dictionary[Type] primitive has no mapping in Primitive Type Mappings (mapped to object with additionalProperties)
@@ -14,16 +14,12 @@
   (dnsControls.ttl, dnsControls.maxSigLifetime)
 - Cardinality '1-2' is not covered by Rules 1-4; mapped to an array with minItems/maxItems
   (restoreReport.statements)
-- Status object embedded in an object with a single schema; the full set of status values applies in requests too
-  (organisationRole.status)
 - Polymorphism (an object extending the referenced base object may be used in its place) has no JSON rule; oneOf over all candidates applied
   (processes.transferProcess -> transferProcess, domainTransferProcess, processes.createProcess -> createProcess, domainCreateProcess, reviewResponseMessage.process -> baseProcess, transferProcess, domainTransferProcess, restoreProcess, renewProcess, createProcess, domainCreateProcess, transferRequestMessage.process -> transferProcess, domainTransferProcess, transferOutcomeMessage.process -> transferProcess, domainTransferProcess, message.data -> baseMessage, reviewResponseMessage, transferRequestMessage, transferOutcomeMessage, expirationDeletionMessage, autoRenewalMessage, serviceNoticeMessage)
 - Direct Access (sub-resource addressing) has no JSON rule; the inline representation is generated unchanged
   (processes.transferProcess, processes.renewProcess, processes.restoreProcess, processes.createProcess, domainName.processes, contact.processes, host.processes, organisation.users, organisation.processes, user.processes)
 - Cross-element conditions have no JSON rule; if/then applied
   (transferProcess.create, transferProcess.read, domainTransferProcess.create, domainTransferProcess.read)
-- Annotation of create-only elements in read responses is not defined (Rule 6 covers requests only); readOnly applied following the draft schemas
-  (transferProcess.transferDir, transferProcess.gainingClientId, renewProcess.expiryDate, renewProcess.renewalPeriod, domainCreateProcess.period, domainTransferProcess.transferDir, domainTransferProcess.gainingClientId, domainTransferProcess.transferPeriod, domainName.name, domainName.uName, domainName.lgr, contact.id, organisation.id, message.data, user.id)
 - Visibility 'onDemand' has no JSON rule; the element is never required in read views (output only on request)
   (restoreProcess.restoreReport, domainName.authInfo, contact.authInfo)
 - Primitive type 'Fully Qualified Domain Name' is not listed in Primitive Type Mappings
@@ -60,6 +56,8 @@
 
 - Object has no data elements
   (disclose)
+- Component Object without create-only or read-write elements embedded in request content; read view used
+  (contact.disclose, message.data)
 - Common Data Type syntax is given only as prose (no restrictions exported); no syntax keywords generated
   (identifier)
 - External type definition is not exported; an open object placeholder is generated (Rule 15)

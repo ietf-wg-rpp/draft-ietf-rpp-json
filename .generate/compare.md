@@ -1,207 +1,223 @@
 # Comparison: generated schemas vs. draft-ietf-rpp-json
 
-Draft keys that differ from the Rule 27 key: 3 of 91 (case only: 0)
+Draft keys that differ from the Rule 27 key: 3 of 99 (case only: 0)
 
-## `identifier` (draft line 1012) -> `identifier`
+## `identifier` (draft line 1068) -> `identifier`
 - `maxLength`: draft=89 generated=null [prose constraint]
 - `pattern`: draft="^(\\w|_){1,8}-\\w{1,}$" generated=null [prose constraint]
 
-## `clientIdentifier` (draft line 1030) -> `clientIdentifier`
+## `clientIdentifier` (draft line 1086) -> `clientIdentifier`
 
-## `phoneNumber` (draft line 1049) -> `phoneNumber`
+## `phoneNumber` (draft line 1105) -> `phoneNumber`
 
-## `period` (draft line 1061) -> `period`
+## `period.read` (draft line 1119) -> `period.read`
 
-## `provMetadata` (draft line 1085) -> `provMetadata`
+## `period.create` (draft line 1137) -> `period.create`
 
-## `domainStatus` (draft line 1126) -> `domainStatus`
+## `provMetadata.read` (draft line 1163) -> `provMetadata.read`
 
-## `domainStatus.request` (draft line 1173) -> `domainStatus.request`
+## `domainStatus.read` (draft line 1206) -> `domainStatus.read`
 
-## `hostStatus` (draft line 1201) -> `hostStatus`
+## `domainStatus.create` (draft line 1254) -> `domainStatus.create`
 
-## `hostStatus.request` (draft line 1233) -> `hostStatus.request`
+## `hostStatus.read` (draft line 1285) -> `hostStatus.read`
 
-## `contactStatus` (draft line 1251) -> `contactStatus`
+## `hostStatus.create` (draft line 1318) -> `hostStatus.create`
 
-## `contactStatus.request` (draft line 1285) -> `contactStatus.request`
+## `contactStatus.read` (draft line 1342) -> `contactStatus.read`
 
-## `organisationRoleStatus` (draft line 1306) -> `organisationRoleStatus`
+## `contactStatus.create` (draft line 1377) -> `contactStatus.create`
 
-## `organisationStatus` (draft line 1332) -> `organisationStatus`
+## `organisationRoleStatus.read` (draft line 1401) -> `organisationRoleStatus.read`
 
-## `organisationStatus.request` (draft line 1367) -> `organisationStatus.request`
+## `organisationRoleStatus.create` (draft line 1423) -> `organisationRoleStatus.create`
 
-## `userStatus` (draft line 1398) -> `userStatus`
+## `organisationStatus.read` (draft line 1448) -> `organisationStatus.read`
 
-## `userStatus.request` (draft line 1416) -> `userStatus.request`
+## `organisationStatus.create` (draft line 1484) -> `organisationStatus.create`
 
-## `dnsRecord` (draft line 1452) -> `dnsRecord`
+## `userStatus.read` (draft line 1518) -> `userStatus.read`
 
-## `dnsControls` (draft line 1474) -> `dnsControls`
+## `userStatus.create` (draft line 1540) -> `userStatus.create`
 
-## `dnsData` (draft line 1506) -> `dnsData`
+## `dnsRecord.read` (draft line 1578) -> `dnsRecord.read`
 
-## `authInfo` (draft line 1532) -> `authInfo`
+## `dnsRecord.create` (draft line 1598) -> `dnsRecord.create`
 
-## `disclose` (draft line 1554) -> `disclose`
+## `dnsControls.read` (draft line 1622) -> `dnsControls.read`
 
-## `Card` (draft line 1578) -> `Card`
+## `dnsControls.create` (draft line 1648) -> `dnsControls.create`
+
+## `dnsData.read` (draft line 1682) -> `dnsData.read`
+
+## `dnsData.create` (draft line 1703) -> `dnsData.create`
+
+## `authInfo.read` (draft line 1731) -> `authInfo.read`
+
+## `authInfo.create` (draft line 1749) -> `authInfo.create`
+
+## `disclose.read` (draft line 1773) -> `disclose.read`
+
+## `Card` (draft line 1797) -> `Card`
 - properties only in draft: @type, version, kind, language, name, organizations, addresses, phones, emails, links, localizations
 - required: draft=['@type', 'version'] generated=[]
 
-## `restoreReport` (draft line 1680) -> `restoreReport`
+## `restoreReport.read` (draft line 1901) -> `restoreReport.read`
 
-## `organisationRole` (draft line 1712) -> `organisationRole`
+## `restoreReport.create` (draft line 1929) -> `restoreReport.create`
 
-## `extension` (draft line 1738) -> `extension`
+## `organisationRole.read` (draft line 1963) -> `organisationRole.read`
 
-## `discoveryVersion` (draft line 1764) -> `discoveryVersion`
+## `organisationRole.create` (draft line 1984) -> `organisationRole.create`
 
-## `discoveryEnvironment` (draft line 1782) -> `discoveryEnvironment`
+## `extension.read` (draft line 2012) -> `extension.read`
 
-## `discoveryIdnLgr` (draft line 1804) -> `discoveryIdnLgr`
+## `discoveryVersion.read` (draft line 2040) -> `discoveryVersion.read`
 
-## `discoveryNotice` (draft line 1829) -> `discoveryNotice`
+## `discoveryEnvironment.read` (draft line 2060) -> `discoveryEnvironment.read`
 
-## `processes` (draft line 1849) -> `processes`
+## `discoveryIdnLgr.read` (draft line 2084) -> `discoveryIdnLgr.read`
 
-## `baseMessage` (draft line 1908) -> `baseMessage`
+## `discoveryNotice.read` (draft line 2111) -> `discoveryNotice.read`
 
-## `reviewResponseMessage` (draft line 1926) -> `reviewResponseMessage`
+## `processes.read` (draft line 2133) -> `processes.read`
 
-## `transferRequestMessage` (draft line 1961) -> `transferRequestMessage`
+## `baseMessage.read` (draft line 2194) -> `baseMessage.read`
 
-## `transferOutcomeMessage` (draft line 1989) -> `transferOutcomeMessage`
+## `reviewResponseMessage.read` (draft line 2214) -> `reviewResponseMessage.read`
 
-## `expirationDeletionMessage` (draft line 2028) -> `expirationDeletionMessage`
+## `transferRequestMessage.read` (draft line 2251) -> `transferRequestMessage.read`
 
-## `autoRenewalMessage` (draft line 2047) -> `autoRenewalMessage`
+## `transferOutcomeMessage.read` (draft line 2281) -> `transferOutcomeMessage.read`
 
-## `serviceNoticeMessage` (draft line 2069) -> `serviceNoticeMessage`
+## `expirationDeletionMessage.read` (draft line 2322) -> `expirationDeletionMessage.read`
 
-## `baseProcess` (draft line 2096) -> `baseProcess`
+## `autoRenewalMessage.read` (draft line 2343) -> `autoRenewalMessage.read`
 
-## `createProcess.create` (draft line 2117) -> `createProcess.create`
+## `serviceNoticeMessage.read` (draft line 2367) -> `serviceNoticeMessage.read`
 
-## `createProcess.read` (draft line 2135) -> `createProcess.read`
+## `baseProcess.read` (draft line 2396) -> `baseProcess.read`
 
-## `createProcess.reference` (draft line 2154) -> `createProcess.reference`
+## `createProcess.create` (draft line 2417) -> `createProcess.create`
 
-## `renewProcess.create` (draft line 2175) -> `renewProcess.create`
+## `createProcess.read` (draft line 2435) -> `createProcess.read`
 
-## `renewProcess.read` (draft line 2195) -> `renewProcess.read`
+## `createProcess.reference` (draft line 2454) -> `createProcess.reference`
 
-## `renewProcess.reference` (draft line 2216) -> `renewProcess.reference`
+## `renewProcess.create` (draft line 2475) -> `renewProcess.create`
 
-## `transferProcess.create` (draft line 2239) -> `transferProcess.create`
+## `renewProcess.read` (draft line 2495) -> `renewProcess.read`
+
+## `renewProcess.reference` (draft line 2516) -> `renewProcess.reference`
+
+## `transferProcess.create` (draft line 2539) -> `transferProcess.create`
 - draft structure: allOf
 
-## `transferProcess.read` (draft line 2283) -> `transferProcess.read`
+## `transferProcess.read` (draft line 2583) -> `transferProcess.read`
 - draft structure: allOf
 
-## `transferProcess.transferReject` (draft line 2356) -> `transferProcess.transferReject`
+## `transferProcess.transferReject` (draft line 2656) -> `transferProcess.transferReject`
 
-## `transferProcess.reference` (draft line 2379) -> `transferProcess.reference`
+## `transferProcess.reference` (draft line 2679) -> `transferProcess.reference`
 
-## `restoreProcess.create` (draft line 2408) -> `restoreProcess.create`
+## `restoreProcess.create` (draft line 2708) -> `restoreProcess.create`
 
-## `restoreProcess.read` (draft line 2427) -> `restoreProcess.read`
+## `restoreProcess.read` (draft line 2727) -> `restoreProcess.read`
 
-## `restoreProcess.report` (draft line 2457) -> NO COUNTERPART
+## `restoreProcess.report` (draft line 2757) -> NO COUNTERPART
 
-## `restoreProcess.reference` (draft line 2477) -> `restoreProcess.reference`
+## `restoreProcess.reference` (draft line 2777) -> `restoreProcess.reference`
 
-## `domainName.create` (draft line 2509) -> `domainName.create`
+## `domainName.create` (draft line 2809) -> `domainName.create`
 
-## `domainCreateProcess.create` (draft line 2567) -> `domainCreateProcess.create`
+## `domainCreateProcess.create` (draft line 2867) -> `domainCreateProcess.create`
 
-## `domainCreateProcess.read` (draft line 2586) -> `domainCreateProcess.read`
+## `domainCreateProcess.read` (draft line 2886) -> `domainCreateProcess.read`
 
-## `domainCreateProcess.reference` (draft line 2606) -> `domainCreateProcess.reference`
+## `domainCreateProcess.reference` (draft line 2906) -> `domainCreateProcess.reference`
 
-## `domainName.read` (draft line 2627) -> `domainName.read`
+## `domainName.read` (draft line 2927) -> `domainName.read`
 
-## `domainName.update` (draft line 2681) -> `domainName.update`
+## `domainName.update` (draft line 2981) -> `domainName.update`
 
-## `renewProcess.create.domain` (draft line 2724) -> `renewProcess.create`
+## `renewProcess.create.domain` (draft line 3024) -> `renewProcess.create`
 - KEY MISMATCH (name): draft `renewProcess.create.domain`, Rule 27 key `renewProcess.create`
 - draft structure: $ref alias -> renewProcess.create
 
-## `domainTransferProcess.create` (draft line 2740) -> `domainTransferProcess.create`
+## `domainTransferProcess.create` (draft line 3040) -> `domainTransferProcess.create`
 - draft structure: allOf
 
-## `domainTransferProcess.read` (draft line 2783) -> `domainTransferProcess.read`
+## `domainTransferProcess.read` (draft line 3083) -> `domainTransferProcess.read`
 - draft structure: allOf
 
-## `transferProcess.delete.domain` (draft line 2846) -> NO COUNTERPART
+## `transferProcess.delete.domain` (draft line 3146) -> NO COUNTERPART
 - draft structure: $ref alias -> transferProcess.read.domain
 
-## `transferProcess.approve.domain` (draft line 2860) -> NO COUNTERPART
+## `transferProcess.approve.domain` (draft line 3160) -> NO COUNTERPART
 - draft structure: $ref alias -> transferProcess.read.domain
 
-## `domainTransferProcess.transferReject` (draft line 2874) -> `domainTransferProcess.transferReject`
+## `domainTransferProcess.transferReject` (draft line 3174) -> `domainTransferProcess.transferReject`
 
-## `transferProcess.reject.domain` (draft line 2893) -> `domainTransferProcess.transferReject`
+## `transferProcess.reject.domain` (draft line 3193) -> `domainTransferProcess.transferReject`
 - KEY MISMATCH (name): draft `transferProcess.reject.domain`, Rule 27 key `domainTransferProcess.transferReject`
 - draft structure: $ref alias -> transferProcess.read.domain
 - properties only in generated: @type, reason
 - required: draft=[] generated=['@type']
 
-## `domainTransferProcess.reference` (draft line 2907) -> `domainTransferProcess.reference`
+## `domainTransferProcess.reference` (draft line 3207) -> `domainTransferProcess.reference`
 
-## `domainName.reference` (draft line 2928) -> `domainName.reference`
+## `domainName.reference` (draft line 3228) -> `domainName.reference`
 
-## `contact.create` (draft line 2964) -> `contact.create`
+## `contact.create` (draft line 3264) -> `contact.create`
 
-## `contact.read` (draft line 2992) -> `contact.read`
+## `contact.read` (draft line 3292) -> `contact.read`
 
-## `contact.update` (draft line 3023) -> `contact.update`
+## `contact.update` (draft line 3323) -> `contact.update`
 
-## `transferProcess.create.contact` (draft line 3050) -> `transferProcess.create`
+## `transferProcess.create.contact` (draft line 3350) -> `transferProcess.create`
 - KEY MISMATCH (name): draft `transferProcess.create.contact`, Rule 27 key `transferProcess.create`
 - draft structure: $ref alias -> transferProcess.create
 - draft structure: allOf
 
-## `contact.reference` (draft line 3066) -> `contact.reference`
+## `contact.reference` (draft line 3366) -> `contact.reference`
 
-## `host.create` (draft line 3094) -> `host.create`
+## `host.create` (draft line 3394) -> `host.create`
 
-## `host.read` (draft line 3120) -> `host.read`
+## `host.read` (draft line 3420) -> `host.read`
 
-## `host.update` (draft line 3149) -> `host.update`
+## `host.update` (draft line 3449) -> `host.update`
 
-## `host.reference` (draft line 3175) -> `host.reference`
+## `host.reference` (draft line 3475) -> `host.reference`
 
-## `organisation.create` (draft line 3205) -> `organisation.create`
+## `organisation.create` (draft line 3505) -> `organisation.create`
 
-## `organisation.read` (draft line 3259) -> `organisation.read`
+## `organisation.read` (draft line 3559) -> `organisation.read`
 
-## `organisation.update` (draft line 3316) -> `organisation.update`
+## `organisation.update` (draft line 3616) -> `organisation.update`
 
-## `organisation.reference` (draft line 3369) -> `organisation.reference`
+## `organisation.reference` (draft line 3669) -> `organisation.reference`
 
-## `message.create` (draft line 3396) -> `message.create`
+## `message.create` (draft line 3696) -> `message.create`
 
-## `message.read` (draft line 3428) -> `message.read`
+## `message.read` (draft line 3728) -> `message.read`
 
-## `message.query` (draft line 3463) -> `message.query`
+## `message.query` (draft line 3763) -> `message.query`
 
-## `message.reference` (draft line 3480) -> `message.reference`
+## `message.reference` (draft line 3780) -> `message.reference`
 
-## `user.create` (draft line 3508) -> `user.create`
+## `user.create` (draft line 3808) -> `user.create`
 
-## `user.read` (draft line 3532) -> `user.read`
+## `user.read` (draft line 3832) -> `user.read`
 
-## `user.update` (draft line 3558) -> `user.update`
+## `user.update` (draft line 3858) -> `user.update`
 
-## `user.reference` (draft line 3581) -> `user.reference`
+## `user.reference` (draft line 3881) -> `user.reference`
 
-## `discovery.read` (draft line 3613) -> `discovery.read`
+## `discovery.read` (draft line 3913) -> `discovery.read`
 
-## `profile.read` (draft line 3696) -> `profile.read`
+## `profile.read` (draft line 3996) -> `profile.read`
 
-## `profile.reference` (draft line 3741) -> `profile.reference`
+## `profile.reference` (draft line 4041) -> `profile.reference`
 
 ## Generated definitions without a draft counterpart
 

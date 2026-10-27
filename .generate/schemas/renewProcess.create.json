@@ -7,7 +7,7 @@
       "properties": {
         "@type": { "type": "string", "const": "renewProcess" },
         "expiryDate": { "type": "string", "format": "date-time", "writeOnly": true },
-        "renewalPeriod": { "$ref": "#/$defs/period", "writeOnly": true }
+        "renewalPeriod": { "$ref": "#/$defs/period.create", "writeOnly": true }
       },
       "required": ["@type"]
     }

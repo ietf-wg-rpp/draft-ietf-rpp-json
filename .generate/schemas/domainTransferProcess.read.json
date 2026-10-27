@@ -26,7 +26,7 @@
         "actClientId": { "$ref": "#/$defs/clientIdentifier", "readOnly": true },
         "actionDate": { "type": "string", "format": "date-time", "readOnly": true },
         "expiryDate": { "type": "string", "format": "date-time", "readOnly": true },
-        "transferPeriod": { "$ref": "#/$defs/period", "readOnly": true }
+        "transferPeriod": { "$ref": "#/$defs/period.read", "readOnly": true }
       },
       "required": ["@type", "trStatus", "reqClientId", "requestDate", "actClientId", "actionDate"],
       "allOf": [

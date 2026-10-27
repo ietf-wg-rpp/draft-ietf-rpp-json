@@ -8,7 +8,7 @@
         "@type": { "type": "string", "const": "user" },
         "details": { "$ref": "#/$defs/Card" },
         "description": { "type": "string" },
-        "status": { "$ref": "#/$defs/userStatus.request" }
+        "status": { "$ref": "#/$defs/userStatus.create" }
       },
       "required": ["@type", "details"]
     }

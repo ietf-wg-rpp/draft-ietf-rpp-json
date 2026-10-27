@@ -8,11 +8,11 @@
         "@type": { "type": "string", "const": "contact" },
         "status": {
           "type": "array",
-          "items": { "$ref": "#/$defs/contactStatus.request" }
+          "items": { "$ref": "#/$defs/contactStatus.create" }
         },
         "contactInfo": { "$ref": "#/$defs/Card" },
-        "authInfo": { "$ref": "#/$defs/authInfo" },
-        "disclose": { "$ref": "#/$defs/disclose" }
+        "authInfo": { "$ref": "#/$defs/authInfo.create" },
+        "disclose": { "$ref": "#/$defs/disclose.read" }
       },
       "required": ["@type", "contactInfo"]
     }

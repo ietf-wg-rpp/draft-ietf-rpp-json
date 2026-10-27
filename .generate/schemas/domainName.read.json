@@ -9,10 +9,10 @@
         "name": { "type": "string", "format": "hostname", "readOnly": true },
         "uName": { "type": "string", "readOnly": true },
         "lgr": { "type": "string", "readOnly": true },
-        "provMetadata": { "$ref": "#/$defs/provMetadata", "readOnly": true },
+        "provMetadata": { "$ref": "#/$defs/provMetadata.read", "readOnly": true },
         "status": {
           "type": "array",
-          "items": { "$ref": "#/$defs/domainStatus" },
+          "items": { "$ref": "#/$defs/domainStatus.read" },
           "minItems": 1
         },
         "registrant": { "$ref": "#/$defs/contact.reference" },
@@ -31,15 +31,15 @@
           "type": "array",
           "items": { "$ref": "#/$defs/host.reference" }
         },
-        "dns": { "$ref": "#/$defs/dnsData" },
+        "dns": { "$ref": "#/$defs/dnsData.read" },
         "subordinateHosts": {
           "type": "array",
           "items": { "$ref": "#/$defs/host.reference" },
           "readOnly": true
         },
         "expiryDate": { "type": "string", "format": "date-time", "readOnly": true },
-        "authInfo": { "$ref": "#/$defs/authInfo" },
-        "processes": { "$ref": "#/$defs/processes", "readOnly": true }
+        "authInfo": { "$ref": "#/$defs/authInfo.read" },
+        "processes": { "$ref": "#/$defs/processes.read", "readOnly": true }
       },
       "required": ["@type", "name", "provMetadata", "status"]
     }

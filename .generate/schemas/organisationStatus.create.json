@@ -1,0 +1,23 @@
+{
+  "$defs": {
+    "organisationStatus.create": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "organisationStatus" },
+        "label": {
+          "type": "string",
+          "enum": [
+            "hold",
+            "terminated",
+            "clientLinkProhibited",
+            "clientUpdateProhibited",
+            "clientDeleteProhibited"
+          ],
+          "writeOnly": true
+        },
+        "reason": { "type": "string", "writeOnly": true }
+      },
+      "required": ["@type", "label"]
+    }
+  }
+}

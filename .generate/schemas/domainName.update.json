@@ -8,7 +8,7 @@
         "@type": { "type": "string", "const": "domainName" },
         "status": {
           "type": "array",
-          "items": { "$ref": "#/$defs/domainStatus.request" }
+          "items": { "$ref": "#/$defs/domainStatus.create" }
         },
         "registrant": { "$ref": "#/$defs/contact.reference" },
         "contacts": {
@@ -26,8 +26,8 @@
           "type": "array",
           "items": { "$ref": "#/$defs/host.reference" }
         },
-        "dns": { "$ref": "#/$defs/dnsData" },
-        "authInfo": { "$ref": "#/$defs/authInfo" }
+        "dns": { "$ref": "#/$defs/dnsData.create" },
+        "authInfo": { "$ref": "#/$defs/authInfo.create" }
       },
       "required": ["@type"]
     }

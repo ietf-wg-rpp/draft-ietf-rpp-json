@@ -1,0 +1,13 @@
+{
+  "$defs": {
+    "authInfo.create": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "authInfo" },
+        "method": { "type": "string", "writeOnly": true },
+        "authdata": { "type": "string", "writeOnly": true }
+      },
+      "required": ["@type", "method", "authdata"]
+    }
+  }
+}

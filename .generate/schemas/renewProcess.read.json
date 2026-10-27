@@ -8,7 +8,7 @@
         "@type": { "type": "string", "const": "renewProcess", "readOnly": true },
         "processId": { "type": "string", "readOnly": true },
         "expiryDate": { "type": "string", "format": "date-time", "readOnly": true },
-        "renewalPeriod": { "$ref": "#/$defs/period", "readOnly": true }
+        "renewalPeriod": { "$ref": "#/$defs/period.read", "readOnly": true }
       },
       "required": ["@type"]
     }

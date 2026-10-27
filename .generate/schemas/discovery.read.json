@@ -8,11 +8,11 @@
         "@type": { "type": "string", "const": "discovery", "readOnly": true },
         "versions": {
           "type": "array",
-          "items": { "$ref": "#/$defs/discoveryVersion" },
+          "items": { "$ref": "#/$defs/discoveryVersion.read" },
           "minItems": 1,
           "readOnly": true
         },
-        "environment": { "$ref": "#/$defs/discoveryEnvironment", "readOnly": true },
+        "environment": { "$ref": "#/$defs/discoveryEnvironment.read", "readOnly": true },
         "tlds": {
           "type": "array",
           "items": { "type": "string" },
@@ -21,7 +21,7 @@
         },
         "extensions": {
           "type": "array",
-          "items": { "$ref": "#/$defs/extension" },
+          "items": { "$ref": "#/$defs/extension.read" },
           "readOnly": true
         },
         "profiles": {
@@ -50,12 +50,12 @@
         },
         "idnLgr": {
           "type": "array",
-          "items": { "$ref": "#/$defs/discoveryIdnLgr" },
+          "items": { "$ref": "#/$defs/discoveryIdnLgr.read" },
           "readOnly": true
         },
         "notices": {
           "type": "array",
-          "items": { "$ref": "#/$defs/discoveryNotice" },
+          "items": { "$ref": "#/$defs/discoveryNotice.read" },
           "readOnly": true
         }
       },

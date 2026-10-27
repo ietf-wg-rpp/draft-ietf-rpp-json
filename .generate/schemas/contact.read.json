@@ -7,16 +7,16 @@
       "properties": {
         "@type": { "type": "string", "const": "contact", "readOnly": true },
         "id": { "$ref": "#/$defs/identifier", "readOnly": true },
-        "provMetadata": { "$ref": "#/$defs/provMetadata", "readOnly": true },
+        "provMetadata": { "$ref": "#/$defs/provMetadata.read", "readOnly": true },
         "status": {
           "type": "array",
-          "items": { "$ref": "#/$defs/contactStatus" },
+          "items": { "$ref": "#/$defs/contactStatus.read" },
           "minItems": 1
         },
         "contactInfo": { "$ref": "#/$defs/Card" },
-        "authInfo": { "$ref": "#/$defs/authInfo" },
-        "disclose": { "$ref": "#/$defs/disclose" },
-        "processes": { "$ref": "#/$defs/processes", "readOnly": true }
+        "authInfo": { "$ref": "#/$defs/authInfo.read" },
+        "disclose": { "$ref": "#/$defs/disclose.read" },
+        "processes": { "$ref": "#/$defs/processes.read", "readOnly": true }
       },
       "required": ["@type", "id", "provMetadata", "status", "contactInfo"]
     }

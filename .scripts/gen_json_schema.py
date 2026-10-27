@@ -28,7 +28,8 @@ Usage:
 Generation decisions (precedence: draft rules > YAML content > draft schema shape):
 
   * $defs keys follow Rule 27 (as updated by the M1 suggestion on PR #104), with
-    identifiers used as-is: components "<id>", resources
+    identifiers used as-is: components "<id>.read", plus "<id>.create" when
+    they have a create-only or read-write element, resources
     "<id>.create|read|update|query|reference",
     processes "<id>.create|read[|update]" plus one view per other operation that
     carries input data elements, keyed by the operation Identifier
@@ -47,10 +48,11 @@ Generation decisions (precedence: draft rules > YAML content > draft schema shap
     Process Object.
   * Elements with Visibility "onDemand" are not required in read views.
     Direct Access does not change the representation.
+  * Request content (create, update and operation views) embeds the "create"
+    view of a component, response content its "read" view.
   * Status Component Objects (those whose label restrictions export
-    "client_values"/"server_only_values") get a second definition
-    "<id>.request" whose label enum holds only the client values. Create and
-    update views embed it; read views embed the full "<id>". A status element
+    "client_values"/"server_only_values") hold only the client values in the
+    label enum of their "create" view. In Data Objects, a status element
     is left out of create and update views when the status object has no
     client values, is optional there when "status_not_required_for_client_request"
     is set, and is required in read views when "at_least_one_status_by_server"
@@ -114,6 +116,8 @@ EXTERNAL_RE = re.compile(r"^External:([^:]+):(.+)$")
 
 STANDARD_VIEWS = ("create", "read", "update", "query")
 REQUEST_VIEWS = ("create", "update")
+RESPONSE_VIEWS = ("read", "query", "reference")
+WRITABLE = ("create-only", "read-write")
 STATUS_RESTRICTIONS = ("client_values", "server_only_values")
 
 COMPOSITIONS = {"Composition", "LabelledComposition", "DictionaryComposition"}
@@ -381,7 +385,7 @@ class Generator:
 
     def views_for(self, o):
         if o.kind == "Component":
-            return [None, "request"] if self.client_values(o) and self.in_resource(o) else [None]
+            return ["read", "create"] if any(e["mutability"] in WRITABLE for e in o.elements) else ["read"]
         sfx = [Model.op_suffix(op, owner) for op, owner in o.operations]
         if o.kind == "Process":
             views = ["create", "read"]
@@ -403,7 +407,7 @@ class Generator:
 
     @staticmethod
     def def_name(o, view):
-        return o.id if view is None else f"{o.id}.{view}"
+        return f"{o.id}.{view}"
 
     def has_def(self, o, view):
         return view in self.views_for(o)
@@ -567,10 +571,7 @@ class Generator:
     def add_element(self, o, e, view, props, required):
         ident = e["identifier"]
         st = self.status_target(e)
-        if st is not None and o.kind != "Resource":
-            self.diag.add("rule-gap", "Status object embedded in an object with a single schema; the "
-                                      "full set of status values applies in requests too", f"{o.id}.{ident}")
-        elif st is not None:
+        if st is not None and o.kind == "Resource":
             e = self.status_element(o, e, view, st)
             if e is None:
                 return
@@ -600,11 +601,6 @@ class Generator:
             if any(k in r for k in STATUS_RESTRICTIONS):
                 out = (out or []) + list(r.get("client_values") or [])
         return out
-
-    def in_resource(self, o):
-        """Whether a Data Object embeds the object directly (and so sends it in requests)."""
-        return any(self.status_target(e) is o for r in self.m.objs.values() if r.kind == "Resource"
-                   for e in r.elements)
 
     def status_target(self, e):
         """Status Component Object that a data element embeds, or None."""
@@ -670,8 +666,7 @@ class Generator:
 
     def type_prop(self, o, view):
         p = {"type": "string", "const": o.id}
-        all_ro = bool(o.elements) and all(e["mutability"] == "read-only" for e in o.elements)
-        if view == "read" or (view is None and all_ro):
+        if view == "read":
             p["readOnly"] = True
         return p
 
@@ -696,12 +691,10 @@ class Generator:
 
     def view_mutabilities(self, o, view):
         """Mutability values of the elements in a view, from the operations' Input/Output."""
-        if view is None:  # a component has a single schema
-            return self.DEFAULT_MUTS["read"]
+        if o.kind == "Component":  # no operations: create holds what a client can set
+            return self.DEFAULT_MUTS[view]
         if view == "update":  # Rules 5-7: only read-write elements can be changed
             return {"read-write"}
-        if view == "request":  # a status object sent by a client: everything it can set
-            return {"create-only", "read-write"}
         items = self.view_items(o, view)
         if not items and view == "read":
             # a process without a Read operation: the representation its operations return
@@ -727,7 +720,7 @@ class Generator:
             dt = dt.rstrip(".")
         card = e["cardinality"]
         r = dict(e.get("restrictions") or {})
-        if view == "request" and any(k in r for k in STATUS_RESTRICTIONS):
+        if view == "create" and o.kind == "Component" and any(k in r for k in STATUS_RESTRICTIONS):
             r["allowed_values"] = list(r.get("client_values") or [])
         key_pattern, value_range = r.pop("key_pattern", None), r.pop("value_range", None)
 
@@ -821,10 +814,6 @@ class Generator:
                                           "not defined (Rule 6 covers requests only); readOnly applied "
                                           "following the draft schemas", ctx)
                 schema["readOnly"] = True
-            elif view in (None, "request"):
-                self.diag.add("rule-gap", "Create-only element in a component object: components have a "
-                                          "single schema, Rule 6 (writeOnly in requests, excluded from "
-                                          "update) cannot be applied; no annotation", ctx)
         elif mut not in ("read-write",):
             self.diag.add("yaml-issue", f"Unknown mutability '{mut}'", ctx)
         return schema
@@ -864,9 +853,13 @@ class Generator:
 
     def ref_name(self, o, assoc, view, is_ref, ctx):
         if o.kind == "Component":
-            if view in REQUEST_VIEWS and self.has_def(o, "request"):
-                return f"{o.id}.request"
-            return o.id
+            if view in RESPONSE_VIEWS:
+                return f"{o.id}.read"
+            if self.has_def(o, "create"):
+                return f"{o.id}.create"
+            self.diag.add("yaml-gap", "Component Object without create-only or read-write elements "
+                                      "embedded in request content; read view used", ctx)
+            return f"{o.id}.read"
         if is_ref or assoc not in COMPOSITIONS:
             # Rule 8: an aggregation carries at minimum the primary identifier
             if self.has_def(o, "reference"):
@@ -1162,10 +1155,11 @@ def map_draft_name(name, ddefs, gen_defs):
         bases.insert(0, f"{parts[2]}{uc_first(parts[0])}")
     for base in bases:
         if len(parts) == 1:
-            if base.lower() in lower:
-                return lower[base.lower()]
+            for k in (base.lower(), base.lower() + ".read"):
+                if k in lower:
+                    return lower[k]
             continue
-        view = parts[1].lower()
+        view = {"request": "create"}.get(parts[1].lower(), parts[1].lower())
         cands = [g for g in gen_defs if g.lower().startswith(base.lower() + ".")]
         for match in (lambda v: v == view, lambda v: v.endswith(view)):
             hit = next((g for g in cands if match(g.split(".", 1)[1].lower())), None)

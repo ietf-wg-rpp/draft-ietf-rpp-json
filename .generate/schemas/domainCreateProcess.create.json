@@ -6,7 +6,7 @@
       "type": "object",
       "properties": {
         "@type": { "type": "string", "const": "domainCreateProcess" },
-        "period": { "$ref": "#/$defs/period", "writeOnly": true }
+        "period": { "$ref": "#/$defs/period.create", "writeOnly": true }
       },
       "required": ["@type"]
     }

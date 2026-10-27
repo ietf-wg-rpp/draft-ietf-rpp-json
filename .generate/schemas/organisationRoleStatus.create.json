@@ -1,0 +1,13 @@
+{
+  "$defs": {
+    "organisationRoleStatus.create": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "organisationRoleStatus" },
+        "label": { "type": "string", "enum": ["clientLinkProhibited"], "writeOnly": true },
+        "reason": { "type": "string", "writeOnly": true }
+      },
+      "required": ["@type", "label"]
+    }
+  }
+}

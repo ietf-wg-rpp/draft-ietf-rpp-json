@@ -13,7 +13,16 @@
       "type": "object",
       "$comment": "External type from RPP-JSContact-Profile: definition not available in the object model export"
     },
-    "period": {
+    "period.read": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "period", "readOnly": true },
+        "value": { "type": "integer", "minimum": 1, "maximum": 99 },
+        "unit": { "type": "string", "enum": ["y", "m"] }
+      },
+      "required": ["@type", "value", "unit"]
+    },
+    "period.create": {
       "type": "object",
       "properties": {
         "@type": { "type": "string", "const": "period" },
@@ -22,7 +31,7 @@
       },
       "required": ["@type", "value", "unit"]
     },
-    "provMetadata": {
+    "provMetadata.read": {
       "type": "object",
       "properties": {
         "@type": { "type": "string", "const": "provMetadata", "readOnly": true },
@@ -36,10 +45,10 @@
       },
       "required": ["@type", "spClientId"]
     },
-    "domainStatus": {
+    "domainStatus.read": {
       "type": "object",
       "properties": {
-        "@type": { "type": "string", "const": "domainStatus" },
+        "@type": { "type": "string", "const": "domainStatus", "readOnly": true },
         "label": {
           "type": "string",
           "enum": [
@@ -67,14 +76,15 @@
             "rgpRedemptionPeriod",
             "rgpPendingRestore",
             "rgpPendingDelete"
-          ]
+          ],
+          "readOnly": true
         },
-        "reason": { "type": "string" },
+        "reason": { "type": "string", "readOnly": true },
         "due": { "type": "string", "format": "date-time" }
       },
       "required": ["@type", "label"]
     },
-    "domainStatus.request": {
+    "domainStatus.create": {
       "type": "object",
       "properties": {
         "@type": { "type": "string", "const": "domainStatus" },
@@ -86,17 +96,18 @@
             "clientRenewProhibited",
             "clientTransferProhibited",
             "clientUpdateProhibited"
-          ]
+          ],
+          "writeOnly": true
         },
-        "reason": { "type": "string" },
+        "reason": { "type": "string", "writeOnly": true },
         "due": { "type": "string", "format": "date-time" }
       },
       "required": ["@type", "label"]
     },
-    "hostStatus": {
+    "hostStatus.read": {
       "type": "object",
       "properties": {
-        "@type": { "type": "string", "const": "hostStatus" },
+        "@type": { "type": "string", "const": "hostStatus", "readOnly": true },
         "label": {
           "type": "string",
           "enum": [
@@ -110,25 +121,30 @@
             "pendingDelete",
             "pendingTransfer",
             "pendingUpdate"
-          ]
+          ],
+          "readOnly": true
         },
-        "reason": { "type": "string" }
+        "reason": { "type": "string", "readOnly": true }
       },
       "required": ["@type", "label"]
     },
-    "hostStatus.request": {
+    "hostStatus.create": {
       "type": "object",
       "properties": {
         "@type": { "type": "string", "const": "hostStatus" },
-        "label": { "type": "string", "enum": ["clientDeleteProhibited", "clientUpdateProhibited"] },
-        "reason": { "type": "string" }
+        "label": {
+          "type": "string",
+          "enum": ["clientDeleteProhibited", "clientUpdateProhibited"],
+          "writeOnly": true
+        },
+        "reason": { "type": "string", "writeOnly": true }
       },
       "required": ["@type", "label"]
     },
-    "contactStatus": {
+    "contactStatus.read": {
       "type": "object",
       "properties": {
-        "@type": { "type": "string", "const": "contactStatus" },
+        "@type": { "type": "string", "const": "contactStatus", "readOnly": true },
         "label": {
           "type": "string",
           "enum": [
@@ -144,40 +160,52 @@
             "pendingDelete",
             "pendingTransfer",
             "pendingUpdate"
-          ]
+          ],
+          "readOnly": true
         },
-        "reason": { "type": "string" }
+        "reason": { "type": "string", "readOnly": true }
       },
       "required": ["@type", "label"]
     },
-    "contactStatus.request": {
+    "contactStatus.create": {
       "type": "object",
       "properties": {
         "@type": { "type": "string", "const": "contactStatus" },
         "label": {
           "type": "string",
-          "enum": ["clientDeleteProhibited", "clientTransferProhibited", "clientUpdateProhibited"]
+          "enum": ["clientDeleteProhibited", "clientTransferProhibited", "clientUpdateProhibited"],
+          "writeOnly": true
         },
-        "reason": { "type": "string" }
+        "reason": { "type": "string", "writeOnly": true }
       },
       "required": ["@type", "label"]
     },
-    "organisationRoleStatus": {
+    "organisationRoleStatus.read": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "organisationRoleStatus", "readOnly": true },
+        "label": {
+          "type": "string",
+          "enum": ["clientLinkProhibited", "serverLinkProhibited", "linked", "ok"],
+          "readOnly": true
+        },
+        "reason": { "type": "string", "readOnly": true }
+      },
+      "required": ["@type", "label"]
+    },
+    "organisationRoleStatus.create": {
       "type": "object",
       "properties": {
         "@type": { "type": "string", "const": "organisationRoleStatus" },
-        "label": {
-          "type": "string",
-          "enum": ["clientLinkProhibited", "serverLinkProhibited", "linked", "ok"]
-        },
-        "reason": { "type": "string" }
+        "label": { "type": "string", "enum": ["clientLinkProhibited"], "writeOnly": true },
+        "reason": { "type": "string", "writeOnly": true }
       },
       "required": ["@type", "label"]
     },
-    "organisationStatus": {
+    "organisationStatus.read": {
       "type": "object",
       "properties": {
-        "@type": { "type": "string", "const": "organisationStatus" },
+        "@type": { "type": "string", "const": "organisationStatus", "readOnly": true },
         "label": {
           "type": "string",
           "enum": [
@@ -194,13 +222,14 @@
             "pendingCreate",
             "pendingUpdate",
             "pendingDelete"
-          ]
+          ],
+          "readOnly": true
         },
-        "reason": { "type": "string" }
+        "reason": { "type": "string", "readOnly": true }
       },
       "required": ["@type", "label"]
     },
-    "organisationStatus.request": {
+    "organisationStatus.create": {
       "type": "object",
       "properties": {
         "@type": { "type": "string", "const": "organisationStatus" },
@@ -212,31 +241,47 @@
             "clientLinkProhibited",
             "clientUpdateProhibited",
             "clientDeleteProhibited"
-          ]
+          ],
+          "writeOnly": true
         },
-        "reason": { "type": "string" }
+        "reason": { "type": "string", "writeOnly": true }
       },
       "required": ["@type", "label"]
     },
-    "userStatus": {
+    "userStatus.read": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "userStatus", "readOnly": true },
+        "label": {
+          "type": "string",
+          "enum": ["active", "pending", "suspended", "deactivated"],
+          "readOnly": true
+        },
+        "reason": { "type": "string", "readOnly": true }
+      },
+      "required": ["@type", "label"]
+    },
+    "userStatus.create": {
       "type": "object",
       "properties": {
         "@type": { "type": "string", "const": "userStatus" },
-        "label": { "type": "string", "enum": ["active", "pending", "suspended", "deactivated"] },
-        "reason": { "type": "string" }
+        "label": { "type": "string", "enum": ["suspended", "deactivated"], "writeOnly": true },
+        "reason": { "type": "string", "writeOnly": true }
       },
       "required": ["@type", "label"]
     },
-    "userStatus.request": {
+    "dnsRecord.read": {
       "type": "object",
       "properties": {
-        "@type": { "type": "string", "const": "userStatus" },
-        "label": { "type": "string", "enum": ["suspended", "deactivated"] },
-        "reason": { "type": "string" }
+        "@type": { "type": "string", "const": "dnsRecord", "readOnly": true },
+        "name": { "type": "string" },
+        "class": { "type": "string" },
+        "type": { "type": "string" },
+        "rdata": { "type": "object", "unevaluatedProperties": true }
       },
-      "required": ["@type", "label"]
+      "required": ["@type", "name", "type", "rdata"]
     },
-    "dnsRecord": {
+    "dnsRecord.create": {
       "type": "object",
       "properties": {
         "@type": { "type": "string", "const": "dnsRecord" },
@@ -247,7 +292,24 @@
       },
       "required": ["@type", "name", "type", "rdata"]
     },
-    "dnsControls": {
+    "dnsControls.read": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "dnsControls", "readOnly": true },
+        "ttl": {
+          "type": "object",
+          "additionalProperties": { "type": "integer", "minimum": 1 },
+          "propertyNames": { "pattern": "^[a-z][a-z0-9-]*$" }
+        },
+        "maxSigLifetime": {
+          "type": "object",
+          "additionalProperties": { "type": "integer", "minimum": 1 },
+          "propertyNames": { "pattern": "^[a-z][a-z0-9-]*$" }
+        }
+      },
+      "required": ["@type"]
+    },
+    "dnsControls.create": {
       "type": "object",
       "properties": {
         "@type": { "type": "string", "const": "dnsControls" },
@@ -264,35 +326,75 @@
       },
       "required": ["@type"]
     },
-    "dnsData": {
+    "dnsData.read": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "dnsData", "readOnly": true },
+        "records": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/dnsRecord.read" }
+        },
+        "controls": { "$ref": "#/$defs/dnsControls.read" }
+      },
+      "required": ["@type"]
+    },
+    "dnsData.create": {
       "type": "object",
       "properties": {
         "@type": { "type": "string", "const": "dnsData" },
         "records": {
           "type": "array",
-          "items": { "$ref": "#/$defs/dnsRecord" }
+          "items": { "$ref": "#/$defs/dnsRecord.create" }
         },
-        "controls": { "$ref": "#/$defs/dnsControls" }
+        "controls": { "$ref": "#/$defs/dnsControls.create" }
       },
       "required": ["@type"]
     },
-    "authInfo": {
+    "authInfo.read": {
       "type": "object",
       "properties": {
-        "@type": { "type": "string", "const": "authInfo" },
-        "method": { "type": "string" },
-        "authdata": { "type": "string" }
+        "@type": { "type": "string", "const": "authInfo", "readOnly": true },
+        "method": { "type": "string", "readOnly": true },
+        "authdata": { "type": "string", "readOnly": true }
       },
       "required": ["@type", "method", "authdata"]
     },
-    "disclose": {
+    "authInfo.create": {
       "type": "object",
       "properties": {
-        "@type": { "type": "string", "const": "disclose" }
+        "@type": { "type": "string", "const": "authInfo" },
+        "method": { "type": "string", "writeOnly": true },
+        "authdata": { "type": "string", "writeOnly": true }
+      },
+      "required": ["@type", "method", "authdata"]
+    },
+    "disclose.read": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "disclose", "readOnly": true }
       },
       "required": ["@type"]
     },
-    "restoreReport": {
+    "restoreReport.read": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "restoreReport", "readOnly": true },
+        "preData": { "type": "string" },
+        "postData": { "type": "string" },
+        "deleteTime": { "type": "string", "format": "date-time" },
+        "restoreTime": { "type": "string", "format": "date-time" },
+        "restoreReason": { "type": "string" },
+        "statements": {
+          "type": "array",
+          "items": { "type": "string" },
+          "minItems": 1,
+          "maxItems": 2
+        },
+        "other": { "type": "string" }
+      },
+      "required": ["@type", "statements"]
+    },
+    "restoreReport.create": {
       "type": "object",
       "properties": {
         "@type": { "type": "string", "const": "restoreReport" },
@@ -311,19 +413,31 @@
       },
       "required": ["@type", "statements"]
     },
-    "organisationRole": {
+    "organisationRole.read": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "organisationRole", "readOnly": true },
+        "roleId": { "type": "string" },
+        "status": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/organisationRoleStatus.read" }
+        }
+      },
+      "required": ["@type"]
+    },
+    "organisationRole.create": {
       "type": "object",
       "properties": {
         "@type": { "type": "string", "const": "organisationRole" },
         "roleId": { "type": "string" },
         "status": {
           "type": "array",
-          "items": { "$ref": "#/$defs/organisationRoleStatus" }
+          "items": { "$ref": "#/$defs/organisationRoleStatus.create" }
         }
       },
       "required": ["@type"]
     },
-    "processes": {
+    "processes.read": {
       "type": "object",
       "properties": {
         "@type": { "type": "string", "const": "processes", "readOnly": true },
@@ -360,7 +474,7 @@
       },
       "required": ["@type"]
     },
-    "baseProcess": {
+    "baseProcess.read": {
       "type": "object",
       "properties": {
         "@type": { "type": "string", "const": "baseProcess", "readOnly": true },
@@ -368,7 +482,7 @@
       },
       "required": ["@type"]
     },
-    "baseMessage": {
+    "baseMessage.read": {
       "type": "object",
       "properties": {
         "@type": { "type": "string", "const": "baseMessage", "readOnly": true },
@@ -377,7 +491,7 @@
       },
       "required": ["@type"]
     },
-    "reviewResponseMessage": {
+    "reviewResponseMessage.read": {
       "type": "object",
       "properties": {
         "@type": { "type": "string", "const": "reviewResponseMessage", "readOnly": true },
@@ -390,7 +504,7 @@
         "message": { "type": "string", "readOnly": true },
         "process": {
           "oneOf": [
-            { "$ref": "#/$defs/baseProcess" },
+            { "$ref": "#/$defs/baseProcess.read" },
             { "$ref": "#/$defs/transferProcess.read" },
             { "$ref": "#/$defs/domainTransferProcess.read" },
             { "$ref": "#/$defs/restoreProcess.read" },
@@ -403,7 +517,7 @@
       },
       "required": ["@type", "approved", "serverTransactionId", "completionDate", "message"]
     },
-    "transferRequestMessage": {
+    "transferRequestMessage.read": {
       "type": "object",
       "properties": {
         "@type": { "type": "string", "const": "transferRequestMessage", "readOnly": true },
@@ -422,7 +536,7 @@
       },
       "required": ["@type", "status", "requestDate"]
     },
-    "transferOutcomeMessage": {
+    "transferOutcomeMessage.read": {
       "type": "object",
       "properties": {
         "@type": { "type": "string", "const": "transferOutcomeMessage", "readOnly": true },
@@ -452,7 +566,7 @@
       },
       "required": ["@type", "trStatus", "requestDate", "actionDate"]
     },
-    "expirationDeletionMessage": {
+    "expirationDeletionMessage.read": {
       "type": "object",
       "properties": {
         "@type": { "type": "string", "const": "expirationDeletionMessage", "readOnly": true },
@@ -462,7 +576,7 @@
       },
       "required": ["@type", "deletionDate"]
     },
-    "autoRenewalMessage": {
+    "autoRenewalMessage.read": {
       "type": "object",
       "properties": {
         "@type": { "type": "string", "const": "autoRenewalMessage", "readOnly": true },
@@ -473,7 +587,7 @@
       },
       "required": ["@type", "renewalDate", "expiryDate"]
     },
-    "serviceNoticeMessage": {
+    "serviceNoticeMessage.read": {
       "type": "object",
       "properties": {
         "@type": { "type": "string", "const": "serviceNoticeMessage", "readOnly": true },
@@ -483,7 +597,7 @@
       },
       "required": ["@type", "message"]
     },
-    "discoveryVersion": {
+    "discoveryVersion.read": {
       "type": "object",
       "properties": {
         "@type": { "type": "string", "const": "discoveryVersion", "readOnly": true },
@@ -492,7 +606,7 @@
       },
       "required": ["@type", "version", "baseUrl"]
     },
-    "discoveryEnvironment": {
+    "discoveryEnvironment.read": {
       "type": "object",
       "properties": {
         "@type": { "type": "string", "const": "discoveryEnvironment", "readOnly": true },
@@ -501,7 +615,7 @@
       },
       "required": ["@type", "name", "status"]
     },
-    "extension": {
+    "extension.read": {
       "type": "object",
       "properties": {
         "@type": { "type": "string", "const": "extension", "readOnly": true },
@@ -512,7 +626,7 @@
       },
       "required": ["@type", "name", "id", "version", "url"]
     },
-    "discoveryIdnLgr": {
+    "discoveryIdnLgr.read": {
       "type": "object",
       "properties": {
         "@type": { "type": "string", "const": "discoveryIdnLgr", "readOnly": true },
@@ -528,7 +642,7 @@
       },
       "required": ["@type", "tld", "name", "url", "default"]
     },
-    "discoveryNotice": {
+    "discoveryNotice.read": {
       "type": "object",
       "properties": {
         "@type": { "type": "string", "const": "discoveryNotice", "readOnly": true },
@@ -636,7 +750,7 @@
       "type": "object",
       "properties": {
         "@type": { "type": "string", "const": "restoreProcess" },
-        "restoreReport": { "$ref": "#/$defs/restoreReport" }
+        "restoreReport": { "$ref": "#/$defs/restoreReport.create" }
       },
       "required": ["@type"]
     },
@@ -653,7 +767,7 @@
         "requestDate": { "type": "string", "format": "date-time", "readOnly": true },
         "reportDate": { "type": "string", "format": "date-time", "readOnly": true },
         "reportDueDate": { "type": "string", "format": "date-time", "readOnly": true },
-        "restoreReport": { "$ref": "#/$defs/restoreReport" }
+        "restoreReport": { "$ref": "#/$defs/restoreReport.read" }
       },
       "required": ["@type", "restoreStatus"]
     },
@@ -661,7 +775,7 @@
       "type": "object",
       "properties": {
         "@type": { "type": "string", "const": "restoreProcess" },
-        "restoreReport": { "$ref": "#/$defs/restoreReport" }
+        "restoreReport": { "$ref": "#/$defs/restoreReport.create" }
       },
       "required": ["@type", "restoreReport"]
     },
@@ -678,7 +792,7 @@
       "properties": {
         "@type": { "type": "string", "const": "renewProcess" },
         "expiryDate": { "type": "string", "format": "date-time", "writeOnly": true },
-        "renewalPeriod": { "$ref": "#/$defs/period", "writeOnly": true }
+        "renewalPeriod": { "$ref": "#/$defs/period.create", "writeOnly": true }
       },
       "required": ["@type"]
     },
@@ -688,7 +802,7 @@
         "@type": { "type": "string", "const": "renewProcess", "readOnly": true },
         "processId": { "type": "string", "readOnly": true },
         "expiryDate": { "type": "string", "format": "date-time", "readOnly": true },
-        "renewalPeriod": { "$ref": "#/$defs/period", "readOnly": true }
+        "renewalPeriod": { "$ref": "#/$defs/period.read", "readOnly": true }
       },
       "required": ["@type"]
     },
@@ -727,7 +841,7 @@
       "type": "object",
       "properties": {
         "@type": { "type": "string", "const": "domainCreateProcess" },
-        "period": { "$ref": "#/$defs/period", "writeOnly": true }
+        "period": { "$ref": "#/$defs/period.create", "writeOnly": true }
       },
       "required": ["@type"]
     },
@@ -736,7 +850,7 @@
       "properties": {
         "@type": { "type": "string", "const": "domainCreateProcess", "readOnly": true },
         "processId": { "type": "string", "readOnly": true },
-        "period": { "$ref": "#/$defs/period", "readOnly": true }
+        "period": { "$ref": "#/$defs/period.read", "readOnly": true }
       },
       "required": ["@type"]
     },
@@ -754,7 +868,7 @@
         "@type": { "type": "string", "const": "domainTransferProcess" },
         "transferDir": { "type": "string", "enum": ["pull", "push"], "writeOnly": true },
         "gainingClientId": { "$ref": "#/$defs/clientIdentifier", "writeOnly": true },
-        "transferPeriod": { "$ref": "#/$defs/period", "writeOnly": true }
+        "transferPeriod": { "$ref": "#/$defs/period.create", "writeOnly": true }
       },
       "required": ["@type"],
       "allOf": [
@@ -804,7 +918,7 @@
         "actClientId": { "$ref": "#/$defs/clientIdentifier", "readOnly": true },
         "actionDate": { "type": "string", "format": "date-time", "readOnly": true },
         "expiryDate": { "type": "string", "format": "date-time", "readOnly": true },
-        "transferPeriod": { "$ref": "#/$defs/period", "readOnly": true }
+        "transferPeriod": { "$ref": "#/$defs/period.read", "readOnly": true }
       },
       "required": ["@type", "trStatus", "reqClientId", "requestDate", "actClientId", "actionDate"],
       "allOf": [
@@ -855,7 +969,7 @@
         "lgr": { "type": "string", "writeOnly": true },
         "status": {
           "type": "array",
-          "items": { "$ref": "#/$defs/domainStatus.request" }
+          "items": { "$ref": "#/$defs/domainStatus.create" }
         },
         "registrant": { "$ref": "#/$defs/contact.reference" },
         "contacts": {
@@ -873,8 +987,8 @@
           "type": "array",
           "items": { "$ref": "#/$defs/host.reference" }
         },
-        "dns": { "$ref": "#/$defs/dnsData" },
-        "authInfo": { "$ref": "#/$defs/authInfo" },
+        "dns": { "$ref": "#/$defs/dnsData.create" },
+        "authInfo": { "$ref": "#/$defs/authInfo.create" },
         "processes": {
           "type": "object",
           "properties": {
@@ -896,10 +1010,10 @@
         "name": { "type": "string", "format": "hostname", "readOnly": true },
         "uName": { "type": "string", "readOnly": true },
         "lgr": { "type": "string", "readOnly": true },
-        "provMetadata": { "$ref": "#/$defs/provMetadata", "readOnly": true },
+        "provMetadata": { "$ref": "#/$defs/provMetadata.read", "readOnly": true },
         "status": {
           "type": "array",
-          "items": { "$ref": "#/$defs/domainStatus" },
+          "items": { "$ref": "#/$defs/domainStatus.read" },
           "minItems": 1
         },
         "registrant": { "$ref": "#/$defs/contact.reference" },
@@ -918,15 +1032,15 @@
           "type": "array",
           "items": { "$ref": "#/$defs/host.reference" }
         },
-        "dns": { "$ref": "#/$defs/dnsData" },
+        "dns": { "$ref": "#/$defs/dnsData.read" },
         "subordinateHosts": {
           "type": "array",
           "items": { "$ref": "#/$defs/host.reference" },
           "readOnly": true
         },
         "expiryDate": { "type": "string", "format": "date-time", "readOnly": true },
-        "authInfo": { "$ref": "#/$defs/authInfo" },
-        "processes": { "$ref": "#/$defs/processes", "readOnly": true }
+        "authInfo": { "$ref": "#/$defs/authInfo.read" },
+        "processes": { "$ref": "#/$defs/processes.read", "readOnly": true }
       },
       "required": ["@type", "name", "provMetadata", "status"]
     },
@@ -936,7 +1050,7 @@
         "@type": { "type": "string", "const": "domainName" },
         "status": {
           "type": "array",
-          "items": { "$ref": "#/$defs/domainStatus.request" }
+          "items": { "$ref": "#/$defs/domainStatus.create" }
         },
         "registrant": { "$ref": "#/$defs/contact.reference" },
         "contacts": {
@@ -954,8 +1068,8 @@
           "type": "array",
           "items": { "$ref": "#/$defs/host.reference" }
         },
-        "dns": { "$ref": "#/$defs/dnsData" },
-        "authInfo": { "$ref": "#/$defs/authInfo" }
+        "dns": { "$ref": "#/$defs/dnsData.create" },
+        "authInfo": { "$ref": "#/$defs/authInfo.create" }
       },
       "required": ["@type"]
     },
@@ -974,11 +1088,11 @@
         "id": { "$ref": "#/$defs/identifier", "writeOnly": true },
         "status": {
           "type": "array",
-          "items": { "$ref": "#/$defs/contactStatus.request" }
+          "items": { "$ref": "#/$defs/contactStatus.create" }
         },
         "contactInfo": { "$ref": "#/$defs/Card" },
-        "authInfo": { "$ref": "#/$defs/authInfo" },
-        "disclose": { "$ref": "#/$defs/disclose" }
+        "authInfo": { "$ref": "#/$defs/authInfo.create" },
+        "disclose": { "$ref": "#/$defs/disclose.read" }
       },
       "required": ["@type", "id", "contactInfo"]
     },
@@ -987,16 +1101,16 @@
       "properties": {
         "@type": { "type": "string", "const": "contact", "readOnly": true },
         "id": { "$ref": "#/$defs/identifier", "readOnly": true },
-        "provMetadata": { "$ref": "#/$defs/provMetadata", "readOnly": true },
+        "provMetadata": { "$ref": "#/$defs/provMetadata.read", "readOnly": true },
         "status": {
           "type": "array",
-          "items": { "$ref": "#/$defs/contactStatus" },
+          "items": { "$ref": "#/$defs/contactStatus.read" },
           "minItems": 1
         },
         "contactInfo": { "$ref": "#/$defs/Card" },
-        "authInfo": { "$ref": "#/$defs/authInfo" },
-        "disclose": { "$ref": "#/$defs/disclose" },
-        "processes": { "$ref": "#/$defs/processes", "readOnly": true }
+        "authInfo": { "$ref": "#/$defs/authInfo.read" },
+        "disclose": { "$ref": "#/$defs/disclose.read" },
+        "processes": { "$ref": "#/$defs/processes.read", "readOnly": true }
       },
       "required": ["@type", "id", "provMetadata", "status", "contactInfo"]
     },
@@ -1006,11 +1120,11 @@
         "@type": { "type": "string", "const": "contact" },
         "status": {
           "type": "array",
-          "items": { "$ref": "#/$defs/contactStatus.request" }
+          "items": { "$ref": "#/$defs/contactStatus.create" }
         },
         "contactInfo": { "$ref": "#/$defs/Card" },
-        "authInfo": { "$ref": "#/$defs/authInfo" },
-        "disclose": { "$ref": "#/$defs/disclose" }
+        "authInfo": { "$ref": "#/$defs/authInfo.create" },
+        "disclose": { "$ref": "#/$defs/disclose.read" }
       },
       "required": ["@type", "contactInfo"]
     },
@@ -1029,9 +1143,9 @@
         "hostName": { "type": "string", "format": "hostname" },
         "status": {
           "type": "array",
-          "items": { "$ref": "#/$defs/hostStatus.request" }
+          "items": { "$ref": "#/$defs/hostStatus.create" }
         },
-        "dns": { "$ref": "#/$defs/dnsData" }
+        "dns": { "$ref": "#/$defs/dnsData.create" }
       },
       "required": ["@type", "hostName"]
     },
@@ -1040,14 +1154,14 @@
       "properties": {
         "@type": { "type": "string", "const": "host", "readOnly": true },
         "hostName": { "type": "string", "format": "hostname" },
-        "provMetadata": { "$ref": "#/$defs/provMetadata", "readOnly": true },
+        "provMetadata": { "$ref": "#/$defs/provMetadata.read", "readOnly": true },
         "status": {
           "type": "array",
-          "items": { "$ref": "#/$defs/hostStatus" },
+          "items": { "$ref": "#/$defs/hostStatus.read" },
           "minItems": 1
         },
-        "dns": { "$ref": "#/$defs/dnsData" },
-        "processes": { "$ref": "#/$defs/processes", "readOnly": true }
+        "dns": { "$ref": "#/$defs/dnsData.read" },
+        "processes": { "$ref": "#/$defs/processes.read", "readOnly": true }
       },
       "required": ["@type", "hostName", "provMetadata", "status"]
     },
@@ -1058,9 +1172,9 @@
         "hostName": { "type": "string", "format": "hostname" },
         "status": {
           "type": "array",
-          "items": { "$ref": "#/$defs/hostStatus.request" }
+          "items": { "$ref": "#/$defs/hostStatus.create" }
         },
-        "dns": { "$ref": "#/$defs/dnsData" }
+        "dns": { "$ref": "#/$defs/dnsData.create" }
       },
       "required": ["@type", "hostName"]
     },
@@ -1079,11 +1193,11 @@
         "id": { "$ref": "#/$defs/identifier", "writeOnly": true },
         "status": {
           "type": "array",
-          "items": { "$ref": "#/$defs/organisationStatus.request" }
+          "items": { "$ref": "#/$defs/organisationStatus.create" }
         },
         "roles": {
           "type": "object",
-          "additionalProperties": { "$ref": "#/$defs/organisationRole" },
+          "additionalProperties": { "$ref": "#/$defs/organisationRole.create" },
           "minProperties": 1
         },
         "parent": { "$ref": "#/$defs/organisation.reference" },
@@ -1118,15 +1232,15 @@
       "properties": {
         "@type": { "type": "string", "const": "organisation", "readOnly": true },
         "id": { "$ref": "#/$defs/identifier", "readOnly": true },
-        "provMetadata": { "$ref": "#/$defs/provMetadata", "readOnly": true },
+        "provMetadata": { "$ref": "#/$defs/provMetadata.read", "readOnly": true },
         "status": {
           "type": "array",
-          "items": { "$ref": "#/$defs/organisationStatus" },
+          "items": { "$ref": "#/$defs/organisationStatus.read" },
           "minItems": 1
         },
         "roles": {
           "type": "object",
-          "additionalProperties": { "$ref": "#/$defs/organisationRole" },
+          "additionalProperties": { "$ref": "#/$defs/organisationRole.read" },
           "minProperties": 1
         },
         "parent": { "$ref": "#/$defs/organisation.reference" },
@@ -1153,7 +1267,7 @@
             "required": ["label", "object"]
           }
         },
-        "processes": { "$ref": "#/$defs/processes", "readOnly": true }
+        "processes": { "$ref": "#/$defs/processes.read", "readOnly": true }
       },
       "required": ["@type", "id", "provMetadata", "status", "roles"]
     },
@@ -1163,11 +1277,11 @@
         "@type": { "type": "string", "const": "organisation" },
         "status": {
           "type": "array",
-          "items": { "$ref": "#/$defs/organisationStatus.request" }
+          "items": { "$ref": "#/$defs/organisationStatus.create" }
         },
         "roles": {
           "type": "object",
-          "additionalProperties": { "$ref": "#/$defs/organisationRole" },
+          "additionalProperties": { "$ref": "#/$defs/organisationRole.create" },
           "minProperties": 1
         },
         "parent": { "$ref": "#/$defs/organisation.reference" },
@@ -1211,13 +1325,13 @@
         "@type": { "type": "string", "const": "message" },
         "data": {
           "oneOf": [
-            { "$ref": "#/$defs/baseMessage" },
-            { "$ref": "#/$defs/reviewResponseMessage" },
-            { "$ref": "#/$defs/transferRequestMessage" },
-            { "$ref": "#/$defs/transferOutcomeMessage" },
-            { "$ref": "#/$defs/expirationDeletionMessage" },
-            { "$ref": "#/$defs/autoRenewalMessage" },
-            { "$ref": "#/$defs/serviceNoticeMessage" }
+            { "$ref": "#/$defs/baseMessage.read" },
+            { "$ref": "#/$defs/reviewResponseMessage.read" },
+            { "$ref": "#/$defs/transferRequestMessage.read" },
+            { "$ref": "#/$defs/transferOutcomeMessage.read" },
+            { "$ref": "#/$defs/expirationDeletionMessage.read" },
+            { "$ref": "#/$defs/autoRenewalMessage.read" },
+            { "$ref": "#/$defs/serviceNoticeMessage.read" }
           ],
           "writeOnly": true
         }
@@ -1233,13 +1347,13 @@
         "status": { "type": "string", "enum": ["queued", "delivered", "removed"], "readOnly": true },
         "data": {
           "oneOf": [
-            { "$ref": "#/$defs/baseMessage" },
-            { "$ref": "#/$defs/reviewResponseMessage" },
-            { "$ref": "#/$defs/transferRequestMessage" },
-            { "$ref": "#/$defs/transferOutcomeMessage" },
-            { "$ref": "#/$defs/expirationDeletionMessage" },
-            { "$ref": "#/$defs/autoRenewalMessage" },
-            { "$ref": "#/$defs/serviceNoticeMessage" }
+            { "$ref": "#/$defs/baseMessage.read" },
+            { "$ref": "#/$defs/reviewResponseMessage.read" },
+            { "$ref": "#/$defs/transferRequestMessage.read" },
+            { "$ref": "#/$defs/transferOutcomeMessage.read" },
+            { "$ref": "#/$defs/expirationDeletionMessage.read" },
+            { "$ref": "#/$defs/autoRenewalMessage.read" },
+            { "$ref": "#/$defs/serviceNoticeMessage.read" }
           ],
           "readOnly": true
         }
@@ -1265,7 +1379,7 @@
         "id": { "$ref": "#/$defs/identifier", "writeOnly": true },
         "details": { "$ref": "#/$defs/Card" },
         "description": { "type": "string" },
-        "status": { "$ref": "#/$defs/userStatus.request" }
+        "status": { "$ref": "#/$defs/userStatus.create" }
       },
       "required": ["@type", "id", "details"]
     },
@@ -1276,9 +1390,9 @@
         "id": { "$ref": "#/$defs/identifier", "readOnly": true },
         "details": { "$ref": "#/$defs/Card" },
         "description": { "type": "string" },
-        "status": { "$ref": "#/$defs/userStatus" },
+        "status": { "$ref": "#/$defs/userStatus.read" },
         "organisation": { "$ref": "#/$defs/organisation.reference", "readOnly": true },
-        "processes": { "$ref": "#/$defs/processes", "readOnly": true }
+        "processes": { "$ref": "#/$defs/processes.read", "readOnly": true }
       },
       "required": ["@type", "id", "details", "status", "organisation"]
     },
@@ -1288,7 +1402,7 @@
         "@type": { "type": "string", "const": "user" },
         "details": { "$ref": "#/$defs/Card" },
         "description": { "type": "string" },
-        "status": { "$ref": "#/$defs/userStatus.request" }
+        "status": { "$ref": "#/$defs/userStatus.create" }
       },
       "required": ["@type", "details"]
     },
@@ -1306,11 +1420,11 @@
         "@type": { "type": "string", "const": "discovery", "readOnly": true },
         "versions": {
           "type": "array",
-          "items": { "$ref": "#/$defs/discoveryVersion" },
+          "items": { "$ref": "#/$defs/discoveryVersion.read" },
           "minItems": 1,
           "readOnly": true
         },
-        "environment": { "$ref": "#/$defs/discoveryEnvironment", "readOnly": true },
+        "environment": { "$ref": "#/$defs/discoveryEnvironment.read", "readOnly": true },
         "tlds": {
           "type": "array",
           "items": { "type": "string" },
@@ -1319,7 +1433,7 @@
         },
         "extensions": {
           "type": "array",
-          "items": { "$ref": "#/$defs/extension" },
+          "items": { "$ref": "#/$defs/extension.read" },
           "readOnly": true
         },
         "profiles": {
@@ -1348,12 +1462,12 @@
         },
         "idnLgr": {
           "type": "array",
-          "items": { "$ref": "#/$defs/discoveryIdnLgr" },
+          "items": { "$ref": "#/$defs/discoveryIdnLgr.read" },
           "readOnly": true
         },
         "notices": {
           "type": "array",
-          "items": { "$ref": "#/$defs/discoveryNotice" },
+          "items": { "$ref": "#/$defs/discoveryNotice.read" },
           "readOnly": true
         }
       },
@@ -1375,7 +1489,7 @@
         },
         "extensions": {
           "type": "array",
-          "items": { "$ref": "#/$defs/extension" },
+          "items": { "$ref": "#/$defs/extension.read" },
           "readOnly": true
         },
         "baseProfile": { "$ref": "#/$defs/profile.reference", "readOnly": true },

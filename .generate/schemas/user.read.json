@@ -9,9 +9,9 @@
         "id": { "$ref": "#/$defs/identifier", "readOnly": true },
         "details": { "$ref": "#/$defs/Card" },
         "description": { "type": "string" },
-        "status": { "$ref": "#/$defs/userStatus" },
+        "status": { "$ref": "#/$defs/userStatus.read" },
         "organisation": { "$ref": "#/$defs/organisation.reference", "readOnly": true },
-        "processes": { "$ref": "#/$defs/processes", "readOnly": true }
+        "processes": { "$ref": "#/$defs/processes.read", "readOnly": true }
       },
       "required": ["@type", "id", "details", "status", "organisation"]
     }

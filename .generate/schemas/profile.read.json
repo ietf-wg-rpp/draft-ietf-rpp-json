@@ -18,7 +18,7 @@
         },
         "extensions": {
           "type": "array",
-          "items": { "$ref": "#/$defs/extension" },
+          "items": { "$ref": "#/$defs/extension.read" },
           "readOnly": true
         },
         "baseProfile": { "$ref": "#/$defs/profile.reference", "readOnly": true },

@@ -7,7 +7,7 @@
       "properties": {
         "@type": { "type": "string", "const": "domainCreateProcess", "readOnly": true },
         "processId": { "type": "string", "readOnly": true },
-        "period": { "$ref": "#/$defs/period", "readOnly": true }
+        "period": { "$ref": "#/$defs/period.read", "readOnly": true }
       },
       "required": ["@type"]
     }

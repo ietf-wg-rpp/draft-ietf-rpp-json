@@ -174,7 +174,7 @@ Rule 3: A data element with cardinality `0+` (zero or more) MUST be represented 
   "properties": {
     "status": {
       "type": "array",
-      "items": { "$ref": "#/$defs/domainStatus" }
+      "items": { "$ref": "#/$defs/domainStatus.read" }
     }
   }
 }
@@ -188,7 +188,7 @@ Rule 4: A data element with cardinality `1+` (one or more) MUST be represented a
   "properties": {
     "records": {
       "type": "array",
-      "items": { "$ref": "#/$defs/dnsRecord" },
+      "items": { "$ref": "#/$defs/dnsRecord.read" },
       "minItems": 1
     }
   },
@@ -211,7 +211,7 @@ Rule 5: Data elements with mutability `read-only` MUST be annotated with `"readO
 }
 ```
 
-Rule 6: Data elements with mutability `create-only` MUST be annotated with `"writeOnly": true` in the JSON Schema for request schemas, and excluded from update request schemas. Servers MUST reject requests that attempt to modify a `create-only` element after object creation.
+Rule 6: Data elements with mutability `create-only` MUST be annotated with `"writeOnly": true` in the JSON Schema for request schemas, and excluded from update request schemas. Servers MUST reject requests that attempt to modify a `create-only` element after object creation. For a data element of a Component Object, object creation is the creation of the instance of the Component Object, which can take place in create or update operation on the containing object.
 
 Rule 7: Data elements with mutability `read-write` have no additional annotation. They MAY appear in both request and response bodies.
 
@@ -467,26 +467,13 @@ Example (Domain Name Data Object):
 
 Rule 26: When a transfer request or other operation requires authorization information (e.g., EPP-style authinfo), the client MUST NOT include the `authInfo` object in the JSON request body. Instead, the client MUST convey the authorization information using the `RPP-Authorization` HTTP request header as defined in [@!I-D.ietf-rpp-core]. Servers MUST reject any request that includes an `authInfo` object in the JSON body with an appropriate error response.
 
-### Status Objects {#status-object-rules}
-
-Each status object in [@!I-D.ietf-rpp-data-objects] has a status values table whose "Set By" column identifies the entity that adds and removes each status value: `client`, `server`, or `client, server`. In this section, a client-settable status value is a value whose "Set By" column contains `client`.
-
-Rule 28: A status object embedded in a data object MUST have two JSON Schema definitions. The definition keyed by the Identifier of the status object lists all of its status values in the `"enum"` of `"label"`. The definition keyed by the Identifier followed by `.request` lists only the client-settable status values in the `"enum"` of `"label"` and is otherwise identical. Read response schemas MUST reference the first definition. Create and update request schemas MUST reference the `.request` definition.
-
-Rule 29: When a status object has no client-settable status value, the create and update request schemas MUST NOT contain the status data element.
-
-Rule 30: When the status values of a status object in [@!I-D.ietf-rpp-data-objects] state that a client is not required to provide a status value when creating or updating the object, the status data element MUST NOT be listed under `"required"` and MUST NOT carry `"minItems"` in the create and update request schemas, notwithstanding Rules 1, 4, and 23.
-
-Rule 31: When the status values of a status object in [@!I-D.ietf-rpp-data-objects] state that a server MUST assign at least one status value to the object, the status data element MUST be listed under `"required"` in the read response schema, with `"minItems": 1` when it is an array.
-
 ## JSON Schema Composition Rules
 
 Rule 27: The JSON Schema definitions of all RPP objects MUST be located in a single shared `$defs` object at the top level of the RPP schema document. A schema that refers to another definition MUST use the `$ref` keyword with a JSON Pointer fragment to the definition in the shared `$defs` object.
 
 The key of a definition in the shared `$defs` object MUST be formed as follows, using Identifiers exactly as defined in [@!I-D.ietf-rpp-data-objects]:
 
-- Component Object: its Identifier.
-- Data Object or Process Object: its Identifier, followed by a `.` and the name of the view. An object that extends another object uses its own Identifier, not the Identifier of the object it extends.
+- Data Object, Process Object, or Component Object: its Identifier, followed by a `.` and the name of the view. An object that extends another object uses its own Identifier, not the Identifier of the object it extends.
 
 The view names are:
 
@@ -497,9 +484,13 @@ The view names are:
 - `query`: the response content of the Query operation.
 - The Identifier of the operation: the request or response content of any other operation.
 
+A Component Object has a `read` view. A Component Object that has at least one data element with mutability `create-only` or `read-write` also has a `create` view. A Component Object has no other views.
+
+A view that holds request content MUST reference the `create` view of an embedded Component Object. A view that holds response content MUST reference the `read` view of an embedded Component Object.
+
 Each key MUST be unique within the shared `$defs` object. Common Data Types and types defined by an external specification are not subject to this rule. They MAY use a key that is not derived from an RPP Identifier.
 
-A schema that refers to another component object or data object MUST use the `$ref` keyword with a JSON Pointer fragment to the definition in the shared `$defs` object, for example `{ "$ref": "#/$defs/period" }`.
+A schema that refers to another component object or data object MUST use the `$ref` keyword with a JSON Pointer fragment to the definition in the shared `$defs` object, for example `{ "$ref": "#/$defs/period.create" }`.
 
 The final RPP schema document, containing the shared `$defs` object with all sub-schemas, MUST have an `$id` keyword whose value is an absolute URI without a fragment, serving as the stable identifier of the complete RPP schema document.
 
@@ -510,7 +501,7 @@ Example (structure of the final RPP schema document):
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "urn:ietf:params:rpp:schema:json-1.0",
   "$defs": {
-    "period": {
+    "period.create": {
       "type": "object",
       "properties": {
         "@type": { "type": "string", "const": "period" },
@@ -524,13 +515,25 @@ Example (structure of the final RPP schema document):
       "properties": {
         "@type":     { "type": "string", "const": "domainCreateProcess" },
         "processId": { "type": "string", "readOnly": true },
-        "period":    { "$ref": "#/$defs/period" }
+        "period":    { "$ref": "#/$defs/period.create" }
       },
       "required": ["@type"]
     }
   }
 }
 ```
+
+### Status Objects {#status-object-rules}
+
+Each status object in [@!I-D.ietf-rpp-data-objects] has a status values table whose "Set By" column identifies the entity that adds and removes each status value: `client`, `server`, or `client, server`. In this section, a client-settable status value is a value whose "Set By" column contains `client`.
+
+Rule 28: The `read` view of a status object lists all of its status values in the `"enum"` of `"label"`. Its `create` view lists only the client-settable status values in the `"enum"` of `"label"`.
+
+Rule 29: When a status object has no client-settable status value, the `create` and `update` views of the Data Object MUST NOT contain the status data element.
+
+Rule 30: When the status values of a status object state that a client is not required to provide a status value when creating or updating the object, the status data element MUST NOT be listed under `"required"` and MUST NOT carry `"minItems"` in the `create` and `update` views, notwithstanding Rules 1, 4, and 23.
+
+Rule 31: When the status values of a status object state that a server MUST assign at least one status value to the object, the status data element MUST be listed under `"required"` in the `read` view, with `"minItems": 1` when it is an array.
 
 ### Inheritance
 
@@ -1111,10 +1114,30 @@ In JSON, a Phone Number MUST be represented as a `string` value conforming to th
 
 ### Period Object
 
+Read schema:
+
 ```json
 {
   "$defs": {
-    "period": {
+    "period.read": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "period", "readOnly": true },
+        "value": { "type": "integer", "minimum": 1, "maximum": 99 },
+        "unit": { "type": "string", "enum": ["y", "m"] }
+      },
+      "required": ["@type", "value", "unit"]
+    }
+  }
+}
+```
+
+Create schema:
+
+```json
+{
+  "$defs": {
+    "period.create": {
       "type": "object",
       "properties": {
         "@type": { "type": "string", "const": "period" },
@@ -1135,10 +1158,12 @@ The following constraints cannot be expressed in JSON Schema and MUST be enforce
 - `trDate` MUST NOT be present if the object has never been transferred.
 - In EPP Compatibility Profile, `repositoryId` MUST be provided.
 
+Read schema:
+
 ```json
 {
   "$defs": {
-    "provMetadata": {
+    "provMetadata.read": {
       "type": "object",
       "properties": {
         "@type": { "type": "string", "const": "provMetadata", "readOnly": true },
@@ -1158,7 +1183,7 @@ The following constraints cannot be expressed in JSON Schema and MUST be enforce
 
 ### Status Objects {#status-objects}
 
-Each RPP Data Object type that carries a status uses a type-specific status object, as defined in [@!I-D.ietf-rpp-data-objects]. A status object has a read schema keyed by its Identifier and, when it is embedded in a data object, a request schema keyed by its Identifier followed by `.request` (see (#status-object-rules)).
+Each RPP Data Object type that carries a status uses a type-specific status object, as defined in [@!I-D.ietf-rpp-data-objects]. The `create` view of a status object holds only the status values that a client can set (see (#status-object-rules)).
 
 The following constraints cannot be expressed in JSON Schema and MUST be enforced by implementations:
 
@@ -1176,13 +1201,15 @@ The following constraints cannot be expressed in JSON Schema and MUST be enforce
 - Label values with the prefix `"rgp"` MUST only appear when the server supports the Redemption Grace Period (RGP) for the domain name.
 - The labels `"rgpRedemptionPeriod"`, `"rgpPendingRestore"`, and `"rgpPendingDelete"` MUST only appear together with the `"pendingDelete"` label.
 
+Read schema:
+
 ```json
 {
   "$defs": {
-    "domainStatus": {
+    "domainStatus.read": {
       "type": "object",
       "properties": {
-        "@type": { "type": "string", "const": "domainStatus" },
+        "@type": { "type": "string", "const": "domainStatus", "readOnly": true },
         "label": {
           "type": "string",
           "enum": [
@@ -1210,9 +1237,10 @@ The following constraints cannot be expressed in JSON Schema and MUST be enforce
             "rgpRedemptionPeriod",
             "rgpPendingRestore",
             "rgpPendingDelete"
-          ]
+          ],
+          "readOnly": true
         },
-        "reason": { "type": "string" },
+        "reason": { "type": "string", "readOnly": true },
         "due": { "type": "string", "format": "date-time" }
       },
       "required": ["@type", "label"]
@@ -1221,12 +1249,12 @@ The following constraints cannot be expressed in JSON Schema and MUST be enforce
 }
 ```
 
-Create and update request schema (status values that a client can set):
+Create schema (status values that a client can set):
 
 ```json
 {
   "$defs": {
-    "domainStatus.request": {
+    "domainStatus.create": {
       "type": "object",
       "properties": {
         "@type": { "type": "string", "const": "domainStatus" },
@@ -1238,9 +1266,10 @@ Create and update request schema (status values that a client can set):
             "clientRenewProhibited",
             "clientTransferProhibited",
             "clientUpdateProhibited"
-          ]
+          ],
+          "writeOnly": true
         },
-        "reason": { "type": "string" },
+        "reason": { "type": "string", "writeOnly": true },
         "due": { "type": "string", "format": "date-time" }
       },
       "required": ["@type", "label"]
@@ -1251,13 +1280,15 @@ Create and update request schema (status values that a client can set):
 
 #### Host Status Object
 
+Read schema:
+
 ```json
 {
   "$defs": {
-    "hostStatus": {
+    "hostStatus.read": {
       "type": "object",
       "properties": {
-        "@type": { "type": "string", "const": "hostStatus" },
+        "@type": { "type": "string", "const": "hostStatus", "readOnly": true },
         "label": {
           "type": "string",
           "enum": [
@@ -1271,9 +1302,10 @@ Create and update request schema (status values that a client can set):
             "pendingDelete",
             "pendingTransfer",
             "pendingUpdate"
-          ]
+          ],
+          "readOnly": true
         },
-        "reason": { "type": "string" }
+        "reason": { "type": "string", "readOnly": true }
       },
       "required": ["@type", "label"]
     }
@@ -1281,17 +1313,21 @@ Create and update request schema (status values that a client can set):
 }
 ```
 
-Create and update request schema (status values that a client can set):
+Create schema (status values that a client can set):
 
 ```json
 {
   "$defs": {
-    "hostStatus.request": {
+    "hostStatus.create": {
       "type": "object",
       "properties": {
         "@type": { "type": "string", "const": "hostStatus" },
-        "label": { "type": "string", "enum": ["clientDeleteProhibited", "clientUpdateProhibited"] },
-        "reason": { "type": "string" }
+        "label": {
+          "type": "string",
+          "enum": ["clientDeleteProhibited", "clientUpdateProhibited"],
+          "writeOnly": true
+        },
+        "reason": { "type": "string", "writeOnly": true }
       },
       "required": ["@type", "label"]
     }
@@ -1301,13 +1337,15 @@ Create and update request schema (status values that a client can set):
 
 #### Contact Status Object
 
+Read schema:
+
 ```json
 {
   "$defs": {
-    "contactStatus": {
+    "contactStatus.read": {
       "type": "object",
       "properties": {
-        "@type": { "type": "string", "const": "contactStatus" },
+        "@type": { "type": "string", "const": "contactStatus", "readOnly": true },
         "label": {
           "type": "string",
           "enum": [
@@ -1323,9 +1361,10 @@ Create and update request schema (status values that a client can set):
             "pendingDelete",
             "pendingTransfer",
             "pendingUpdate"
-          ]
+          ],
+          "readOnly": true
         },
-        "reason": { "type": "string" }
+        "reason": { "type": "string", "readOnly": true }
       },
       "required": ["@type", "label"]
     }
@@ -1333,20 +1372,21 @@ Create and update request schema (status values that a client can set):
 }
 ```
 
-Create and update request schema (status values that a client can set):
+Create schema (status values that a client can set):
 
 ```json
 {
   "$defs": {
-    "contactStatus.request": {
+    "contactStatus.create": {
       "type": "object",
       "properties": {
         "@type": { "type": "string", "const": "contactStatus" },
         "label": {
           "type": "string",
-          "enum": ["clientDeleteProhibited", "clientTransferProhibited", "clientUpdateProhibited"]
+          "enum": ["clientDeleteProhibited", "clientTransferProhibited", "clientUpdateProhibited"],
+          "writeOnly": true
         },
-        "reason": { "type": "string" }
+        "reason": { "type": "string", "writeOnly": true }
       },
       "required": ["@type", "label"]
     }
@@ -1356,18 +1396,39 @@ Create and update request schema (status values that a client can set):
 
 #### Organisation Role Status Object
 
+Read schema:
+
 ```json
 {
   "$defs": {
-    "organisationRoleStatus": {
+    "organisationRoleStatus.read": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "organisationRoleStatus", "readOnly": true },
+        "label": {
+          "type": "string",
+          "enum": ["clientLinkProhibited", "serverLinkProhibited", "linked", "ok"],
+          "readOnly": true
+        },
+        "reason": { "type": "string", "readOnly": true }
+      },
+      "required": ["@type", "label"]
+    }
+  }
+}
+```
+
+Create schema (status values that a client can set):
+
+```json
+{
+  "$defs": {
+    "organisationRoleStatus.create": {
       "type": "object",
       "properties": {
         "@type": { "type": "string", "const": "organisationRoleStatus" },
-        "label": {
-          "type": "string",
-          "enum": ["clientLinkProhibited", "serverLinkProhibited", "linked", "ok"]
-        },
-        "reason": { "type": "string" }
+        "label": { "type": "string", "enum": ["clientLinkProhibited"], "writeOnly": true },
+        "reason": { "type": "string", "writeOnly": true }
       },
       "required": ["@type", "label"]
     }
@@ -1382,13 +1443,15 @@ The following constraints cannot be expressed in JSON Schema and MUST be enforce
 - The `"hold"` and `"terminated"` labels are server-managed when the organisation has no parent organisation; otherwise they MAY be client-managed, subject to server policy.
 - The `"status"` array MUST contain exactly one of the labels `"pendingCreate"`, `"ok"`, `"hold"`, or `"terminated"`.
 
+Read schema:
+
 ```json
 {
   "$defs": {
-    "organisationStatus": {
+    "organisationStatus.read": {
       "type": "object",
       "properties": {
-        "@type": { "type": "string", "const": "organisationStatus" },
+        "@type": { "type": "string", "const": "organisationStatus", "readOnly": true },
         "label": {
           "type": "string",
           "enum": [
@@ -1405,9 +1468,10 @@ The following constraints cannot be expressed in JSON Schema and MUST be enforce
             "pendingCreate",
             "pendingUpdate",
             "pendingDelete"
-          ]
+          ],
+          "readOnly": true
         },
-        "reason": { "type": "string" }
+        "reason": { "type": "string", "readOnly": true }
       },
       "required": ["@type", "label"]
     }
@@ -1415,12 +1479,12 @@ The following constraints cannot be expressed in JSON Schema and MUST be enforce
 }
 ```
 
-Create and update request schema (status values that a client can set):
+Create schema (status values that a client can set):
 
 ```json
 {
   "$defs": {
-    "organisationStatus.request": {
+    "organisationStatus.create": {
       "type": "object",
       "properties": {
         "@type": { "type": "string", "const": "organisationStatus" },
@@ -1432,9 +1496,10 @@ Create and update request schema (status values that a client can set):
             "clientLinkProhibited",
             "clientUpdateProhibited",
             "clientDeleteProhibited"
-          ]
+          ],
+          "writeOnly": true
         },
-        "reason": { "type": "string" }
+        "reason": { "type": "string", "writeOnly": true }
       },
       "required": ["@type", "label"]
     }
@@ -1448,15 +1513,21 @@ The following constraints cannot be expressed in JSON Schema and MUST be enforce
 
 - The `"pending"` label is server-managed; `"suspended"` and `"deactivated"` are server-managed and MAY additionally be client-managed by a client with permission to manage users.
 
+Read schema:
+
 ```json
 {
   "$defs": {
-    "userStatus": {
+    "userStatus.read": {
       "type": "object",
       "properties": {
-        "@type": { "type": "string", "const": "userStatus" },
-        "label": { "type": "string", "enum": ["active", "pending", "suspended", "deactivated"] },
-        "reason": { "type": "string" }
+        "@type": { "type": "string", "const": "userStatus", "readOnly": true },
+        "label": {
+          "type": "string",
+          "enum": ["active", "pending", "suspended", "deactivated"],
+          "readOnly": true
+        },
+        "reason": { "type": "string", "readOnly": true }
       },
       "required": ["@type", "label"]
     }
@@ -1464,17 +1535,17 @@ The following constraints cannot be expressed in JSON Schema and MUST be enforce
 }
 ```
 
-Create and update request schema (status values that a client can set):
+Create schema (status values that a client can set):
 
 ```json
 {
   "$defs": {
-    "userStatus.request": {
+    "userStatus.create": {
       "type": "object",
       "properties": {
         "@type": { "type": "string", "const": "userStatus" },
-        "label": { "type": "string", "enum": ["suspended", "deactivated"] },
-        "reason": { "type": "string" }
+        "label": { "type": "string", "enum": ["suspended", "deactivated"], "writeOnly": true },
+        "reason": { "type": "string", "writeOnly": true }
       },
       "required": ["@type", "label"]
     }
@@ -1502,10 +1573,32 @@ RDATA structures required in EPP Compatibility Profile:
 
 All `rdata` property names MUST be written in camelCase and all values MUST use the string data type.
 
+Read schema:
+
 ```json
 {
   "$defs": {
-    "dnsRecord": {
+    "dnsRecord.read": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "dnsRecord", "readOnly": true },
+        "name": { "type": "string" },
+        "class": { "type": "string" },
+        "type": { "type": "string" },
+        "rdata": { "type": "object", "unevaluatedProperties": true }
+      },
+      "required": ["@type", "name", "type", "rdata"]
+    }
+  }
+}
+```
+
+Create schema:
+
+```json
+{
+  "$defs": {
+    "dnsRecord.create": {
       "type": "object",
       "properties": {
         "@type": { "type": "string", "const": "dnsRecord" },
@@ -1524,10 +1617,38 @@ All `rdata` property names MUST be written in camelCase and all values MUST use 
 
 The DNS Operational Controls Object contains operational control parameters that a client MAY use to influence server-side DNS behaviour for a set of DNS records. A server MAY ignore these values, e.g. for policy reasons. This structure is aligned with [@I-D.simmen-rpp-dns-data].
 
+Read schema:
+
 ```json
 {
   "$defs": {
-    "dnsControls": {
+    "dnsControls.read": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "dnsControls", "readOnly": true },
+        "ttl": {
+          "type": "object",
+          "additionalProperties": { "type": "integer", "minimum": 1 },
+          "propertyNames": { "pattern": "^[a-z][a-z0-9-]*$" }
+        },
+        "maxSigLifetime": {
+          "type": "object",
+          "additionalProperties": { "type": "integer", "minimum": 1 },
+          "propertyNames": { "pattern": "^[a-z][a-z0-9-]*$" }
+        }
+      },
+      "required": ["@type"]
+    }
+  }
+}
+```
+
+Create schema:
+
+```json
+{
+  "$defs": {
+    "dnsControls.create": {
       "type": "object",
       "properties": {
         "@type": { "type": "string", "const": "dnsControls" },
@@ -1556,18 +1677,41 @@ The following constraints cannot be expressed in JSON Schema and MUST be enforce
 
 - In EPP Compatibility Profile with DNSSEC Extension [@RFC5910], records of type `ds` and `dnskey` MUST be supported in addition to `ns`, `a`, and `aaaa`. A server MUST support either `ds` or `dnskey` or both. If provided with only `dnskey`, a server MUST calculate the DS record.
 
+Read schema:
+
 ```json
 {
   "$defs": {
-    "dnsData": {
+    "dnsData.read": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "dnsData", "readOnly": true },
+        "records": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/dnsRecord.read" }
+        },
+        "controls": { "$ref": "#/$defs/dnsControls.read" }
+      },
+      "required": ["@type"]
+    }
+  }
+}
+```
+
+Create schema:
+
+```json
+{
+  "$defs": {
+    "dnsData.create": {
       "type": "object",
       "properties": {
         "@type": { "type": "string", "const": "dnsData" },
         "records": {
           "type": "array",
-          "items": { "$ref": "#/$defs/dnsRecord" }
+          "items": { "$ref": "#/$defs/dnsRecord.create" }
         },
-        "controls": { "$ref": "#/$defs/dnsControls" }
+        "controls": { "$ref": "#/$defs/dnsControls.create" }
       },
       "required": ["@type"]
     }
@@ -1582,15 +1726,35 @@ The following constraints cannot be expressed in JSON Schema and MUST be enforce
 - `method` MUST be one of the values registered in the IANA RPP Authorization Method Registry as defined in [@!I-D.ietf-rpp-core]. In EPP Compatibility Profile, this value MUST be "authinfo" for standard password-based authorization.
 - The Authorization Information Object is immutable. When authorization information changes, a new instance MUST be created rather than modifying the existing one. The value of `authdata` MAY be omitted from read responses, depending on the method and server policy.
 
+Read schema:
+
 ```json
 {
   "$defs": {
-    "authInfo": {
+    "authInfo.read": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "authInfo", "readOnly": true },
+        "method": { "type": "string", "readOnly": true },
+        "authdata": { "type": "string", "readOnly": true }
+      },
+      "required": ["@type", "method", "authdata"]
+    }
+  }
+}
+```
+
+Create schema:
+
+```json
+{
+  "$defs": {
+    "authInfo.create": {
       "type": "object",
       "properties": {
         "@type": { "type": "string", "const": "authInfo" },
-        "method": { "type": "string" },
-        "authdata": { "type": "string" }
+        "method": { "type": "string", "writeOnly": true },
+        "authdata": { "type": "string", "writeOnly": true }
       },
       "required": ["@type", "method", "authdata"]
     }
@@ -1604,13 +1768,15 @@ The Disclose Object is used by the `disclose` data element of the Contact Data O
 
 A> TODO: The Disclose Object is not yet fully defined in [@!I-D.ietf-rpp-data-objects]. The schema below is a placeholder.
 
+Read schema:
+
 ```json
 {
   "$defs": {
-    "disclose": {
+    "disclose.read": {
       "type": "object",
       "properties": {
-        "@type": { "type": "string", "const": "disclose" }
+        "@type": { "type": "string", "const": "disclose", "readOnly": true }
       },
       "required": ["@type"]
     }
@@ -1730,10 +1896,40 @@ The following constraints cannot be expressed in JSON Schema and MUST be enforce
 * In EPP Compatibility Profile, `restoreTime` MUST be present as defined in [@!RFC3915].
 * In EPP Compatibility Profile, exactly two `statements` MUST be present as defined in [@!RFC3915].
 
+Read schema:
+
 ```json
 {
   "$defs": {
-    "restoreReport": {
+    "restoreReport.read": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "restoreReport", "readOnly": true },
+        "preData": { "type": "string" },
+        "postData": { "type": "string" },
+        "deleteTime": { "type": "string", "format": "date-time" },
+        "restoreTime": { "type": "string", "format": "date-time" },
+        "restoreReason": { "type": "string" },
+        "statements": {
+          "type": "array",
+          "items": { "type": "string" },
+          "minItems": 1,
+          "maxItems": 2
+        },
+        "other": { "type": "string" }
+      },
+      "required": ["@type", "statements"]
+    }
+  }
+}
+```
+
+Create schema:
+
+```json
+{
+  "$defs": {
+    "restoreReport.create": {
       "type": "object",
       "properties": {
         "@type": { "type": "string", "const": "restoreReport" },
@@ -1762,17 +1958,40 @@ The following constraints cannot be expressed in JSON Schema and MUST be enforce
 
 - `type` MUST only use values registered in the IANA "EPP Organization Role Values" registry ([@!RFC8543]).
 
+Read schema:
+
 ```json
 {
   "$defs": {
-    "organisationRole": {
+    "organisationRole.read": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "organisationRole", "readOnly": true },
+        "roleId": { "type": "string" },
+        "status": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/organisationRoleStatus.read" }
+        }
+      },
+      "required": ["@type"]
+    }
+  }
+}
+```
+
+Create schema:
+
+```json
+{
+  "$defs": {
+    "organisationRole.create": {
       "type": "object",
       "properties": {
         "@type": { "type": "string", "const": "organisationRole" },
         "roleId": { "type": "string" },
         "status": {
           "type": "array",
-          "items": { "$ref": "#/$defs/organisationRoleStatus" }
+          "items": { "$ref": "#/$defs/organisationRoleStatus.create" }
         }
       },
       "required": ["@type"]
@@ -1788,10 +2007,12 @@ The following constraints cannot be expressed in JSON Schema and MUST be enforce
 - `version` MUST use the Semantic Versioning format.
 - `url` MUST be a valid URL and accessible to the client.
 
+Read schema:
+
 ```json
 {
   "$defs": {
-    "extension": {
+    "extension.read": {
       "type": "object",
       "properties": {
         "@type": { "type": "string", "const": "extension", "readOnly": true },
@@ -1814,10 +2035,12 @@ The following constraints cannot be expressed in JSON Schema and MUST be enforce
 
 - `version` MUST use the Semantic Versioning format.
 
+Read schema:
+
 ```json
 {
   "$defs": {
-    "discoveryVersion": {
+    "discoveryVersion.read": {
       "type": "object",
       "properties": {
         "@type": { "type": "string", "const": "discoveryVersion", "readOnly": true },
@@ -1832,10 +2055,12 @@ The following constraints cannot be expressed in JSON Schema and MUST be enforce
 
 #### Environment Object
 
+Read schema:
+
 ```json
 {
   "$defs": {
-    "discoveryEnvironment": {
+    "discoveryEnvironment.read": {
       "type": "object",
       "properties": {
         "@type": { "type": "string", "const": "discoveryEnvironment", "readOnly": true },
@@ -1854,10 +2079,12 @@ The following constraints cannot be expressed in JSON Schema and MUST be enforce
 
 - `name` MUST be a valid LGR name as listed in the [@!IDN-Tables] registry.
 
+Read schema:
+
 ```json
 {
   "$defs": {
-    "discoveryIdnLgr": {
+    "discoveryIdnLgr.read": {
       "type": "object",
       "properties": {
         "@type": { "type": "string", "const": "discoveryIdnLgr", "readOnly": true },
@@ -1879,10 +2106,12 @@ The following constraints cannot be expressed in JSON Schema and MUST be enforce
 
 #### Notice Object
 
+Read schema:
+
 ```json
 {
   "$defs": {
-    "discoveryNotice": {
+    "discoveryNotice.read": {
       "type": "object",
       "properties": {
         "@type": { "type": "string", "const": "discoveryNotice", "readOnly": true },
@@ -1899,10 +2128,12 @@ The following constraints cannot be expressed in JSON Schema and MUST be enforce
 
 The Processes Object is a read-only container grouping the currently active Process Objects on the owning resource object, keyed by process type. Each key holds an array of the corresponding Process Object's read representation, per the Aggregation rules.
 
+Read schema:
+
 ```json
 {
   "$defs": {
-    "processes": {
+    "processes.read": {
       "type": "object",
       "properties": {
         "@type": { "type": "string", "const": "processes", "readOnly": true },
@@ -1958,10 +2189,12 @@ The following constraints cannot be expressed in JSON Schema and MUST be enforce
 - `objectType` MUST only be used when `objectId` is present.
 - `objectId` MUST be a valid unique identifier for the object type specified in `objectType` or empty when `objectType` is not present or empty.
 
+Read schema:
+
 ```json
 {
   "$defs": {
-    "baseMessage": {
+    "baseMessage.read": {
       "type": "object",
       "properties": {
         "@type": { "type": "string", "const": "baseMessage", "readOnly": true },
@@ -1976,10 +2209,12 @@ The following constraints cannot be expressed in JSON Schema and MUST be enforce
 
 #### Review Response Object
 
+Read schema:
+
 ```json
 {
   "$defs": {
-    "reviewResponseMessage": {
+    "reviewResponseMessage.read": {
       "type": "object",
       "properties": {
         "@type": { "type": "string", "const": "reviewResponseMessage", "readOnly": true },
@@ -1992,7 +2227,7 @@ The following constraints cannot be expressed in JSON Schema and MUST be enforce
         "message": { "type": "string", "readOnly": true },
         "process": {
           "oneOf": [
-            { "$ref": "#/$defs/baseProcess" },
+            { "$ref": "#/$defs/baseProcess.read" },
             { "$ref": "#/$defs/transferProcess.read" },
             { "$ref": "#/$defs/domainTransferProcess.read" },
             { "$ref": "#/$defs/restoreProcess.read" },
@@ -2011,10 +2246,12 @@ The following constraints cannot be expressed in JSON Schema and MUST be enforce
 
 #### Transfer Request Message Object
 
+Read schema:
+
 ```json
 {
   "$defs": {
-    "transferRequestMessage": {
+    "transferRequestMessage.read": {
       "type": "object",
       "properties": {
         "@type": { "type": "string", "const": "transferRequestMessage", "readOnly": true },
@@ -2039,10 +2276,12 @@ The following constraints cannot be expressed in JSON Schema and MUST be enforce
 
 #### Transfer Outcome Message Object
 
+Read schema:
+
 ```json
 {
   "$defs": {
-    "transferOutcomeMessage": {
+    "transferOutcomeMessage.read": {
       "type": "object",
       "properties": {
         "@type": { "type": "string", "const": "transferOutcomeMessage", "readOnly": true },
@@ -2078,10 +2317,12 @@ The following constraints cannot be expressed in JSON Schema and MUST be enforce
 
 #### Expiration Deletion Message Object
 
+Read schema:
+
 ```json
 {
   "$defs": {
-    "expirationDeletionMessage": {
+    "expirationDeletionMessage.read": {
       "type": "object",
       "properties": {
         "@type": { "type": "string", "const": "expirationDeletionMessage", "readOnly": true },
@@ -2097,10 +2338,12 @@ The following constraints cannot be expressed in JSON Schema and MUST be enforce
 
 #### Auto-Renewal Message Object
 
+Read schema:
+
 ```json
 {
   "$defs": {
-    "autoRenewalMessage": {
+    "autoRenewalMessage.read": {
       "type": "object",
       "properties": {
         "@type": { "type": "string", "const": "autoRenewalMessage", "readOnly": true },
@@ -2119,10 +2362,12 @@ The following constraints cannot be expressed in JSON Schema and MUST be enforce
 
 The Service Notice Message Object extends the Base Message Object. It is not linked to a specific object or process, so `objectType`, `objectId` and `process` are normally absent.
 
+Read schema:
+
 ```json
 {
   "$defs": {
-    "serviceNoticeMessage": {
+    "serviceNoticeMessage.read": {
       "type": "object",
       "properties": {
         "@type": { "type": "string", "const": "serviceNoticeMessage", "readOnly": true },
@@ -2146,10 +2391,12 @@ The following constraints cannot be expressed in JSON Schema and MUST be enforce
 
 - `processId` MUST be unique within the scope of the owning resource object.
 
+Read schema:
+
 ```json
 {
   "$defs": {
-    "baseProcess": {
+    "baseProcess.read": {
       "type": "object",
       "properties": {
         "@type": { "type": "string", "const": "baseProcess", "readOnly": true },
@@ -2235,7 +2482,7 @@ Renew request schema (create-only properties):
       "properties": {
         "@type": { "type": "string", "const": "renewProcess" },
         "expiryDate": { "type": "string", "format": "date-time", "writeOnly": true },
-        "renewalPeriod": { "$ref": "#/$defs/period", "writeOnly": true }
+        "renewalPeriod": { "$ref": "#/$defs/period.create", "writeOnly": true }
       },
       "required": ["@type"]
     }
@@ -2256,7 +2503,7 @@ Renew response schema (read-only properties):
         "@type": { "type": "string", "const": "renewProcess", "readOnly": true },
         "processId": { "type": "string", "readOnly": true },
         "expiryDate": { "type": "string", "format": "date-time", "readOnly": true },
-        "renewalPeriod": { "$ref": "#/$defs/period", "readOnly": true }
+        "renewalPeriod": { "$ref": "#/$defs/period.read", "readOnly": true }
       },
       "required": ["@type"]
     }
@@ -2467,7 +2714,7 @@ Create request schema (create-only and read-write properties):
       "type": "object",
       "properties": {
         "@type": { "type": "string", "const": "restoreProcess" },
-        "restoreReport": { "$ref": "#/$defs/restoreReport" }
+        "restoreReport": { "$ref": "#/$defs/restoreReport.create" }
       },
       "required": ["@type"]
     }
@@ -2495,7 +2742,7 @@ Read response schema (read-write and read-only properties):
         "requestDate": { "type": "string", "format": "date-time", "readOnly": true },
         "reportDate": { "type": "string", "format": "date-time", "readOnly": true },
         "reportDueDate": { "type": "string", "format": "date-time", "readOnly": true },
-        "restoreReport": { "$ref": "#/$defs/restoreReport" }
+        "restoreReport": { "$ref": "#/$defs/restoreReport.read" }
       },
       "required": ["@type", "restoreStatus"]
     }
@@ -2516,7 +2763,7 @@ Report request schema (create-only and read-write properties):
       "type": "object",
       "properties": {
         "@type": { "type": "string", "const": "restoreProcess" },
-        "restoreReport": { "$ref": "#/$defs/restoreReport" }
+        "restoreReport": { "$ref": "#/$defs/restoreReport.create" }
       },
       "required": ["@type", "restoreReport"]
     }
@@ -2573,7 +2820,7 @@ Create request schema (create-only and read-write properties):
         "lgr": { "type": "string", "writeOnly": true },
         "status": {
           "type": "array",
-          "items": { "$ref": "#/$defs/domainStatus.request" }
+          "items": { "$ref": "#/$defs/domainStatus.create" }
         },
         "registrant": { "$ref": "#/$defs/contact.reference" },
         "contacts": {
@@ -2591,8 +2838,8 @@ Create request schema (create-only and read-write properties):
           "type": "array",
           "items": { "$ref": "#/$defs/host.reference" }
         },
-        "dns": { "$ref": "#/$defs/dnsData" },
-        "authInfo": { "$ref": "#/$defs/authInfo" },
+        "dns": { "$ref": "#/$defs/dnsData.create" },
+        "authInfo": { "$ref": "#/$defs/authInfo.create" },
         "processes": {
           "type": "object",
           "properties": {
@@ -2626,7 +2873,7 @@ Create request for Domain Create Process Object schema (create-only and read-wri
       "type": "object",
       "properties": {
         "@type": { "type": "string", "const": "domainCreateProcess" },
-        "period": { "$ref": "#/$defs/period", "writeOnly": true }
+        "period": { "$ref": "#/$defs/period.create", "writeOnly": true }
       },
       "required": ["@type"]
     }
@@ -2646,7 +2893,7 @@ Read response for Domain Create Process Object schema (read-write and read-only 
       "properties": {
         "@type": { "type": "string", "const": "domainCreateProcess", "readOnly": true },
         "processId": { "type": "string", "readOnly": true },
-        "period": { "$ref": "#/$defs/period", "readOnly": true }
+        "period": { "$ref": "#/$defs/period.read", "readOnly": true }
       },
       "required": ["@type"]
     }
@@ -2689,10 +2936,10 @@ Read response schema (read-write and read-only properties):
         "name": { "type": "string", "format": "hostname", "readOnly": true },
         "uName": { "type": "string", "readOnly": true },
         "lgr": { "type": "string", "readOnly": true },
-        "provMetadata": { "$ref": "#/$defs/provMetadata", "readOnly": true },
+        "provMetadata": { "$ref": "#/$defs/provMetadata.read", "readOnly": true },
         "status": {
           "type": "array",
-          "items": { "$ref": "#/$defs/domainStatus" },
+          "items": { "$ref": "#/$defs/domainStatus.read" },
           "minItems": 1
         },
         "registrant": { "$ref": "#/$defs/contact.reference" },
@@ -2711,15 +2958,15 @@ Read response schema (read-write and read-only properties):
           "type": "array",
           "items": { "$ref": "#/$defs/host.reference" }
         },
-        "dns": { "$ref": "#/$defs/dnsData" },
+        "dns": { "$ref": "#/$defs/dnsData.read" },
         "subordinateHosts": {
           "type": "array",
           "items": { "$ref": "#/$defs/host.reference" },
           "readOnly": true
         },
         "expiryDate": { "type": "string", "format": "date-time", "readOnly": true },
-        "authInfo": { "$ref": "#/$defs/authInfo" },
-        "processes": { "$ref": "#/$defs/processes", "readOnly": true }
+        "authInfo": { "$ref": "#/$defs/authInfo.read" },
+        "processes": { "$ref": "#/$defs/processes.read", "readOnly": true }
       },
       "required": ["@type", "name", "provMetadata", "status"]
     }
@@ -2742,7 +2989,7 @@ Update request schema (read-write properties):
         "@type": { "type": "string", "const": "domainName" },
         "status": {
           "type": "array",
-          "items": { "$ref": "#/$defs/domainStatus.request" }
+          "items": { "$ref": "#/$defs/domainStatus.create" }
         },
         "registrant": { "$ref": "#/$defs/contact.reference" },
         "contacts": {
@@ -2760,8 +3007,8 @@ Update request schema (read-write properties):
           "type": "array",
           "items": { "$ref": "#/$defs/host.reference" }
         },
-        "dns": { "$ref": "#/$defs/dnsData" },
-        "authInfo": { "$ref": "#/$defs/authInfo" }
+        "dns": { "$ref": "#/$defs/dnsData.create" },
+        "authInfo": { "$ref": "#/$defs/authInfo.create" }
       },
       "required": ["@type"]
     }
@@ -2801,7 +3048,7 @@ Create request for Domain Transfer Process Object schema (create-only and read-w
         "@type": { "type": "string", "const": "domainTransferProcess" },
         "transferDir": { "type": "string", "enum": ["pull", "push"], "writeOnly": true },
         "gainingClientId": { "$ref": "#/$defs/clientIdentifier", "writeOnly": true },
-        "transferPeriod": { "$ref": "#/$defs/period", "writeOnly": true }
+        "transferPeriod": { "$ref": "#/$defs/period.create", "writeOnly": true }
       },
       "required": ["@type"],
       "allOf": [
@@ -2862,7 +3109,7 @@ Read response for Domain Transfer Process Object schema (read-write and read-onl
         "actClientId": { "$ref": "#/$defs/clientIdentifier", "readOnly": true },
         "actionDate": { "type": "string", "format": "date-time", "readOnly": true },
         "expiryDate": { "type": "string", "format": "date-time", "readOnly": true },
-        "transferPeriod": { "$ref": "#/$defs/period", "readOnly": true }
+        "transferPeriod": { "$ref": "#/$defs/period.read", "readOnly": true }
       },
       "required": ["@type", "trStatus", "reqClientId", "requestDate", "actClientId", "actionDate"],
       "allOf": [
@@ -3026,11 +3273,11 @@ Create request schema (create-only and read-write properties):
         "id": { "$ref": "#/$defs/identifier", "writeOnly": true },
         "status": {
           "type": "array",
-          "items": { "$ref": "#/$defs/contactStatus.request" }
+          "items": { "$ref": "#/$defs/contactStatus.create" }
         },
         "contactInfo": { "$ref": "#/$defs/Card" },
-        "authInfo": { "$ref": "#/$defs/authInfo" },
-        "disclose": { "$ref": "#/$defs/disclose" }
+        "authInfo": { "$ref": "#/$defs/authInfo.create" },
+        "disclose": { "$ref": "#/$defs/disclose.read" }
       },
       "required": ["@type", "id", "contactInfo"]
     }
@@ -3052,16 +3299,16 @@ Read response schema (read-write and read-only properties):
       "properties": {
         "@type": { "type": "string", "const": "contact", "readOnly": true },
         "id": { "$ref": "#/$defs/identifier", "readOnly": true },
-        "provMetadata": { "$ref": "#/$defs/provMetadata", "readOnly": true },
+        "provMetadata": { "$ref": "#/$defs/provMetadata.read", "readOnly": true },
         "status": {
           "type": "array",
-          "items": { "$ref": "#/$defs/contactStatus" },
+          "items": { "$ref": "#/$defs/contactStatus.read" },
           "minItems": 1
         },
         "contactInfo": { "$ref": "#/$defs/Card" },
-        "authInfo": { "$ref": "#/$defs/authInfo" },
-        "disclose": { "$ref": "#/$defs/disclose" },
-        "processes": { "$ref": "#/$defs/processes", "readOnly": true }
+        "authInfo": { "$ref": "#/$defs/authInfo.read" },
+        "disclose": { "$ref": "#/$defs/disclose.read" },
+        "processes": { "$ref": "#/$defs/processes.read", "readOnly": true }
       },
       "required": ["@type", "id", "provMetadata", "status", "contactInfo"]
     }
@@ -3084,11 +3331,11 @@ Update request schema (read-write properties):
         "@type": { "type": "string", "const": "contact" },
         "status": {
           "type": "array",
-          "items": { "$ref": "#/$defs/contactStatus.request" }
+          "items": { "$ref": "#/$defs/contactStatus.create" }
         },
         "contactInfo": { "$ref": "#/$defs/Card" },
-        "authInfo": { "$ref": "#/$defs/authInfo" },
-        "disclose": { "$ref": "#/$defs/disclose" }
+        "authInfo": { "$ref": "#/$defs/authInfo.create" },
+        "disclose": { "$ref": "#/$defs/disclose.read" }
       },
       "required": ["@type", "contactInfo"]
     }
@@ -3156,9 +3403,9 @@ Create request schema (create-only and read-write properties):
         "hostName": { "type": "string", "format": "hostname" },
         "status": {
           "type": "array",
-          "items": { "$ref": "#/$defs/hostStatus.request" }
+          "items": { "$ref": "#/$defs/hostStatus.create" }
         },
-        "dns": { "$ref": "#/$defs/dnsData" }
+        "dns": { "$ref": "#/$defs/dnsData.create" }
       },
       "required": ["@type", "hostName"]
     }
@@ -3180,14 +3427,14 @@ Read response schema (read-write and read-only properties):
       "properties": {
         "@type": { "type": "string", "const": "host", "readOnly": true },
         "hostName": { "type": "string", "format": "hostname" },
-        "provMetadata": { "$ref": "#/$defs/provMetadata", "readOnly": true },
+        "provMetadata": { "$ref": "#/$defs/provMetadata.read", "readOnly": true },
         "status": {
           "type": "array",
-          "items": { "$ref": "#/$defs/hostStatus" },
+          "items": { "$ref": "#/$defs/hostStatus.read" },
           "minItems": 1
         },
-        "dns": { "$ref": "#/$defs/dnsData" },
-        "processes": { "$ref": "#/$defs/processes", "readOnly": true }
+        "dns": { "$ref": "#/$defs/dnsData.read" },
+        "processes": { "$ref": "#/$defs/processes.read", "readOnly": true }
       },
       "required": ["@type", "hostName", "provMetadata", "status"]
     }
@@ -3211,9 +3458,9 @@ Update request schema (read-write properties):
         "hostName": { "type": "string", "format": "hostname" },
         "status": {
           "type": "array",
-          "items": { "$ref": "#/$defs/hostStatus.request" }
+          "items": { "$ref": "#/$defs/hostStatus.create" }
         },
-        "dns": { "$ref": "#/$defs/dnsData" }
+        "dns": { "$ref": "#/$defs/dnsData.create" }
       },
       "required": ["@type", "hostName"]
     }
@@ -3267,11 +3514,11 @@ Create request schema (create-only and read-write properties):
         "id": { "$ref": "#/$defs/identifier", "writeOnly": true },
         "status": {
           "type": "array",
-          "items": { "$ref": "#/$defs/organisationStatus.request" }
+          "items": { "$ref": "#/$defs/organisationStatus.create" }
         },
         "roles": {
           "type": "object",
-          "additionalProperties": { "$ref": "#/$defs/organisationRole" },
+          "additionalProperties": { "$ref": "#/$defs/organisationRole.create" },
           "minProperties": 1
         },
         "parent": { "$ref": "#/$defs/organisation.reference" },
@@ -3319,15 +3566,15 @@ Read response schema (read-write and read-only properties):
       "properties": {
         "@type": { "type": "string", "const": "organisation", "readOnly": true },
         "id": { "$ref": "#/$defs/identifier", "readOnly": true },
-        "provMetadata": { "$ref": "#/$defs/provMetadata", "readOnly": true },
+        "provMetadata": { "$ref": "#/$defs/provMetadata.read", "readOnly": true },
         "status": {
           "type": "array",
-          "items": { "$ref": "#/$defs/organisationStatus" },
+          "items": { "$ref": "#/$defs/organisationStatus.read" },
           "minItems": 1
         },
         "roles": {
           "type": "object",
-          "additionalProperties": { "$ref": "#/$defs/organisationRole" },
+          "additionalProperties": { "$ref": "#/$defs/organisationRole.read" },
           "minProperties": 1
         },
         "parent": { "$ref": "#/$defs/organisation.reference" },
@@ -3354,7 +3601,7 @@ Read response schema (read-write and read-only properties):
             "required": ["label", "object"]
           }
         },
-        "processes": { "$ref": "#/$defs/processes", "readOnly": true }
+        "processes": { "$ref": "#/$defs/processes.read", "readOnly": true }
       },
       "required": ["@type", "id", "provMetadata", "status", "roles"]
     }
@@ -3377,11 +3624,11 @@ Update request schema (read-write properties):
         "@type": { "type": "string", "const": "organisation" },
         "status": {
           "type": "array",
-          "items": { "$ref": "#/$defs/organisationStatus.request" }
+          "items": { "$ref": "#/$defs/organisationStatus.create" }
         },
         "roles": {
           "type": "object",
-          "additionalProperties": { "$ref": "#/$defs/organisationRole" },
+          "additionalProperties": { "$ref": "#/$defs/organisationRole.create" },
           "minProperties": 1
         },
         "parent": { "$ref": "#/$defs/organisation.reference" },
@@ -3457,13 +3704,13 @@ Create request schema. Only the server is authorised to create Message Data Obje
         "@type": { "type": "string", "const": "message" },
         "data": {
           "oneOf": [
-            { "$ref": "#/$defs/baseMessage" },
-            { "$ref": "#/$defs/reviewResponseMessage" },
-            { "$ref": "#/$defs/transferRequestMessage" },
-            { "$ref": "#/$defs/transferOutcomeMessage" },
-            { "$ref": "#/$defs/expirationDeletionMessage" },
-            { "$ref": "#/$defs/autoRenewalMessage" },
-            { "$ref": "#/$defs/serviceNoticeMessage" }
+            { "$ref": "#/$defs/baseMessage.read" },
+            { "$ref": "#/$defs/reviewResponseMessage.read" },
+            { "$ref": "#/$defs/transferRequestMessage.read" },
+            { "$ref": "#/$defs/transferOutcomeMessage.read" },
+            { "$ref": "#/$defs/expirationDeletionMessage.read" },
+            { "$ref": "#/$defs/autoRenewalMessage.read" },
+            { "$ref": "#/$defs/serviceNoticeMessage.read" }
           ],
           "writeOnly": true
         }
@@ -3492,13 +3739,13 @@ Read response schema (read-only properties):
         "status": { "type": "string", "enum": ["queued", "delivered", "removed"], "readOnly": true },
         "data": {
           "oneOf": [
-            { "$ref": "#/$defs/baseMessage" },
-            { "$ref": "#/$defs/reviewResponseMessage" },
-            { "$ref": "#/$defs/transferRequestMessage" },
-            { "$ref": "#/$defs/transferOutcomeMessage" },
-            { "$ref": "#/$defs/expirationDeletionMessage" },
-            { "$ref": "#/$defs/autoRenewalMessage" },
-            { "$ref": "#/$defs/serviceNoticeMessage" }
+            { "$ref": "#/$defs/baseMessage.read" },
+            { "$ref": "#/$defs/reviewResponseMessage.read" },
+            { "$ref": "#/$defs/transferRequestMessage.read" },
+            { "$ref": "#/$defs/transferOutcomeMessage.read" },
+            { "$ref": "#/$defs/expirationDeletionMessage.read" },
+            { "$ref": "#/$defs/autoRenewalMessage.read" },
+            { "$ref": "#/$defs/serviceNoticeMessage.read" }
           ],
           "readOnly": true
         }
@@ -3570,7 +3817,7 @@ Create request schema (create-only and read-write properties):
         "id": { "$ref": "#/$defs/identifier", "writeOnly": true },
         "details": { "$ref": "#/$defs/Card" },
         "description": { "type": "string" },
-        "status": { "$ref": "#/$defs/userStatus.request" }
+        "status": { "$ref": "#/$defs/userStatus.create" }
       },
       "required": ["@type", "id", "details"]
     }
@@ -3594,9 +3841,9 @@ Read response schema (read-write and read-only properties):
         "id": { "$ref": "#/$defs/identifier", "readOnly": true },
         "details": { "$ref": "#/$defs/Card" },
         "description": { "type": "string" },
-        "status": { "$ref": "#/$defs/userStatus" },
+        "status": { "$ref": "#/$defs/userStatus.read" },
         "organisation": { "$ref": "#/$defs/organisation.reference", "readOnly": true },
-        "processes": { "$ref": "#/$defs/processes", "readOnly": true }
+        "processes": { "$ref": "#/$defs/processes.read", "readOnly": true }
       },
       "required": ["@type", "id", "details", "status", "organisation"]
     }
@@ -3619,7 +3866,7 @@ Update request schema (read-write properties):
         "@type": { "type": "string", "const": "user" },
         "details": { "$ref": "#/$defs/Card" },
         "description": { "type": "string" },
-        "status": { "$ref": "#/$defs/userStatus.request" }
+        "status": { "$ref": "#/$defs/userStatus.create" }
       },
       "required": ["@type", "details"]
     }
@@ -3674,11 +3921,11 @@ Read response schema (read-only properties).
         "@type": { "type": "string", "const": "discovery", "readOnly": true },
         "versions": {
           "type": "array",
-          "items": { "$ref": "#/$defs/discoveryVersion" },
+          "items": { "$ref": "#/$defs/discoveryVersion.read" },
           "minItems": 1,
           "readOnly": true
         },
-        "environment": { "$ref": "#/$defs/discoveryEnvironment", "readOnly": true },
+        "environment": { "$ref": "#/$defs/discoveryEnvironment.read", "readOnly": true },
         "tlds": {
           "type": "array",
           "items": { "type": "string" },
@@ -3687,7 +3934,7 @@ Read response schema (read-only properties).
         },
         "extensions": {
           "type": "array",
-          "items": { "$ref": "#/$defs/extension" },
+          "items": { "$ref": "#/$defs/extension.read" },
           "readOnly": true
         },
         "profiles": {
@@ -3716,12 +3963,12 @@ Read response schema (read-only properties).
         },
         "idnLgr": {
           "type": "array",
-          "items": { "$ref": "#/$defs/discoveryIdnLgr" },
+          "items": { "$ref": "#/$defs/discoveryIdnLgr.read" },
           "readOnly": true
         },
         "notices": {
           "type": "array",
-          "items": { "$ref": "#/$defs/discoveryNotice" },
+          "items": { "$ref": "#/$defs/discoveryNotice.read" },
           "readOnly": true
         }
       },
@@ -3767,7 +4014,7 @@ Read response schema (read-only properties):
         },
         "extensions": {
           "type": "array",
-          "items": { "$ref": "#/$defs/extension" },
+          "items": { "$ref": "#/$defs/extension.read" },
           "readOnly": true
         },
         "baseProfile": { "$ref": "#/$defs/profile.reference", "readOnly": true },
@@ -5623,10 +5870,13 @@ TODO
 - Removed the statement that Composition and Aggregation share the same JSON representation from Association Rules.
 - Added reference schemas for the Process Objects in Process Object Schemas and Domain Name Data Object.
 - Aligned the domain name and message examples with the Process Object schemas in Examples.
-- Added (#status-object-rules) to JSON Schema Definition Rules.
-- Added status request schemas to (#status-objects).
+- Added (#status-object-rules) to JSON Schema Composition Rules.
+- Added status create schemas to (#status-objects).
 - Aligned the Domain Name, Contact, Host, Organisation, and User create and update schemas with (#status-object-rules).
 - Aligned the user examples with the User Status Object.
+- Changed the Component Object `$defs` keys to `read` and `create` views in JSON Schema Composition Rules.
+- Clarified `create-only` for Component Objects in Mutability Rules.
+- Added Component Object create schemas to Component Objects Schemas.
 
 ## Version draft-wullink-rpp-json-02 to draft-ietf-rpp-json-00
 

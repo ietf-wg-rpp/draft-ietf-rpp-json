@@ -7,14 +7,14 @@
       "properties": {
         "@type": { "type": "string", "const": "host", "readOnly": true },
         "hostName": { "type": "string", "format": "hostname" },
-        "provMetadata": { "$ref": "#/$defs/provMetadata", "readOnly": true },
+        "provMetadata": { "$ref": "#/$defs/provMetadata.read", "readOnly": true },
         "status": {
           "type": "array",
-          "items": { "$ref": "#/$defs/hostStatus" },
+          "items": { "$ref": "#/$defs/hostStatus.read" },
           "minItems": 1
         },
-        "dns": { "$ref": "#/$defs/dnsData" },
-        "processes": { "$ref": "#/$defs/processes", "readOnly": true }
+        "dns": { "$ref": "#/$defs/dnsData.read" },
+        "processes": { "$ref": "#/$defs/processes.read", "readOnly": true }
       },
       "required": ["@type", "hostName", "provMetadata", "status"]
     }

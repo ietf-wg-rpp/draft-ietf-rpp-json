@@ -120,173 +120,174 @@ section). The document header / TOML preamble precedes the first heading._
 | 2 | &nbsp;&nbsp;External Type Embedding Rules |  | 390–399 |
 | 2 | &nbsp;&nbsp;Process Data Embedding Rules |  | 400–431 |
 | 2 | &nbsp;&nbsp;JSON Schema Definition Rules |  | 432–469 |
-| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Status Objects | `{#status-object-rules}` | 470–481 |
-| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Inheritance |  | 482–535 |
-| 3 | &nbsp;&nbsp;&nbsp;&nbsp;RPP Profiles and Validation |  | 536–539 |
-| 1 | Update Rules |  | 540–543 |
-| 2 | &nbsp;&nbsp;Full |  | 544–547 |
-| 2 | &nbsp;&nbsp;Partial |  | 548–554 |
-| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Matching | `{#partial-matching}` | 555–621 |
-| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Processing Steps | `{#partial-steps}` | 622–801 |
-| 2 | &nbsp;&nbsp;Schema | `{#partial-schema}` | 802–859 |
-| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Examples |  | 860–995 |
-| 1 | JSON Schema Definitions |  | 996–1001 |
-| 2 | &nbsp;&nbsp;Common Data Types Schemas |  | 1002–1005 |
-| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Identifier |  | 1006–1023 |
-| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Client Identifier |  | 1024–1042 |
-| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Phone Number |  | 1043–1056 |
-| 2 | &nbsp;&nbsp;Component Objects Schemas |  | 1057–1058 |
-| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Period Object |  | 1059–1076 |
-| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Provisioning Metadata Object |  | 1077–1105 |
-| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Status Objects | `{#status-objects}` | 1106–1117 |
-| 4 | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Domain Name Status Object |  | 1118–1198 |
-| 4 | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Host Status Object |  | 1199–1248 |
-| 4 | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Contact Status Object |  | 1249–1303 |
-| 4 | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Organisation Role Status Object |  | 1304–1324 |
-| 4 | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Organisation Status Object |  | 1325–1391 |
-| 4 | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;User Status Object |  | 1392–1431 |
-| 3 | &nbsp;&nbsp;&nbsp;&nbsp;DNS Resource Record Object |  | 1432–1469 |
-| 3 | &nbsp;&nbsp;&nbsp;&nbsp;DNS Operational Controls Object |  | 1470–1497 |
-| 3 | &nbsp;&nbsp;&nbsp;&nbsp;DNS Data Object |  | 1498–1524 |
-| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Authorization Information Object |  | 1525–1547 |
-| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Disclose Object |  | 1548–1567 |
-| 3 | &nbsp;&nbsp;&nbsp;&nbsp;JSContact Card Object |  | 1568–1668 |
-| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Restore Report Object |  | 1669–1705 |
-| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Organisation Role Object |  | 1706–1730 |
-| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Extension Object |  | 1731–1755 |
-| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Discovery |  | 1756–1757 |
-| 4 | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Version Object |  | 1758–1779 |
-| 4 | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Environment Object |  | 1780–1797 |
-| 4 | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;IDN LGR Object |  | 1798–1826 |
-| 4 | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Notice Object |  | 1827–1844 |
-| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Processes Object |  | 1845–1892 |
-| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Messages |  | 1893–1898 |
-| 4 | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Base Message Object |  | 1899–1923 |
-| 4 | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Review Response Object |  | 1924–1958 |
-| 4 | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Transfer Request Message Object |  | 1959–1986 |
-| 4 | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Transfer Outcome Message Object |  | 1987–2025 |
-| 4 | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Expiration Deletion Message Object |  | 2026–2044 |
-| 4 | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Auto-Renewal Message Object |  | 2045–2064 |
-| 4 | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Service Notice Message Object |  | 2065–2085 |
-| 2 | &nbsp;&nbsp;Process Object Schemas |  | 2086–2087 |
-| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Base Process Object |  | 2088–2110 |
-| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Create Process Object |  | 2111–2170 |
-| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Renew Process Object |  | 2171–2232 |
-| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Transfer Process Object |  | 2233–2234 |
-| 4 | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Create |  | 2235–2278 |
-| 4 | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Read |  | 2279–2339 |
-| 4 | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Approve |  | 2340–2345 |
-| 4 | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Cancel |  | 2346–2351 |
-| 4 | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Reject |  | 2352–2374 |
-| 4 | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Reference |  | 2375–2395 |
-| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Restore Process Object |  | 2396–2493 |
-| 2 | &nbsp;&nbsp;Domain Name Data Object |  | 2494–2504 |
-| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Create |  | 2505–2560 |
-| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Create Process |  | 2561–2622 |
-| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Read |  | 2623–2676 |
-| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Update |  | 2677–2718 |
-| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Renew |  | 2719–2735 |
-| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Transfer |  | 2736–2923 |
-| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Reference |  | 2924–2944 |
-| 2 | &nbsp;&nbsp;Contact Data Object |  | 2945–2948 |
-| 3 | &nbsp;&nbsp;&nbsp;&nbsp;JSContact Profile for RPP |  | 2949–2959 |
-| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Create |  | 2960–2987 |
-| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Read |  | 2988–3018 |
-| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Update |  | 3019–3045 |
-| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Transfer |  | 3046–3061 |
-| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Reference  |  | 3062–3082 |
-| 2 | &nbsp;&nbsp;Host Data Object |  | 3083–3089 |
-| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Create |  | 3090–3115 |
-| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Read |  | 3116–3144 |
-| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Update |  | 3145–3170 |
-| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Reference |  | 3171–3191 |
-| 2 | &nbsp;&nbsp;Organisation Data Object |  | 3192–3200 |
-| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Create |  | 3201–3254 |
-| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Read |  | 3255–3311 |
-| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Update |  | 3312–3364 |
-| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Reference |  | 3365–3385 |
-| 2 | &nbsp;&nbsp;Message Data Object |  | 3386–3391 |
-| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Create |  | 3392–3423 |
-| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Read |  | 3424–3458 |
-| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Query |  | 3459–3475 |
-| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Reference |  | 3476–3496 |
-| 2 | &nbsp;&nbsp;User Data Object |  | 3497–3503 |
-| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Create |  | 3504–3527 |
-| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Read |  | 3528–3553 |
-| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Update |  | 3554–3576 |
-| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Reference |  | 3577–3597 |
-| 2 | &nbsp;&nbsp;Discovery Data Object |  | 3598–3608 |
-| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Read |  | 3609–3680 |
-| 2 | &nbsp;&nbsp;Profile Data Object |  | 3681–3691 |
-| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Read |  | 3692–3736 |
-| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Reference |  | 3737–3757 |
-| 1 | Extension Framework | `{#extension-framework}` | 3758–3776 |
-| 2 | &nbsp;&nbsp;Extension Mapping |  | 3777–3787 |
-| 2 | &nbsp;&nbsp;Effective Schema |  | 3788–3864 |
-| 1 | Examples |  | 3865–3868 |
-| 2 | &nbsp;&nbsp;Domain Name |  | 3869–3870 |
-| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Create |  | 3871–3929 |
-| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Create Process Data |  | 3930–3945 |
-| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Read |  | 3946–4028 |
-| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Update |  | 4029–4066 |
-| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Delete |  | 4067–4087 |
-| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Renew |  | 4088–4114 |
-| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Transfer Request |  | 4115–4147 |
-| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Transfer Query |  | 4148–4164 |
-| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Transfer Approve |  | 4165–4179 |
-| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Transfer Cancel |  | 4180–4185 |
-| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Transfer Reject |  | 4186–4198 |
-| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Restore Request |  | 4199–4250 |
-| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Restore Report |  | 4251–4283 |
-| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Restore Query |  | 4284–4309 |
-| 2 | &nbsp;&nbsp;Contact |  | 4310–4311 |
-| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Create |  | 4312–4404 |
-| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Read |  | 4405–4455 |
-| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Update |  | 4456–4535 |
-| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Delete |  | 4536–4539 |
-| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Transfer Request |  | 4540–4566 |
-| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Transfer Query |  | 4567–4582 |
-| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Transfer Cancel / Approve |  | 4583–4586 |
-| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Transfer Reject |  | 4587–4599 |
-| 2 | &nbsp;&nbsp;Host |  | 4600–4601 |
-| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Create |  | 4602–4677 |
-| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Read |  | 4678–4715 |
-| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Update |  | 4716–4743 |
-| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Delete |  | 4744–4747 |
-| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Restore Request |  | 4748–4799 |
-| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Restore Report |  | 4800–4832 |
-| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Restore Query |  | 4833–4858 |
-| 2 | &nbsp;&nbsp;Organisation |  | 4859–4860 |
-| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Create |  | 4861–4960 |
-| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Read |  | 4961–5020 |
-| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Update |  | 5021–5044 |
-| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Delete |  | 5045–5048 |
-| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Reference |  | 5049–5059 |
-| 2 | &nbsp;&nbsp;User |  | 5060–5061 |
-| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Create |  | 5062–5101 |
-| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Read |  | 5102–5123 |
-| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Update |  | 5124–5143 |
-| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Delete |  | 5144–5147 |
-| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Reference |  | 5148–5158 |
-| 2 | &nbsp;&nbsp;Message |  | 5159–5160 |
-| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Create |  | 5161–5217 |
-| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Read |  | 5218–5332 |
-| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Query |  | 5333–5365 |
-| 2 | &nbsp;&nbsp;Discovery |  | 5366–5367 |
-| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Read |  | 5368–5424 |
-| 2 | &nbsp;&nbsp;Profile |  | 5425–5426 |
-| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Read |  | 5427–5471 |
-| 1 | IANA Considerations |  | 5472–5473 |
-| 2 | &nbsp;&nbsp;RPP Media Type (application/rpp+json) |  | 5474–5506 |
-| 2 | &nbsp;&nbsp;RPP JSON Schema Extensions registry |  | 5507–5528 |
-| 1 | Internationalization Considerations | `{#internationalization-considerations}` | 5529–5539 |
-| 1 | Security Considerations |  | 5540–5546 |
-| 1 | Acknowledgments |  | 5547–5550 |
-| 1 | Change History |  | 5551–5552 |
-| 2 | &nbsp;&nbsp;Version draft-ietf-rpp-json-00 to draft-ietf-rpp-json-01 |  | 5553–5576 |
-| 2 | &nbsp;&nbsp;Version draft-wullink-rpp-json-02 to draft-ietf-rpp-json-00 |  | 5577–5585 |
-| 2 | &nbsp;&nbsp;Version 01 to 02 |  | 5586–5589 |
-| 2 | &nbsp;&nbsp;Version 00 to 01 |  | 5590–5649 |
+| 2 | &nbsp;&nbsp;JSON Schema Composition Rules |  | 470–525 |
+| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Status Objects | `{#status-object-rules}` | 526–537 |
+| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Inheritance |  | 538–591 |
+| 3 | &nbsp;&nbsp;&nbsp;&nbsp;RPP Profiles and Validation |  | 592–595 |
+| 1 | Update Rules |  | 596–599 |
+| 2 | &nbsp;&nbsp;Full |  | 600–603 |
+| 2 | &nbsp;&nbsp;Partial |  | 604–610 |
+| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Matching | `{#partial-matching}` | 611–677 |
+| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Processing Steps | `{#partial-steps}` | 678–857 |
+| 2 | &nbsp;&nbsp;Schema | `{#partial-schema}` | 858–915 |
+| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Examples |  | 916–1051 |
+| 1 | JSON Schema Definitions |  | 1052–1057 |
+| 2 | &nbsp;&nbsp;Common Data Types Schemas |  | 1058–1061 |
+| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Identifier |  | 1062–1079 |
+| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Client Identifier |  | 1080–1098 |
+| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Phone Number |  | 1099–1112 |
+| 2 | &nbsp;&nbsp;Component Objects Schemas |  | 1113–1114 |
+| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Period Object |  | 1115–1152 |
+| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Provisioning Metadata Object |  | 1153–1183 |
+| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Status Objects | `{#status-objects}` | 1184–1195 |
+| 4 | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Domain Name Status Object |  | 1196–1280 |
+| 4 | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Host Status Object |  | 1281–1337 |
+| 4 | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Contact Status Object |  | 1338–1396 |
+| 4 | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Organisation Role Status Object |  | 1397–1438 |
+| 4 | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Organisation Status Object |  | 1439–1509 |
+| 4 | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;User Status Object |  | 1510–1555 |
+| 3 | &nbsp;&nbsp;&nbsp;&nbsp;DNS Resource Record Object |  | 1556–1615 |
+| 3 | &nbsp;&nbsp;&nbsp;&nbsp;DNS Operational Controls Object |  | 1616–1671 |
+| 3 | &nbsp;&nbsp;&nbsp;&nbsp;DNS Data Object |  | 1672–1721 |
+| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Authorization Information Object |  | 1722–1764 |
+| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Disclose Object |  | 1765–1786 |
+| 3 | &nbsp;&nbsp;&nbsp;&nbsp;JSContact Card Object |  | 1787–1887 |
+| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Restore Report Object |  | 1888–1954 |
+| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Organisation Role Object |  | 1955–2002 |
+| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Extension Object |  | 2003–2029 |
+| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Discovery |  | 2030–2031 |
+| 4 | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Version Object |  | 2032–2055 |
+| 4 | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Environment Object |  | 2056–2075 |
+| 4 | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;IDN LGR Object |  | 2076–2106 |
+| 4 | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Notice Object |  | 2107–2126 |
+| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Processes Object |  | 2127–2176 |
+| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Messages |  | 2177–2182 |
+| 4 | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Base Message Object |  | 2183–2209 |
+| 4 | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Review Response Object |  | 2210–2246 |
+| 4 | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Transfer Request Message Object |  | 2247–2276 |
+| 4 | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Transfer Outcome Message Object |  | 2277–2317 |
+| 4 | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Expiration Deletion Message Object |  | 2318–2338 |
+| 4 | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Auto-Renewal Message Object |  | 2339–2360 |
+| 4 | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Service Notice Message Object |  | 2361–2383 |
+| 2 | &nbsp;&nbsp;Process Object Schemas |  | 2384–2385 |
+| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Base Process Object |  | 2386–2410 |
+| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Create Process Object |  | 2411–2470 |
+| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Renew Process Object |  | 2471–2532 |
+| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Transfer Process Object |  | 2533–2534 |
+| 4 | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Create |  | 2535–2578 |
+| 4 | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Read |  | 2579–2639 |
+| 4 | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Approve |  | 2640–2645 |
+| 4 | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Cancel |  | 2646–2651 |
+| 4 | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Reject |  | 2652–2674 |
+| 4 | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Reference |  | 2675–2695 |
+| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Restore Process Object |  | 2696–2793 |
+| 2 | &nbsp;&nbsp;Domain Name Data Object |  | 2794–2804 |
+| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Create |  | 2805–2860 |
+| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Create Process |  | 2861–2922 |
+| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Read |  | 2923–2976 |
+| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Update |  | 2977–3018 |
+| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Renew |  | 3019–3035 |
+| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Transfer |  | 3036–3223 |
+| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Reference |  | 3224–3244 |
+| 2 | &nbsp;&nbsp;Contact Data Object |  | 3245–3248 |
+| 3 | &nbsp;&nbsp;&nbsp;&nbsp;JSContact Profile for RPP |  | 3249–3259 |
+| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Create |  | 3260–3287 |
+| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Read |  | 3288–3318 |
+| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Update |  | 3319–3345 |
+| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Transfer |  | 3346–3361 |
+| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Reference  |  | 3362–3382 |
+| 2 | &nbsp;&nbsp;Host Data Object |  | 3383–3389 |
+| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Create |  | 3390–3415 |
+| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Read |  | 3416–3444 |
+| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Update |  | 3445–3470 |
+| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Reference |  | 3471–3491 |
+| 2 | &nbsp;&nbsp;Organisation Data Object |  | 3492–3500 |
+| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Create |  | 3501–3554 |
+| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Read |  | 3555–3611 |
+| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Update |  | 3612–3664 |
+| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Reference |  | 3665–3685 |
+| 2 | &nbsp;&nbsp;Message Data Object |  | 3686–3691 |
+| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Create |  | 3692–3723 |
+| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Read |  | 3724–3758 |
+| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Query |  | 3759–3775 |
+| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Reference |  | 3776–3796 |
+| 2 | &nbsp;&nbsp;User Data Object |  | 3797–3803 |
+| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Create |  | 3804–3827 |
+| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Read |  | 3828–3853 |
+| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Update |  | 3854–3876 |
+| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Reference |  | 3877–3897 |
+| 2 | &nbsp;&nbsp;Discovery Data Object |  | 3898–3908 |
+| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Read |  | 3909–3980 |
+| 2 | &nbsp;&nbsp;Profile Data Object |  | 3981–3991 |
+| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Read |  | 3992–4036 |
+| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Reference |  | 4037–4057 |
+| 1 | Extension Framework | `{#extension-framework}` | 4058–4076 |
+| 2 | &nbsp;&nbsp;Extension Mapping |  | 4077–4087 |
+| 2 | &nbsp;&nbsp;Effective Schema |  | 4088–4164 |
+| 1 | Examples |  | 4165–4168 |
+| 2 | &nbsp;&nbsp;Domain Name |  | 4169–4170 |
+| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Create |  | 4171–4229 |
+| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Create Process Data |  | 4230–4245 |
+| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Read |  | 4246–4328 |
+| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Update |  | 4329–4366 |
+| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Delete |  | 4367–4387 |
+| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Renew |  | 4388–4414 |
+| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Transfer Request |  | 4415–4447 |
+| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Transfer Query |  | 4448–4464 |
+| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Transfer Approve |  | 4465–4479 |
+| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Transfer Cancel |  | 4480–4485 |
+| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Transfer Reject |  | 4486–4498 |
+| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Restore Request |  | 4499–4550 |
+| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Restore Report |  | 4551–4583 |
+| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Restore Query |  | 4584–4609 |
+| 2 | &nbsp;&nbsp;Contact |  | 4610–4611 |
+| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Create |  | 4612–4704 |
+| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Read |  | 4705–4755 |
+| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Update |  | 4756–4835 |
+| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Delete |  | 4836–4839 |
+| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Transfer Request |  | 4840–4866 |
+| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Transfer Query |  | 4867–4882 |
+| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Transfer Cancel / Approve |  | 4883–4886 |
+| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Transfer Reject |  | 4887–4899 |
+| 2 | &nbsp;&nbsp;Host |  | 4900–4901 |
+| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Create |  | 4902–4977 |
+| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Read |  | 4978–5015 |
+| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Update |  | 5016–5043 |
+| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Delete |  | 5044–5047 |
+| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Restore Request |  | 5048–5099 |
+| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Restore Report |  | 5100–5132 |
+| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Restore Query |  | 5133–5158 |
+| 2 | &nbsp;&nbsp;Organisation |  | 5159–5160 |
+| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Create |  | 5161–5260 |
+| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Read |  | 5261–5320 |
+| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Update |  | 5321–5344 |
+| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Delete |  | 5345–5348 |
+| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Reference |  | 5349–5359 |
+| 2 | &nbsp;&nbsp;User |  | 5360–5361 |
+| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Create |  | 5362–5401 |
+| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Read |  | 5402–5423 |
+| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Update |  | 5424–5443 |
+| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Delete |  | 5444–5447 |
+| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Reference |  | 5448–5458 |
+| 2 | &nbsp;&nbsp;Message |  | 5459–5460 |
+| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Create |  | 5461–5517 |
+| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Read |  | 5518–5632 |
+| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Query |  | 5633–5665 |
+| 2 | &nbsp;&nbsp;Discovery |  | 5666–5667 |
+| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Read |  | 5668–5724 |
+| 2 | &nbsp;&nbsp;Profile |  | 5725–5726 |
+| 3 | &nbsp;&nbsp;&nbsp;&nbsp;Read |  | 5727–5771 |
+| 1 | IANA Considerations |  | 5772–5773 |
+| 2 | &nbsp;&nbsp;RPP Media Type (application/rpp+json) |  | 5774–5806 |
+| 2 | &nbsp;&nbsp;RPP JSON Schema Extensions registry |  | 5807–5828 |
+| 1 | Internationalization Considerations | `{#internationalization-considerations}` | 5829–5839 |
+| 1 | Security Considerations |  | 5840–5846 |
+| 1 | Acknowledgments |  | 5847–5850 |
+| 1 | Change History |  | 5851–5852 |
+| 2 | &nbsp;&nbsp;Version draft-ietf-rpp-json-00 to draft-ietf-rpp-json-01 |  | 5853–5880 |
+| 2 | &nbsp;&nbsp;Version draft-wullink-rpp-json-02 to draft-ietf-rpp-json-00 |  | 5881–5889 |
+| 2 | &nbsp;&nbsp;Version 01 to 02 |  | 5890–5893 |
+| 2 | &nbsp;&nbsp;Version 00 to 01 |  | 5894–5953 |
 <!-- END AUTO-INDEX -->
 
 ## Terminology — Defined Terms

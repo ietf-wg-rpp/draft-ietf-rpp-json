@@ -1,0 +1,13 @@
+{
+  "$defs": {
+    "baseMessage.read": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "baseMessage", "readOnly": true },
+        "objectType": { "type": "string", "readOnly": true },
+        "objectId": { "type": "string", "readOnly": true }
+      },
+      "required": ["@type"]
+    }
+  }
+}

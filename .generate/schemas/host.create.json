@@ -9,9 +9,9 @@
         "hostName": { "type": "string", "format": "hostname" },
         "status": {
           "type": "array",
-          "items": { "$ref": "#/$defs/hostStatus.request" }
+          "items": { "$ref": "#/$defs/hostStatus.create" }
         },
-        "dns": { "$ref": "#/$defs/dnsData" }
+        "dns": { "$ref": "#/$defs/dnsData.create" }
       },
       "required": ["@type", "hostName"]
     }

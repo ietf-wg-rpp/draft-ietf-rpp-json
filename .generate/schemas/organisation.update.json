@@ -8,11 +8,11 @@
         "@type": { "type": "string", "const": "organisation" },
         "status": {
           "type": "array",
-          "items": { "$ref": "#/$defs/organisationStatus.request" }
+          "items": { "$ref": "#/$defs/organisationStatus.create" }
         },
         "roles": {
           "type": "object",
-          "additionalProperties": { "$ref": "#/$defs/organisationRole" },
+          "additionalProperties": { "$ref": "#/$defs/organisationRole.create" },
           "minProperties": 1
         },
         "parent": { "$ref": "#/$defs/organisation.reference" },

@@ -1,0 +1,31 @@
+{
+  "$defs": {
+    "organisationStatus.read": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "organisationStatus", "readOnly": true },
+        "label": {
+          "type": "string",
+          "enum": [
+            "ok",
+            "hold",
+            "terminated",
+            "linked",
+            "clientLinkProhibited",
+            "serverLinkProhibited",
+            "clientUpdateProhibited",
+            "serverUpdateProhibited",
+            "clientDeleteProhibited",
+            "serverDeleteProhibited",
+            "pendingCreate",
+            "pendingUpdate",
+            "pendingDelete"
+          ],
+          "readOnly": true
+        },
+        "reason": { "type": "string", "readOnly": true }
+      },
+      "required": ["@type", "label"]
+    }
+  }
+}

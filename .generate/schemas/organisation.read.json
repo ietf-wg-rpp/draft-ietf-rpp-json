@@ -7,15 +7,15 @@
       "properties": {
         "@type": { "type": "string", "const": "organisation", "readOnly": true },
         "id": { "$ref": "#/$defs/identifier", "readOnly": true },
-        "provMetadata": { "$ref": "#/$defs/provMetadata", "readOnly": true },
+        "provMetadata": { "$ref": "#/$defs/provMetadata.read", "readOnly": true },
         "status": {
           "type": "array",
-          "items": { "$ref": "#/$defs/organisationStatus" },
+          "items": { "$ref": "#/$defs/organisationStatus.read" },
           "minItems": 1
         },
         "roles": {
           "type": "object",
-          "additionalProperties": { "$ref": "#/$defs/organisationRole" },
+          "additionalProperties": { "$ref": "#/$defs/organisationRole.read" },
           "minProperties": 1
         },
         "parent": { "$ref": "#/$defs/organisation.reference" },
@@ -42,7 +42,7 @@
             "required": ["label", "object"]
           }
         },
-        "processes": { "$ref": "#/$defs/processes", "readOnly": true }
+        "processes": { "$ref": "#/$defs/processes.read", "readOnly": true }
       },
       "required": ["@type", "id", "provMetadata", "status", "roles"]
     }
