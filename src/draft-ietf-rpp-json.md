@@ -259,7 +259,7 @@ A `Composition[Type]` represents a parent-child relationship where the child's l
                 "hostName": "ns1.name.example",
                 "provMetadata": {
                     "@type": "provMetadata",
-                    "repositoryId": "NS1EXAMPLE-REP",
+                    "repositoryId": "NS1-REP",
                     "spClientId": "ClientX"
                 },
                 "status": [ { "@type": "hostStatus", "label": "ok" } ],
@@ -864,10 +864,10 @@ Example JSON document used by partial update examples below:
         { "@type": "host", "hostName": "ns1.example.example" },
         { "@type": "host", "hostName": "ns2.example.example" }
     ],
-    "registrant": { "@type": "contact", "id": "jd1234" },
+    "registrant": { "@type": "contact", "id": "JD-1234" },
     "contacts": [
-        { "label": "admin", "object": { "@type": "contact", "id": "sh8013" } },
-        { "label": "tech", "object": { "@type": "contact", "id": "sh8013" } }
+        { "label": "admin", "object": { "@type": "contact", "id": "SH-8013" } },
+        { "label": "tech", "object": { "@type": "contact", "id": "SH-8013" } }
     ],
     "status": [
         { "@type": "domainStatus", "label": "ok" }
@@ -876,7 +876,7 @@ Example JSON document used by partial update examples below:
 }
 ```
 
-Example of a partial update request to change the registrant of a domain name from "jd1234" to "jd1234-new":
+Example of a partial update request to change the registrant of a domain name from "JD-1234" to "JD-1235":
 
 ```json
 [
@@ -885,7 +885,7 @@ Example of a partial update request to change the registrant of a domain name fr
     "path": "/registrant",
     "value": {
       "@type": "contact",
-      "id": "jd1234-new"
+      "id": "JD-1235"
     }
   }
 ]
@@ -920,7 +920,7 @@ Example of a partial update request for adding a additional tech contact to a do
       "label": "tech",
       "object": {
         "@type": "contact",
-        "id": "sh8014"
+        "id": "SH-8014"
       }
     }
   }
@@ -3497,10 +3497,10 @@ Example domain create request:
         { "@type": "host", "hostName": "ns1.example.example" },
         { "@type": "host", "hostName": "ns2.example.example" }
     ],
-    "registrant": { "@type": "contact", "id": "jd1234" },
+    "registrant": { "@type": "contact", "id": "JD-1234" },
     "contacts": [
-        { "label": "admin", "object": { "@type": "contact", "id": "sh8013" } },
-        { "label": "tech", "object": { "@type": "contact", "id": "sh8013" } }
+        { "label": "admin", "object": { "@type": "contact", "id": "SH-8013" } },
+        { "label": "tech", "object": { "@type": "contact", "id": "SH-8013" } }
     ],
     "authInfo": {
         "@type": "authInfo",
@@ -3581,10 +3581,10 @@ Example domain read response:
     "status": [
         { "@type": "domainStatus", "label": "ok" }
     ],
-    "registrant": { "@type": "contact", "id": "jd1234" },
+    "registrant": { "@type": "contact", "id": "JD-1234" },
     "contacts": [
-        { "label": "admin", "object": { "@type": "contact", "id": "sh8013" } },
-        { "label": "tech", "object": { "@type": "contact", "id": "sh8013" } }
+        { "label": "admin", "object": { "@type": "contact", "id": "SH-8013" } },
+        { "label": "tech", "object": { "@type": "contact", "id": "SH-8013" } }
     ],
     "nameservers": [
         {
@@ -3642,7 +3642,10 @@ Example Read response for an internationalized domain name, showing the ACE `nam
         "spClientId": "ClientX",
         "crClientId": "ClientX",
         "crDate": "1999-04-03T22:00:00.0Z"
-    }
+    },
+    "status": [
+        { "@type": "domainStatus", "label": "ok" }
+    ]
 }
 ```
 <!-- How handle domain that do not exist? normally this would result in 404 and now it will cause the above reponse? -->
@@ -3681,7 +3684,7 @@ Example domain update response:
     "status": [
         { "@type": "domainStatus", "label": "ok" }
     ],
-    "registrant": { "@type": "contact", "id": "sh8013" }
+    "registrant": { "@type": "contact", "id": "SH-8013" }
 }
 ```
 
@@ -3699,7 +3702,10 @@ Example domain delete response (minimal, server may return full representation):
         "@type": "provMetadata",
         "repositoryId": "EXAMPLE1-REP",
         "spClientId": "ClientX"
-    }
+    },
+    "status": [
+        { "@type": "domainStatus", "label": "pendingDelete" }
+    ]
 }
 ```
 
@@ -3738,7 +3744,7 @@ Example domain transfer request (pull transfer)
 
 ```json
 {
-    "@type": "transferProcess",
+    "@type": "domainTransferProcess",
     "transferDir": "pull",
     "transferPeriod": {
         "@type": "period",
@@ -3752,7 +3758,7 @@ Example domain transfer response (Transfer Process Object):
 
 ```json
 {
-    "@type": "transferProcess",
+    "@type": "domainTransferProcess",
     "trStatus": "pending",
     "transferDir": "pull",
     "reqClientId": "ClientX",
@@ -3769,7 +3775,7 @@ Example domain transfer query response (Transfer Process Object):
 
 ```json
 {
-    "@type": "transferProcess",
+    "@type": "domainTransferProcess",
     "trStatus": "pending",
     "transferDir": "pull",
     "reqClientId": "ClientX",
@@ -3788,7 +3794,7 @@ Example domain transfer approve request with empty JSON object:
 
 ```json
 { 
-  "@type": "transferProcess"
+  "@type": "domainTransferProcess"
 }
 ```
 <!-- Is this an empty response? or should we use "{}"? then validation script complains-->
@@ -3807,7 +3813,7 @@ Example domain transfer reject request
 
 ```json
 {
-    "@type": "transferProcess",
+    "@type": "domainTransferProcess",
     "reason": "Client rejected the transfer request."
 }
 ```
@@ -3842,7 +3848,7 @@ Example domain restore request with inline restore report (single-step; object r
     "@type": "restoreProcess",
     "restoreReport": {
         "@type": "restoreReport",
-        "preData": "Domain example.example was registered on 2024-01-15 with registrant jd1234.",
+        "preData": "Domain example.example was registered on 2024-01-15 with registrant JD-1234.",
         "postData": "Domain example.example is being restored with the same registration data.",
         "deleteTime": "2025-01-10T12:00:00.0Z",
         "restoreTime": "2025-01-20T15:30:00.0Z",
@@ -3875,7 +3881,7 @@ Example domain restore report request:
     "@type": "restoreProcess",
     "restoreReport": {
         "@type": "restoreReport",
-        "preData": "Domain example.example was registered on 2024-01-15 with registrant jd1234.",
+        "preData": "Domain example.example was registered on 2024-01-15 with registrant JD-1234.",
         "postData": "Domain example.example is being restored with the same registration data.",
         "deleteTime": "2025-01-10T12:00:00.0Z",
         "restoreTime": "2025-01-20T15:30:00.0Z",
@@ -3934,7 +3940,7 @@ Example contact create request:
 ```json
 {
     "@type": "contact",
-    "id": "jd1234",
+    "id": "JD-1234",
     "contactInfo": {
         "@type": "Card",
         "version": "2.0",
@@ -3977,7 +3983,7 @@ Example contact create response:
 ```json
 {
     "@type": "contact",
-    "id": "jd1234",
+    "id": "JD-1234",
     "provMetadata": {
         "@type": "provMetadata",
         "repositoryId": "JD1234-REP",
@@ -4027,7 +4033,7 @@ Example contact read response:
 ```json
 {
     "@type": "contact",
-    "id": "jd1234",
+    "id": "JD-1234",
     "provMetadata": {
         "@type": "provMetadata",
         "repositoryId": "JD1234-REP",
@@ -4107,7 +4113,7 @@ Example contact update response:
 ```json
 {
     "@type": "contact",
-    "id": "jd1234",
+    "id": "JD-1234",
     "provMetadata": {
         "@type": "provMetadata",
         "repositoryId": "JD1234-REP",
@@ -4259,7 +4265,7 @@ Example host create response:
     "hostName": "ns1.example.example",
     "provMetadata": {
         "@type": "provMetadata",
-        "repositoryId": "NS1EXAMPLE-REP",
+        "repositoryId": "NS1-REP",
         "spClientId": "ClientX",
         "crClientId": "ClientX",
         "crDate": "1999-04-03T22:00:00.0Z"
@@ -4303,7 +4309,7 @@ Example host read response:
     "hostName": "ns1.example.example",
     "provMetadata": {
         "@type": "provMetadata",
-        "repositoryId": "NS1EXAMPLE-REP",
+        "repositoryId": "NS1-REP",
         "spClientId": "ClientX",
         "crClientId": "ClientY",
         "crDate": "1999-04-03T22:00:00.0Z"
@@ -4684,8 +4690,16 @@ Example user create request:
 ```json
 {
     "@type": "user",
-    "details": { "@type": "contact", "id": "USER-1234" },
-    "status": ["active"]
+    "id": "UID-5001",
+    "details": {
+        "@type": "Card",
+        "version": "2.0",
+        "kind": "individual",
+        "name": { "full": "John Doe" },
+        "emails": {
+            "email": { "address": "john.doe@example.example" }
+        }
+    }
 }
 ```
 
@@ -4694,9 +4708,17 @@ Example user create response:
 ```json
 {
     "@type": "user",
-    "userId": "UID-5001",
-    "details": { "@type": "contact", "id": "USER-1234" },
-    "status": ["active"]
+    "id": "UID-5001",
+    "details": {
+        "@type": "Card",
+        "version": "2.0",
+        "kind": "individual",
+        "name": { "full": "John Doe" },
+        "emails": {
+            "email": { "address": "john.doe@example.example" }
+        }
+    },
+    "organisation": { "@type": "organisation", "id": "ORG-12345" }
 }
 ```
 
@@ -4707,10 +4729,17 @@ Example user read response:
 ```json
 {
     "@type": "user",
-    "organisationId": { "@type": "organisation", "id": "ORG-12345" },
-    "userId": "UID-5001",
-    "details": { "@type": "contact", "id": "USER-1234" },
-    "status": ["active"]
+    "id": "UID-5001",
+    "details": {
+        "@type": "Card",
+        "version": "2.0",
+        "kind": "individual",
+        "name": { "full": "John Doe" },
+        "emails": {
+            "email": { "address": "john.doe@example.example" }
+        }
+    },
+    "organisation": { "@type": "organisation", "id": "ORG-12345" }
 }
 ```
 
@@ -4721,7 +4750,15 @@ Example user update request (suspend the user):
 ```json
 {
     "@type": "user",
-    "status": ["suspended"]
+    "details": {
+        "@type": "Card",
+        "version": "2.0",
+        "kind": "individual",
+        "name": { "full": "John Doe" },
+        "emails": {
+            "email": { "address": "john.doe@example.example" }
+        }
+    }
 }
 ```
 
@@ -4997,7 +5034,7 @@ Example profile read response:
             "name": "RPP example extension",
             "id": "urn:ietf:params:rpp:extension:example-extension",
             "version": "1.0",
-            "url": "https://www.iana.org/assignments/rpp-extensions/rpp-example-extension",
+            "url": "https://www.iana.org/assignments/rpp-extensions/rpp-example-extension"
         }
     ],
     "defaultProfile": true
@@ -5114,6 +5151,7 @@ TODO
 - Added section describing the representation of undefined values. (Issue #97)
 - Replaced the generic Status Object with type-specific status objects in (#status-objects).
 - Added User Status Object to (#status-objects).
+- Aligned domain name, host, organisation, user, and profile examples with the updated JSON Schema definitions.
 
 ## Version draft-wullink-rpp-json-02 to draft-ietf-rpp-json-00
 
