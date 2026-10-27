@@ -8,8 +8,7 @@
         "@type": { "type": "string", "const": "organisation" },
         "status": {
           "type": "array",
-          "items": { "$ref": "#/$defs/organisationStatus" },
-          "minItems": 1
+          "items": { "$ref": "#/$defs/organisationStatus.request" }
         },
         "roles": {
           "type": "object",
@@ -41,7 +40,7 @@
           }
         }
       },
-      "required": ["@type", "status", "roles"]
+      "required": ["@type", "roles"]
     }
   }
 }

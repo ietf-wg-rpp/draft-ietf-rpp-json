@@ -8,9 +8,9 @@
         "@type": { "type": "string", "const": "user" },
         "details": { "$ref": "#/$defs/Card" },
         "description": { "type": "string" },
-        "status": { "$ref": "#/$defs/userStatus" }
+        "status": { "$ref": "#/$defs/userStatus.request" }
       },
-      "required": ["@type", "details", "status"]
+      "required": ["@type", "details"]
     }
   }
 }

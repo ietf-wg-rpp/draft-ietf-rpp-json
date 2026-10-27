@@ -14,6 +14,8 @@
   (dnsControls.ttl, dnsControls.maxSigLifetime)
 - Cardinality '1-2' is not covered by Rules 1-4; mapped to an array with minItems/maxItems
   (restoreReport.statements)
+- Status object embedded in an object with a single schema; the full set of status values applies in requests too
+  (organisationRole.status)
 - Polymorphism (an object extending the referenced base object may be used in its place) has no JSON rule; oneOf over all candidates applied
   (processes.transferProcess -> transferProcess, domainTransferProcess, processes.createProcess -> createProcess, domainCreateProcess, reviewResponseMessage.process -> baseProcess, transferProcess, domainTransferProcess, restoreProcess, renewProcess, createProcess, domainCreateProcess, transferRequestMessage.process -> transferProcess, domainTransferProcess, transferOutcomeMessage.process -> transferProcess, domainTransferProcess, message.data -> baseMessage, reviewResponseMessage, transferRequestMessage, transferOutcomeMessage, expirationDeletionMessage, autoRenewalMessage, serviceNoticeMessage)
 - Direct Access (sub-resource addressing) has no JSON rule; the inline representation is generated unchanged
@@ -26,6 +28,8 @@
   (restoreProcess.restoreReport, domainName.authInfo, contact.authInfo)
 - Primitive type 'Fully Qualified Domain Name' is not listed in Primitive Type Mappings
   (domainName.name, host.hostName)
+- No rule covers status objects in requests; client-settable values from the status values table applied
+  (domainName.status, contact.status, host.status, organisation.status, user.status)
 - Aggregation with cardinality 1 or 0-1: Rule 8 only covers 0+ and 1+
   (domainName.registrant, organisation.parent, user.organisation, profile.baseProfile)
 - Operation parameters have no JSON representation rule; not included in any schema

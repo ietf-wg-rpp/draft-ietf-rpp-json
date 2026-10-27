@@ -9,8 +9,7 @@
         "id": { "$ref": "#/$defs/identifier", "writeOnly": true },
         "status": {
           "type": "array",
-          "items": { "$ref": "#/$defs/organisationStatus" },
-          "minItems": 1
+          "items": { "$ref": "#/$defs/organisationStatus.request" }
         },
         "roles": {
           "type": "object",
@@ -42,7 +41,7 @@
           }
         }
       },
-      "required": ["@type", "id", "status", "roles"]
+      "required": ["@type", "id", "roles"]
     }
   }
 }

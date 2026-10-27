@@ -89,6 +89,13 @@
 #                   when every "if" element has the given value, the
 #                   "require" elements MUST and the "forbid" elements MUST
 #                   NOT be present. [] if none.
+#     at_least_one_status_by_server: (status Component Objects only, present
+#                   only when prose_mappings.yaml maps it) true when the
+#                   server always assigns at least one of the object's
+#                   status values.
+#     status_not_required_for_client_request: (same) true when a client
+#                   may omit status values when creating or updating the
+#                   object that holds them.
 #     supported_processes: the INHERITED-process bullet list from a Data
 #                   Object's "## Processes" section — the Process Objects it
 #                   supports UNMODIFIED. Processes it *extends* are not
@@ -195,6 +202,11 @@
 #   base_type             primitive type a Common Data Type is built on
 #   allowed_values        closed list of permitted values (for a status
 #                         label, resolved from the draft's status table)
+#   client_values         status values a client may add and remove (Set By
+#                         column "client" or "client, server")
+#   server_only_values    status values only the server adds and removes
+#                         (Set By column "server"); together with
+#                         client_values it partitions allowed_values
 #   range                 {min, max} of a scalar value, inclusive
 #   pattern               regular expression the whole value matches
 #   min_length/max_length length bounds of a string value
@@ -429,6 +441,32 @@ components:
       - rgpRedemptionPeriod
       - rgpPendingRestore
       - rgpPendingDelete
+      client_values:
+      - clientDeleteProhibited
+      - clientHold
+      - clientRenewProhibited
+      - clientTransferProhibited
+      - clientUpdateProhibited
+      server_only_values:
+      - serverDeleteProhibited
+      - serverHold
+      - serverRenewProhibited
+      - serverTransferProhibited
+      - serverUpdateProhibited
+      - inactive
+      - ok
+      - pendingCreate
+      - pendingDelete
+      - pendingRenew
+      - pendingTransfer
+      - pendingUpdate
+      - rgpAddPeriod
+      - rgpAutoRenewPeriod
+      - rgpRenewPeriod
+      - rgpTransferPeriod
+      - rgpRedemptionPeriod
+      - rgpPendingRestore
+      - rgpPendingDelete
     direct_access: false
     visibility: default
     notes: []
@@ -468,58 +506,79 @@ components:
       with "rgp" are related to the Redemption Grace Period (RGP) and are also server-managed. A client
       MUST NOT alter status values set by the server. A server MAY alter or override status values set
       by a client, subject to local server policies.
+    - 'The Set By column identifies the entity that adds and removes each status value: `client`, `server`,
+      or `client, server` for a value that the server manages and that a client can also manage where
+      server policy permits.'
     tables:
     - caption: Domain Name Status Values
       anchor: '{#tbl-domain-status-values}'
       columns:
       - Status Value
+      - Set By
       - Description
       rows:
       - Status Value: clientDeleteProhibited
+        Set By: client
         Description: Requests to delete the object MUST be rejected.
       - Status Value: serverDeleteProhibited
+        Set By: server
         Description: Requests to delete the object MUST be rejected.
       - Status Value: clientHold
+        Set By: client
         Description: DNS delegation information MUST NOT be published for the object.
       - Status Value: serverHold
+        Set By: server
         Description: DNS delegation information MUST NOT be published for the object.
       - Status Value: clientRenewProhibited
+        Set By: client
         Description: Requests to renew the object MUST be rejected.
       - Status Value: serverRenewProhibited
+        Set By: server
         Description: Requests to renew the object MUST be rejected.
       - Status Value: clientTransferProhibited
+        Set By: client
         Description: Requests to transfer the object MUST be rejected.
       - Status Value: serverTransferProhibited
+        Set By: server
         Description: Requests to transfer the object MUST be rejected.
       - Status Value: clientUpdateProhibited
+        Set By: client
         Description: Requests to update the object (other than to remove this status) MUST be rejected.
       - Status Value: serverUpdateProhibited
+        Set By: server
         Description: Requests to update the object (other than to remove this status) MUST be rejected.
       - Status Value: inactive
+        Set By: server
         Description: Delegation information has not been associated with the object. This is the default
           status when a domain object is first created and there are no associated host objects for the
           DNS delegation. This status can also be set by the server when all host-object associations
           are removed.
       - Status Value: ok
+        Set By: server
         Description: This is the normal status value for an object that has no pending operations or prohibitions.
           This value is set and removed by the server as other status values are added or removed.
       - Status Value: pendingCreate
+        Set By: server
         Description: A transform command has been processed for the object, but the action has not been
           completed by the server. Server operators can delay action completion for a variety of reasons,
           such as to allow for human review or third-party action.
       - Status Value: pendingDelete
+        Set By: server
         Description: A transform command has been processed for the object, but the action has not been
           completed by the server. Server operators can delay action completion for a variety of reasons,
           such as to allow for human review or third-party action.
       - Status Value: pendingRenew
+        Set By: server
         Description: A transform command has been processed for the object, but the action has not been
           completed by the server. Server operators can delay action completion for a variety of reasons,
           such as to allow for human review or third-party action.
       - Status Value: pendingTransfer
+        Set By: server
         Description: A transform command has been processed for the object, but the action has not been
           completed by the server. Server operators can delay action completion for a variety of reasons,
           such as to allow for human review or third-party action.
       - Status Value: pendingUpdate
+        Set By: server
         Description: A transform command has been processed for the object, but the action has not been
           completed by the server. Server operators can delay action completion for a variety of reasons,
           such as to allow for human review or third-party action.
@@ -593,38 +652,49 @@ components:
     anchor: '{#rgp-status-values}'
     notes:
     - Status values that begin with "rgp" are related to the Redemption Grace Period (RGP) and are server-managed.
+    - 'The Set By column identifies the entity that adds and removes each status value: `client`, `server`,
+      or `client, server` for a value that the server manages and that a client can also manage where
+      server policy permits.'
     tables:
     - caption: Redemption Grace Period Status Values
       anchor: '{#tbl-rgp-status-values}'
       columns:
       - Status Value
+      - Set By
       - Description
       rows:
       - Status Value: rgpAddPeriod
+        Set By: server
         Description: This grace period is provided after the initial registration of a domain name. If
           the domain name is deleted by the registrar during this period, the registry provides a credit
           to the registrar for the cost of the registration.
       - Status Value: rgpAutoRenewPeriod
+        Set By: server
         Description: This grace period is provided after a domain name registration period expires and
           is extended (renewed) automatically by the registry. If the domain name is deleted by the registrar
           during this period, the registry provides a credit to the registrar for the cost of the renewal.
       - Status Value: rgpRenewPeriod
+        Set By: server
         Description: This grace period is provided after a domain name registration period is explicitly
           extended (renewed) by the registrar. If the domain name is deleted by the registrar during this
           period, the registry provides a credit to the registrar for the cost of the renewal.
       - Status Value: rgpTransferPeriod
+        Set By: server
         Description: This grace period is provided after the successful transfer of domain name registration
           sponsorship from one registrar to another registrar. If the domain name is deleted by the new
           sponsoring registrar during this period, the registry provides a credit to the registrar for
           the cost of the transfer.
       - Status Value: rgpRedemptionPeriod
+        Set By: server
         Description: This status value is used to describe a domain for which a delete operation has been
           received, but the domain has not yet been purged because an opportunity exists to restore the
           domain and abort the deletion process.
       - Status Value: rgpPendingRestore
+        Set By: server
         Description: This status value is used to describe a domain that is in the process of being restored
           after being in the rgpRedemptionPeriod state.
       - Status Value: rgpPendingDelete
+        Set By: server
         Description: This status value is used to describe a domain that has entered the purge processing
           state after completing the rgpRedemptionPeriod state.  A domain in this status MUST also be
           in the pendingDelete status described above.
@@ -663,6 +733,8 @@ components:
       subsections: []
   supported_processes: []
   conditions: []
+  at_least_one_status_by_server: true
+  status_not_required_for_client_request: true
 - identifier: hostStatus
   name: Host Status Object
   object_type: Component
@@ -684,6 +756,18 @@ components:
       - clientDeleteProhibited
       - serverDeleteProhibited
       - clientUpdateProhibited
+      - serverUpdateProhibited
+      - linked
+      - ok
+      - pendingCreate
+      - pendingDelete
+      - pendingTransfer
+      - pendingUpdate
+      client_values:
+      - clientDeleteProhibited
+      - clientUpdateProhibited
+      server_only_values:
+      - serverDeleteProhibited
       - serverUpdateProhibited
       - linked
       - ok
@@ -716,41 +800,55 @@ components:
       that do not begin with either "client" or "server" are server-managed. A client MUST NOT alter status
       values set by the server. A server MAY alter or override status values set by a client, subject
       to local server policies.
+    - 'The Set By column identifies the entity that adds and removes each status value: `client`, `server`,
+      or `client, server` for a value that the server manages and that a client can also manage where
+      server policy permits.'
     tables:
     - caption: Host Status Values
       anchor: '{#tbl-host-status-values}'
       columns:
       - Status Value
+      - Set By
       - Description
       rows:
       - Status Value: clientDeleteProhibited
+        Set By: client
         Description: Requests to delete the object MUST be rejected.
       - Status Value: serverDeleteProhibited
+        Set By: server
         Description: Requests to delete the object MUST be rejected.
       - Status Value: clientUpdateProhibited
+        Set By: client
         Description: Requests to update the object (other than to remove this status) MUST be rejected.
       - Status Value: serverUpdateProhibited
+        Set By: server
         Description: Requests to update the object (other than to remove this status) MUST be rejected.
       - Status Value: linked
+        Set By: server
         Description: The host object has at least one active association with another object, such as
           a domain object. Servers SHOULD provide services to determine existing object associations.
       - Status Value: ok
+        Set By: server
         Description: This is the normal status value for an object that has no pending operations or prohibitions.
           This value is set and removed by the server as other status values are added or removed.
       - Status Value: pendingCreate
+        Set By: server
         Description: A transform command has been processed for the object, but the action has not been
           completed by the server. Server operators can delay action completion for a variety of reasons,
           such as to allow for human review or third-party action.
       - Status Value: pendingDelete
+        Set By: server
         Description: A transform command has been processed for the object, but the action has not been
           completed by the server. Server operators can delay action completion for a variety of reasons,
           such as to allow for human review or third-party action.
       - Status Value: pendingTransfer
+        Set By: server
         Description: A transform command has been processed for the object's superordinate domain object
           (i.e. a transfer of the domain object is pending), but the action has not been completed by
           the server. Server operators can delay action completion for a variety of reasons, such as to
           allow for human review or third-party action.
       - Status Value: pendingUpdate
+        Set By: server
         Description: A transform command has been processed for the object, but the action has not been
           completed by the server. Server operators can delay action completion for a variety of reasons,
           such as to allow for human review or third-party action.
@@ -812,6 +910,8 @@ components:
     subsections: []
   supported_processes: []
   conditions: []
+  at_least_one_status_by_server: true
+  status_not_required_for_client_request: true
 - identifier: contactStatus
   name: Contact Status Object
   object_type: Component
@@ -835,6 +935,20 @@ components:
       - clientTransferProhibited
       - serverTransferProhibited
       - clientUpdateProhibited
+      - serverUpdateProhibited
+      - linked
+      - ok
+      - pendingCreate
+      - pendingDelete
+      - pendingTransfer
+      - pendingUpdate
+      client_values:
+      - clientDeleteProhibited
+      - clientTransferProhibited
+      - clientUpdateProhibited
+      server_only_values:
+      - serverDeleteProhibited
+      - serverTransferProhibited
       - serverUpdateProhibited
       - linked
       - ok
@@ -867,44 +981,60 @@ components:
       that do not begin with either "client" or "server" are server-managed. A client MUST NOT alter status
       values set by the server. A server MAY alter or override status values set by a client, subject
       to local server policies.
+    - 'The Set By column identifies the entity that adds and removes each status value: `client`, `server`,
+      or `client, server` for a value that the server manages and that a client can also manage where
+      server policy permits.'
     tables:
     - caption: Contact Status Values
       anchor: '{#tbl-contact-status-values}'
       columns:
       - Status Value
+      - Set By
       - Description
       rows:
       - Status Value: clientDeleteProhibited
+        Set By: client
         Description: Requests to delete the object MUST be rejected.
       - Status Value: serverDeleteProhibited
+        Set By: server
         Description: Requests to delete the object MUST be rejected.
       - Status Value: clientTransferProhibited
+        Set By: client
         Description: Requests to transfer the object MUST be rejected.
       - Status Value: serverTransferProhibited
+        Set By: server
         Description: Requests to transfer the object MUST be rejected.
       - Status Value: clientUpdateProhibited
+        Set By: client
         Description: Requests to update the object (other than to remove this status) MUST be rejected.
       - Status Value: serverUpdateProhibited
+        Set By: server
         Description: Requests to update the object (other than to remove this status) MUST be rejected.
       - Status Value: linked
+        Set By: server
         Description: The contact object has at least one active association with another object, such
           as a domain object. Servers SHOULD provide services to determine existing object associations.
       - Status Value: ok
+        Set By: server
         Description: This is the normal status value for an object that has no pending operations or prohibitions.
           This value is set and removed by the server as other status values are added or removed.
       - Status Value: pendingCreate
+        Set By: server
         Description: A transform command has been processed for the object, but the action has not been
           completed by the server. Server operators can delay action completion for a variety of reasons,
           such as to allow for human review or third-party action.
       - Status Value: pendingDelete
+        Set By: server
         Description: A transform command has been processed for the object, but the action has not been
           completed by the server. Server operators can delay action completion for a variety of reasons,
           such as to allow for human review or third-party action.
       - Status Value: pendingTransfer
+        Set By: server
         Description: A transform command has been processed for the object, but the action has not been
           completed by the server. Server operators can delay action completion for a variety of reasons,
           such as to allow for human review or third-party action.
       - Status Value: pendingUpdate
+        Set By: server
         Description: A transform command has been processed for the object, but the action has not been
           completed by the server. Server operators can delay action completion for a variety of reasons,
           such as to allow for human review or third-party action.
@@ -969,6 +1099,8 @@ components:
     subsections: []
   supported_processes: []
   conditions: []
+  at_least_one_status_by_server: true
+  status_not_required_for_client_request: true
 - identifier: organisationRoleStatus
   name: Organisation Role Status Object
   object_type: Component
@@ -989,6 +1121,12 @@ components:
     restrictions:
       allowed_values:
       - clientLinkProhibited
+      - serverLinkProhibited
+      - linked
+      - ok
+      client_values:
+      - clientLinkProhibited
+      server_only_values:
       - serverLinkProhibited
       - linked
       - ok
@@ -1015,21 +1153,29 @@ components:
     - Status values that can be added or removed by a client are prefixed with "client".  Corresponding
       status values that can be added or removed by a server are prefixed with "server".  Status values
       that do not begin with either "client" or "server" are server-managed.
+    - 'The Set By column identifies the entity that adds and removes each status value: `client`, `server`,
+      or `client, server` for a value that the server manages and that a client can also manage where
+      server policy permits.'
     tables:
     - caption: Organisation Role Status Values
       anchor: '{#tbl-organisation-role-status-values}'
       columns:
       - Status Value
+      - Set By
       - Description
       rows:
       - Status Value: clientLinkProhibited
+        Set By: client
         Description: Requests to add new links to the role MUST be rejected.
       - Status Value: serverLinkProhibited
+        Set By: server
         Description: Requests to add new links to the role MUST be rejected.
       - Status Value: linked
+        Set By: server
         Description: The role has at least one active association with another object. This value is set
           and removed by the server and is not explicitly set by the client.
       - Status Value: ok
+        Set By: server
         Description: This is the normal status value for a role that has no active prohibitions. This
           value is set and removed by the server as other status values are added or removed.
     subsections: []
@@ -1102,6 +1248,21 @@ components:
       - pendingCreate
       - pendingUpdate
       - pendingDelete
+      client_values:
+      - hold
+      - terminated
+      - clientLinkProhibited
+      - clientUpdateProhibited
+      - clientDeleteProhibited
+      server_only_values:
+      - ok
+      - linked
+      - serverLinkProhibited
+      - serverUpdateProhibited
+      - serverDeleteProhibited
+      - pendingCreate
+      - pendingUpdate
+      - pendingDelete
     direct_access: false
     visibility: default
     notes: []
@@ -1127,46 +1288,63 @@ components:
       `terminated` status values are server-managed when the organisation has no parent organisation and
       otherwise MAY be client-managed based on server policy.  Other status values that do not begin with
       either "client" or "server" are server-managed.
+    - 'The Set By column identifies the entity that adds and removes each status value: `client`, `server`,
+      or `client, server` for a value that the server manages and that a client can also manage where
+      server policy permits.'
     tables:
     - caption: Organisation Status Values
       anchor: '{#tbl-organisation-status-values}'
       columns:
       - Status Value
+      - Set By
       - Description
       rows:
       - Status Value: ok
+        Set By: server
         Description: This is the normal status value for an object that has no pending operations or prohibitions.
           This value is set and removed by the server as other status values are added or removed.
       - Status Value: hold
+        Set By: client, server
         Description: Organisation transform commands and new links MUST be rejected.
       - Status Value: terminated
+        Set By: client, server
         Description: The organisation has been terminated and MUST NOT be linked. Organisation transform
           commands and new links MUST be rejected.
       - Status Value: linked
+        Set By: server
         Description: The organisation object has at least one active association with another object.
           This value is not explicitly set by the client. Servers SHOULD provide services to determine
           existing object associations.
       - Status Value: clientLinkProhibited
+        Set By: client
         Description: Requests to add new links to the organisation MUST be rejected.
       - Status Value: serverLinkProhibited
+        Set By: server
         Description: Requests to add new links to the organisation MUST be rejected.
       - Status Value: clientUpdateProhibited
+        Set By: client
         Description: Requests to update the object (other than to remove this status) MUST be rejected.
       - Status Value: serverUpdateProhibited
+        Set By: server
         Description: Requests to update the object (other than to remove this status) MUST be rejected.
       - Status Value: clientDeleteProhibited
+        Set By: client
         Description: Requests to delete the object MUST be rejected.
       - Status Value: serverDeleteProhibited
+        Set By: server
         Description: Requests to delete the object MUST be rejected.
       - Status Value: pendingCreate
+        Set By: server
         Description: A transform command has been processed for the object, but the action has not been
           completed by the server. Server operators can delay action completion for a variety of reasons,
           such as to allow for human review or third-party action.
       - Status Value: pendingUpdate
+        Set By: server
         Description: A transform command has been processed for the object, but the action has not been
           completed by the server. Server operators can delay action completion for a variety of reasons,
           such as to allow for human review or third-party action.
       - Status Value: pendingDelete
+        Set By: server
         Description: A transform command has been processed for the object, but the action has not been
           completed by the server. Server operators can delay action completion for a variety of reasons,
           such as to allow for human review or third-party action.
@@ -1236,6 +1414,8 @@ components:
     subsections: []
   supported_processes: []
   conditions: []
+  at_least_one_status_by_server: true
+  status_not_required_for_client_request: true
 - identifier: userStatus
   name: User Status Object
   object_type: Component
@@ -1252,9 +1432,19 @@ components:
     mutability: create-only
     data_type: String
     description: machine-readable enum label of a status
-    constraints:
-    - Only status values defined in [Status Values](#user-status-values) are allowed.
-    restrictions: {}
+    constraints: []
+    restrictions:
+      allowed_values:
+      - active
+      - pending
+      - suspended
+      - deactivated
+      client_values:
+      - suspended
+      - deactivated
+      server_only_values:
+      - active
+      - pending
     direct_access: false
     visibility: default
     notes: []
@@ -1279,24 +1469,32 @@ components:
       server-managed and MAY additionally be client-managed by a client with permission to manage users
       in the owning organisation, based on server policy. The `active` status value is set and removed
       by the server as other status values are added or removed.
+    - 'The Set By column identifies the entity that adds and removes each status value: `client`, `server`,
+      or `client, server` for a value that the server manages and that a client can also manage where
+      server policy permits.'
     tables:
     - caption: User Status Values
       anchor: '{#tbl-user-status-values}'
       columns:
       - Status Value
+      - Set By
       - Description
       rows:
       - Status Value: active
+        Set By: server
         Description: This is the normal status value for a user that is permitted to authenticate and
           act within the permissions of its roles.
       - Status Value: pending
+        Set By: server
         Description: The user has been created, but activation has not been completed by the server. Server
           operators can delay activation for a variety of reasons, such as to allow for verification of
           the user's details or human review. Requests authenticated as the user MUST be rejected.
       - Status Value: suspended
+        Set By: client, server
         Description: The user has been temporarily suspended. Requests authenticated as the user MUST
           be rejected.
       - Status Value: deactivated
+        Set By: client, server
         Description: The user has been deactivated. Requests authenticated as the user MUST be rejected.
     subsections: []
   - heading: Allowed Transitions
@@ -1338,6 +1536,8 @@ components:
     subsections: []
   supported_processes: []
   conditions: []
+  at_least_one_status_by_server: true
+  status_not_required_for_client_request: true
 - identifier: dnsRecord
   name: DNS Resource Record Object
   object_type: Component

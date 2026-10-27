@@ -1,0 +1,23 @@
+{
+  "$defs": {
+    "domainStatus.request": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "domainStatus" },
+        "label": {
+          "type": "string",
+          "enum": [
+            "clientDeleteProhibited",
+            "clientHold",
+            "clientRenewProhibited",
+            "clientTransferProhibited",
+            "clientUpdateProhibited"
+          ]
+        },
+        "reason": { "type": "string" },
+        "due": { "type": "string", "format": "date-time" }
+      },
+      "required": ["@type", "label"]
+    }
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "$defs": {
+    "userStatus.request": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "userStatus" },
+        "label": { "type": "string", "enum": ["suspended", "deactivated"] },
+        "reason": { "type": "string" }
+      },
+      "required": ["@type", "label"]
+    }
+  }
+}

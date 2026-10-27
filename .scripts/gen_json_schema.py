@@ -47,6 +47,14 @@ Generation decisions (precedence: draft rules > YAML content > draft schema shap
     Process Object.
   * Elements with Visibility "onDemand" are not required in read views.
     Direct Access does not change the representation.
+  * Status Component Objects (those whose label restrictions export
+    "client_values"/"server_only_values") get a second definition
+    "<id>.request" whose label enum holds only the client values. Create and
+    update views embed it; read views embed the full "<id>". A status element
+    is left out of create and update views when the status object has no
+    client values, is optional there when "status_not_required_for_client_request"
+    is set, and is required in read views when "at_least_one_status_by_server"
+    is set.
   * Prose constraints are NOT converted to keywords; only the structured
     attributes are used: cardinality, mutability, data type, "restrictions"
     (enum, minimum/maximum, pattern, minLength/maxLength, propertyNames) and
@@ -105,6 +113,8 @@ DICT_RE = re.compile(r"^Dictionary\[(.+)\]$")
 EXTERNAL_RE = re.compile(r"^External:([^:]+):(.+)$")
 
 STANDARD_VIEWS = ("create", "read", "update", "query")
+REQUEST_VIEWS = ("create", "update")
+STATUS_RESTRICTIONS = ("client_values", "server_only_values")
 
 COMPOSITIONS = {"Composition", "LabelledComposition", "DictionaryComposition"}
 LABELLED = {"LabelledAggregation", "LabelledComposition"}
@@ -371,7 +381,7 @@ class Generator:
 
     def views_for(self, o):
         if o.kind == "Component":
-            return [None]
+            return [None, "request"] if self.client_values(o) and self.in_resource(o) else [None]
         sfx = [Model.op_suffix(op, owner) for op, owner in o.operations]
         if o.kind == "Process":
             views = ["create", "read"]
@@ -459,6 +469,8 @@ class Generator:
     def restrict(self, schema, r, ctx):
         """Add the keywords of the exported value restrictions to a value schema."""
         for k, v in r.items():
+            if k in STATUS_RESTRICTIONS:  # used by element_schema and status_target
+                continue
             if k == "allowed_values":
                 if schema.get("type") != "string":
                     self.diag.add("rule-gap", "Enumeration on a non-string value: Rule 22 covers string "
@@ -554,6 +566,14 @@ class Generator:
 
     def add_element(self, o, e, view, props, required):
         ident = e["identifier"]
+        st = self.status_target(e)
+        if st is not None and o.kind != "Resource":
+            self.diag.add("rule-gap", "Status object embedded in an object with a single schema; the "
+                                      "full set of status values applies in requests too", f"{o.id}.{ident}")
+        elif st is not None:
+            e = self.status_element(o, e, view, st)
+            if e is None:
+                return
         if ident.startswith("@"):
             self.diag.add("yaml-issue", "Data element name begins with '@' (reserved)", f"{o.id}.{ident}")
         props[ident] = self.element_schema(o, e, view)
@@ -565,6 +585,53 @@ class Generator:
                                       "required in read views (output only on request)", f"{o.id}.{ident}")
         if self.min_card(e["cardinality"]) >= 1 and not (on_demand and view == "read"):
             required.append(ident)
+
+    # -- status objects ----------------------------------------------------
+
+    @staticmethod
+    def client_values(o):
+        """Status values a client may set: the "client_values" of the object's elements.
+
+        None when the object is not a status object (no element exports the client/server
+        partition of its values)."""
+        out = None
+        for e in o.elements:
+            r = e.get("restrictions") or {}
+            if any(k in r for k in STATUS_RESTRICTIONS):
+                out = (out or []) + list(r.get("client_values") or [])
+        return out
+
+    def in_resource(self, o):
+        """Whether a Data Object embeds the object directly (and so sends it in requests)."""
+        return any(self.status_target(e) is o for r in self.m.objs.values() if r.kind == "Resource"
+                   for e in r.elements)
+
+    def status_target(self, e):
+        """Status Component Object that a data element embeds, or None."""
+        dt = e["data_type"].strip().rstrip(".")
+        m = ASSOC_RE.match(dt)
+        t = self.m.lookup(m.group(2) if m else dt)
+        if t is None or t.kind != "Component" or self.client_values(t) is None:
+            return None
+        return t
+
+    # cardinality of a status element in requests (client may omit) and in read views
+    OPTIONAL_CARD = {"1": "0-1", "1+": "0+"}
+    REQUIRED_CARD = {"0-1": "1", "0+": "1+"}
+
+    def status_element(self, o, e, view, st):
+        """A status element adjusted for the view, or None when it is left out."""
+        ctx = f"{o.id}.{e['identifier']}"
+        self.diag.add("rule-gap", "No rule covers status objects in requests; client-settable values "
+                                  "from the status values table applied", ctx)
+        if view in REQUEST_VIEWS:
+            if not self.client_values(st):
+                return None
+            if st.raw.get("status_not_required_for_client_request"):
+                return dict(e, cardinality=self.OPTIONAL_CARD.get(e["cardinality"], e["cardinality"]))
+        elif view == "read" and st.raw.get("at_least_one_status_by_server"):
+            return dict(e, cardinality=self.REQUIRED_CARD.get(e["cardinality"], e["cardinality"]))
+        return e
 
     def direct_access(self, o, e):
         ctx = f"{o.id}.{e['identifier']}"
@@ -633,6 +700,8 @@ class Generator:
             return self.DEFAULT_MUTS["read"]
         if view == "update":  # Rules 5-7: only read-write elements can be changed
             return {"read-write"}
+        if view == "request":  # a status object sent by a client: everything it can set
+            return {"create-only", "read-write"}
         items = self.view_items(o, view)
         if not items and view == "read":
             # a process without a Read operation: the representation its operations return
@@ -658,6 +727,8 @@ class Generator:
             dt = dt.rstrip(".")
         card = e["cardinality"]
         r = dict(e.get("restrictions") or {})
+        if view == "request" and any(k in r for k in STATUS_RESTRICTIONS):
+            r["allowed_values"] = list(r.get("client_values") or [])
         key_pattern, value_range = r.pop("key_pattern", None), r.pop("value_range", None)
 
         m = ASSOC_RE.match(dt)
@@ -750,7 +821,7 @@ class Generator:
                                           "not defined (Rule 6 covers requests only); readOnly applied "
                                           "following the draft schemas", ctx)
                 schema["readOnly"] = True
-            elif view is None:
+            elif view in (None, "request"):
                 self.diag.add("rule-gap", "Create-only element in a component object: components have a "
                                           "single schema, Rule 6 (writeOnly in requests, excluded from "
                                           "update) cannot be applied; no annotation", ctx)
@@ -793,6 +864,8 @@ class Generator:
 
     def ref_name(self, o, assoc, view, is_ref, ctx):
         if o.kind == "Component":
+            if view in REQUEST_VIEWS and self.has_def(o, "request"):
+                return f"{o.id}.request"
             return o.id
         if is_ref or assoc not in COMPOSITIONS:
             # Rule 8: an aggregation carries at minimum the primary identifier

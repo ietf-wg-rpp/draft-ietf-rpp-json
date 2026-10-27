@@ -9,14 +9,13 @@
         "id": { "$ref": "#/$defs/identifier", "writeOnly": true },
         "status": {
           "type": "array",
-          "items": { "$ref": "#/$defs/contactStatus" },
-          "minItems": 1
+          "items": { "$ref": "#/$defs/contactStatus.request" }
         },
         "contactInfo": { "$ref": "#/$defs/Card" },
         "authInfo": { "$ref": "#/$defs/authInfo" },
         "disclose": { "$ref": "#/$defs/disclose" }
       },
-      "required": ["@type", "id", "status", "contactInfo"]
+      "required": ["@type", "id", "contactInfo"]
     }
   }
 }

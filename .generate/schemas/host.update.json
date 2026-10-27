@@ -9,12 +9,11 @@
         "hostName": { "type": "string", "format": "hostname" },
         "status": {
           "type": "array",
-          "items": { "$ref": "#/$defs/hostStatus" },
-          "minItems": 1
+          "items": { "$ref": "#/$defs/hostStatus.request" }
         },
         "dns": { "$ref": "#/$defs/dnsData" }
       },
-      "required": ["@type", "hostName", "status"]
+      "required": ["@type", "hostName"]
     }
   }
 }

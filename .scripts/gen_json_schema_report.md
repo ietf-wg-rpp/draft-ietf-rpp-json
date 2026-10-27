@@ -2,8 +2,8 @@
 
 Inputs:
 
-- object model `.work/draft-ietf-rpp-data-objects.yaml` (export with `unique_identifier`, `owner`, `supported_processes`, `direct_access`, `visibility`, structured subsection `tables`, structured operation `input`/`output` items, `common_data_types`, element `restrictions` and object `conditions`)
-- draft `src/draft-ietf-rpp-json.md` (branch `feature/generate-schemas`, commit `ee0be33` plus uncommitted working-tree changes)
+- object model `.work/draft-ietf-rpp-data-objects.yaml` (export with `unique_identifier`, `owner`, `supported_processes`, `direct_access`, `visibility`, structured subsection `tables`, structured operation `input`/`output` items, `common_data_types`, element `restrictions` including the status `client_values`/`server_only_values` partition, object `conditions`, and the status object flags `at_least_one_status_by_server` and `status_not_required_for_client_request`)
+- draft `src/draft-ietf-rpp-json.md` (branch `feature/generate-schemas`, commit `60a7526`)
 - source text `.work/draft-ietf-rpp-data-objects.clean.txt`, checked where the YAML is silent
 
 Generator: `.scripts/gen_json_schema.py`.
@@ -14,9 +14,9 @@ Generator: `.scripts/gen_json_schema.py`.
     --compare src/draft-ietf-rpp-json.md --compare-out compare.md
 ```
 
-`--replace src/draft-ietf-rpp-json.md [--replace-out FILE]` puts the generated schemas into the draft's schema blocks (see `.scripts/CLAUDE.md`). Against the current draft it replaces 61 of 70 blocks. It leaves 9 untouched: `identifier` and `Card` (placeholders), `status`, `maintenanceMessage`, `transferProcess.delete.domain` and `transferProcess.approve.domain` (no counterpart), and three `$ref` aliases or duplicates whose counterpart is already placed. 11 generated schemas have no place in the draft, the D9 list: the five per-type status objects, `disclose`, `baseProcess`, `restoreProcess.report`, `domainCreateProcess.create`/`.read` and `host.update`.
+`--replace src/draft-ietf-rpp-json.md [--replace-out FILE]` puts the generated schemas into the draft's schema blocks (see `.scripts/CLAUDE.md`). Against the current draft it replaces 83 of 91 blocks. It leaves 8 untouched: `identifier` and `Card` (placeholders), `restoreProcess.report`, `transferProcess.delete.domain` and `transferProcess.approve.domain` (no counterpart), and three `$ref` aliases or duplicates whose counterpart is already placed. 1 generated schema has no place in the draft: `restoreProcess.update`.
 
-The generator produces 74 `$defs`. The bundle passes 2020-12 meta-schema validation, and every `$ref` in it resolves.
+The generator produces 86 `$defs`. The bundle passes 2020-12 meta-schema validation, and every `$ref` in it resolves.
 
 Generation precedence: **the draft's written rules, then the YAML content, then the shape of the draft's existing schemas**.
 - `$defs` keys follow Rule 27 of PR #104 as updated by the M1 suggestion (review comment r4363681640), with YAML identifiers used as-is: `<id>` for components, and `<id>.create`, `<id>.read`, `<id>.update`, `<id>.reference` and `<id>.query` for resources.
@@ -26,6 +26,7 @@ Generation precedence: **the draft's written rules, then the YAML content, then 
 - The elements of each view come from the operations' exported Input/Output items: the `Elements` mutabilities of the create Input `Object` and the read Output `Object` that name the object itself. Update views hold the read-write elements (Rules 5–7); `Changes` items are not used. Operation views carry the `Input Data Elements` definitions.
 - Create views carry `processes` only when the Create Input names a Process Object (`Object: Domain Create Process Object`). Only `domainName` qualifies.
 - Elements with `visibility: onDemand` are not required in read views. `direct_access` does not change the representation.
+- Status objects (M26): a status Component Object embedded in a Data Object gets a second definition `<id>.request` whose `label` enum holds only the client values (Set By `client` or `client, server`). Create and update views embed `<id>.request`, read views embed `<id>`. The status element is left out of create and update views when the status object has no client values, is optional there (no `required`, no `minItems`) when `status_not_required_for_client_request` is set, and is required in read views when `at_least_one_status_by_server` is set. `organisationRoleStatus` is embedded only in the single-schema `organisationRole` component, so it gets no `.request` definition.
 - Prose constraints are **not** turned into keywords. Besides cardinality, mutability and data type, only the exported structured `restrictions` (→ `enum`, `minimum`/`maximum`, `pattern`, `minLength`/`maxLength`, `propertyNames`) and `conditions` (→ `if`/`then`) are used.
 - Common Data Types are built from `common_data_types`: `base_type` plus `restrictions`, under the draft's keys (`identifier`, `clientIdentifier`, `phoneNumber`).
 - A bare object name as a data type is treated as `Composition[Type]` (data-objects §8.2).
@@ -65,6 +66,7 @@ Without these rules, the schemas can't be reproduced the way the draft writes th
 | M23 | open | **No rule for `Direct Access`** (sub-resource addressing). It is a protocol concern, but the draft doesn't say that the inline JSON representation is unaffected. | `processes.*`, `*.processes`, `organisation.users` | ignored |
 | M24 | open | **The Processes Object is shared by all Data Objects.** No rule restricts it to the processes a Data Object supports (`supported_processes` plus owned processes). For example, `contact.read.processes` accepts `renewProcess`, `restoreProcess` and `createProcess`. | `processes` | one shared `processes` component; reported as a diagnostic |
 | M25 | open | **No rule for cross-element conditions** (data-objects prose such as "`gainingClientId` is required for push transfers"). The draft expresses it as a `oneOf` over push/pull branches. | `transferProcess.create` | `if`/`then` per exported condition (`allOf` when more than one), in every view that holds all elements the condition names |
+| M26 | resolved | **No rule for status objects in requests.** Rule 22 gives one `enum` per status object, and Rules 1, 4 and 23 make `status` (`1+`, read-write) required in create and update requests. Data-objects, however, lets a client set only the values whose *Set By* column contains `client`, lets the server always assign at least one value (`ok`, `active`), and lets a client omit the status when creating or updating the object. No rule says which values a request schema accepts, whether `status` is required in requests, or what happens when a status object has no client-settable value. | all `*.create`/`*.update` with `status`. Resolved: the draft now has Rules 28–31 (*Status Objects* under JSON Schema Definition Rules), which follow the generator choice. | `<id>.request` with the client values in requests; `status` optional in requests when the client may omit it; left out of requests when no value is client-settable; required in read views when the server always assigns one |
 
 ### Rule conflicts
 
@@ -87,9 +89,9 @@ Without these rules, the schemas can't be reproduced the way the draft writes th
 | D4 | open | Rule 5 (`read-only` ⇒ `readOnly`) | `provMetadata` in `domainObject.read`, `contactObject.read` and `hostObject.read` has no `readOnly`. Neither does `profileObject.read.baseProfile`, nor `userObject.read.organisationId` (read-only in the YAML). |
 | D5 | open | Rule 5 (no read-only properties in requests) | `contactObject.update` includes `processes`. `userObject.create` includes `organisationId`, which is read-only in the YAML. `organisationObject.update` includes `status` marked `readOnly`. |
 | D6 | open | Rule 6 (`create-only` ⇒ `writeOnly` in requests) | Missing in `renewProcess.create` (`expiryDate`, `renewalPeriod`), `transferProcess.create` (`transferDir`, `gainingClientId`), `createProcess.create.period`, `contactObject.create.id` and `organisationObject.create.id`. `domainObject.create` does apply it, so the draft is inconsistent with itself. |
-| D7 | open | Rule 23 (required = cardinality `1`/`1+`) | <br>• `transferProcess.read` requires `transferDir`, which is `0-1`. <br>• `restoreReport` requires `statements`, which is `0+`. <br>• No update schema lists its cardinality-1 read-write elements. <br>• `domainObject.read` and `hostObject.read` don't require `status` (`1+` in the YAML). <br>• `userObject.read` requires `userId`, a property the YAML doesn't define (it uses `id`). |
-| D8 | open | Rule 4 (`1+` ⇒ `minItems: 1`) | `status` arrays (`1+` in the YAML) have no `minItems`. `roles` has `minProperties: 1` only in create. |
-| D9 | open | Rule 20 (one schema per component) | No schema for `domainStatus`, `hostStatus`, `contactStatus`, `organisationStatus` or `organisationRoleStatus` (the draft has one generic `status`). Also missing: `disclose`, `baseProcess`, `domainCreateProcess`, `restoreProcess.report` (the YAML's Report operation) and `host.update` (still `TODO`). |
+| D7 | open | Rule 23 (required = cardinality `1`/`1+`) | <br>• `transferProcess.read` requires `transferDir`, which is `0-1`. <br>• `restoreReport` requires `statements`, which is `0+`. <br>• No update schema lists its cardinality-1 read-write elements. <br>• (resolved) `domainName.read` and `host.read` now require `status`. <br>• `userObject.read` requires `userId`, a property the YAML doesn't define (it uses `id`). |
+| D8 | open | Rule 4 (`1+` ⇒ `minItems: 1`) | (resolved for `status`: read views carry `minItems: 1`; request views drop it per M26.) `roles` has `minProperties: 1` only in create. |
+| D9 | open | Rule 20 (one schema per component) | (resolved for the per-type status objects, which the draft now has.) The status request definitions `<id>.request` (M26) are now present too. Still missing: `disclose`, `baseProcess`, `domainCreateProcess`, `restoreProcess.report` (the YAML's Report operation) and `host.update` (still `TODO`). |
 | D10 | open | `$defs` uniqueness | `transferProcess.reject.domain` is defined twice, once for the reject request and once for the reject response (Domain Name → Transfer). The combined schema keeps only the second definition. |
 | D11 | open | Prose vs schema | The `messageObject.create` caption says the body also carries `id`, `creationDate` and `status`, but the schema doesn't. `userObject.*.description` has `"const": "user"`, which looks like a copy-paste error (`description` is free text). |
 
@@ -104,8 +106,8 @@ The "In source?" column says whether the information is in `draft-ietf-rpp-data-
 | Y1 | fixed | **`Unique Identifier`** object attribute | Yes | Now exported as `unique_identifier`; the reference views use it and the heuristic was removed. |
 | Y2 | fixed | **Owner Data Object** of object-specific processes | Yes | Now exported as `owner`; the identifier-prefix heuristic was removed. Together with `supported_processes` it decides the create `processes` type (M19). |
 | Y3 | fixed | **`Direct Access`** and **`Visibility`** element attributes | Yes | Now exported as `direct_access` and `visibility`; see M22 and M23. The generator also checks that a Direct Access element with cardinality above 1 targets an object with a Unique Identifier. |
-| Y4 | fixed | **Status value tables** | Yes | Now exported as structured `subsections[].tables` (columns `Status Value`, `Description`). The status labels' `allowed_values` are resolved from them, so every status `label` gets a Rule 22 `enum`, except `userStatus` (Y13). |
-| Y5 | fixed (partly) | **Enumerations, ranges and patterns** (`period` 1–99, `y`/`m`; `trStatus`, `transferDir`, `restoreStatus`, message `status`, organisation-role and user status values; `dnsControls` key syntax) | Yes, but only as prose constraints | Now exported as `restrictions` and generated. Still prose only: user `status` values, the `restoreReport.statements` count (1–2), `discoveryVersion.version` (Semantic Versioning). |
+| Y4 | fixed | **Status value tables** | Yes | Now exported as structured `subsections[].tables` (columns `Status Value`, `Set By`, `Description`). The status labels' `allowed_values` are resolved from them, so every status `label` gets a Rule 22 `enum`. |
+| Y5 | fixed (partly) | **Enumerations, ranges and patterns** (`period` 1–99, `y`/`m`; `trStatus`, `transferDir`, `restoreStatus`, message `status`, organisation-role and user status values; `dnsControls` key syntax) | Yes, but only as prose constraints | Now exported as `restrictions` and generated. Still prose only: the `restoreReport.statements` count (1–2), `discoveryVersion.version` (Semantic Versioning). |
 | Y6 | fixed (partly) | **Conditional requirements**: `gainingClientId` is required for `push` transfers | Prose only | Now exported as `conditions` and generated as `if`/`then` (M25). Still prose only: the `restoreProcess` presence rules (`reportDueDate` only when `restoreStatus` is `pendingRestore`), which need a "value is not" condition the export cannot express. |
 | Y7 | fixed (partly) | **Common Data Types** (Identifier, Client Identifier, Phone Number syntax) | Yes (§7), as prose | Now exported as `common_data_types`; Client Identifier and Phone Number carry `base_type` and `restrictions`. Identifier has neither (its syntax is a reference to RFC 5730 §2.8), so only `{"type": "string"}` (Rule 21) is generated. |
 | Y8 | open | **External type** `RPP-JSContact-Profile:Card` | No (external profile) | Placeholder object. The draft's `Card` schema has to come from the profile. |
@@ -113,7 +115,8 @@ The "In source?" column says whether the information is in `draft-ietf-rpp-data-
 | Y10 | open | **Disclose Object** has no data elements | No (source says `Description: TBD`) | Only an empty `disclose` schema can be generated. |
 | Y11 | fixed | **Operation input and output** | Yes | Now exported as structured `input`/`output` items (Uniform interface defaults filled in). The generator takes the view elements, the create `processes` Process Objects, the query cardinality, the Input Data Elements and the Parameters from them. |
 | Y12 | open | **Maintenance Message Object** | **No** (missing from the YAML and from the source) | The draft defines `maintenanceMessage`, so `message.data` in the draft has an extra `oneOf` branch. |
-| Y13 | open | **`userStatus.label` allowed values** | Yes (User Status Values table, `{#tbl-user-status-values}`) | The table is exported, but `allowed_values` is not resolved from it: `restrictions` is `{}` and the constraint stays prose ("Only status values defined in [Status Values](#user-status-values)…"). The generated `userStatus.label` is a plain string with no Rule 22 `enum` (`active`, `pending`, `suspended`, `deactivated`), unlike the other status objects (see Y4). |
+| Y13 | fixed | **`userStatus.label` allowed values** | Yes (User Status Values table, `{#tbl-user-status-values}`) | The table is exported, but `allowed_values` is not resolved from it: `restrictions` is `{}` and the constraint stays prose ("Only status values defined in [Status Values](#user-status-values)…"). The generated `userStatus.label` is a plain string with no Rule 22 `enum` (`active`, `pending`, `suspended`, `deactivated`), unlike the other status objects (see Y4). Now resolved: `allowed_values` is exported and the generated `enum` holds the four values. |
+| Y14 | fixed | **Who sets each status value, and whether the status is required in requests** | Yes (*Set By* column of the status values tables; status values prose) | Now exported as the `client_values`/`server_only_values` restrictions of each status `label` and the object flags `at_least_one_status_by_server` and `status_not_required_for_client_request`. The generator builds the `<id>.request` definitions and the request/read requirements from them (M26). |
 
 ### YAML data-quality issues found while generating
 
@@ -124,6 +127,7 @@ The "In source?" column says whether the information is in `draft-ietf-rpp-data-
 - (fixed) `domainName.registrant`, `organisation.parent` and `profile.baseProfile` used the bare type (Composition); they are now `Aggregation[...]`, so the generator emits `*.reference` like the draft.
 - `domainTransferProcess` redefines the inherited `processId`, which data-objects §2.5 forbids.
 - (fixed) The Output of every operation (and the Uniform interface default) listed `Elements: read-write, read-only`, so create-only elements (`domainName.name`, `contact.id`, `transferProcess.transferDir`, …) were never returned. The Output now lists `create-only, read-write, read-only`, and the generator's override was removed.
+- `organisationRoleStatus` has no `at_least_one_status_by_server`/`status_not_required_for_client_request` flags, although the other five status objects have both. It is embedded only in `organisationRole` (`0+`), so the generated schemas don't change.
 - `contact.contactInfo` has cardinality `1-2`, which is not in the data-objects cardinality notation (§2.4).
 - The `user` element constraints are again given as `'-'` rather than `[]` (`details`, `description`, `status`, `organisationId`); this was fixed in an earlier export and has regressed.
 
@@ -133,7 +137,7 @@ The "In source?" column says whether the information is in `draft-ietf-rpp-data-
 
 The generator follows the YAML on all of these, so they show up as differences in `--compare`:
 
-- **`status`**: the YAML has a per-type status object, `1+`, read-write. The draft has a generic `status`, optional and `readOnly`. Because the YAML marks it `1+`, the generated create and update views require `status`.
+- (resolved) **`status`**: the draft's create, update and read schemas now match the generated ones (M26).
 - **`user`**: the YAML gives `details` as a JSContact `Card`, `status` as a single `String` (`1`), and the identifier as `id`. The draft has a contact reference, an array of enums, and `userId`. `organisationId` is read-only in the YAML, so it is missing from `user.create` but required in `user.read`.
 - **`organisationRole.status`**: the YAML uses `Organisation Role Status Object`; the draft uses an array of enum strings.
 - **`contactInfo`**: the YAML gives `1-2` (an array); the draft has a single `Card`.
@@ -148,5 +152,5 @@ A quick check of the draft's `# Examples` against the generated schemas confirms
 - the `status` shape and requirement,
 - the `@type` of derived processes (`domainCreateProcess`),
 - `contactInfo` being an array,
-- the user `status` and `id`,
+- (resolved) the user `status`: the user examples now carry a `userStatus` object,
 - the limited `process` objects inside messages.

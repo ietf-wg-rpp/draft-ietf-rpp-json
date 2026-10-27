@@ -467,6 +467,18 @@ Example (Domain Name Data Object):
 
 Rule 26: When a transfer request or other operation requires authorization information (e.g., EPP-style authinfo), the client MUST NOT include the `authInfo` object in the JSON request body. Instead, the client MUST convey the authorization information using the `RPP-Authorization` HTTP request header as defined in [@!I-D.ietf-rpp-core]. Servers MUST reject any request that includes an `authInfo` object in the JSON body with an appropriate error response.
 
+### Status Objects {#status-object-rules}
+
+Each status object in [@!I-D.ietf-rpp-data-objects] has a status values table whose "Set By" column identifies the entity that adds and removes each status value: `client`, `server`, or `client, server`. In this section, a client-settable status value is a value whose "Set By" column contains `client`.
+
+Rule 28: A status object embedded in a data object MUST have two JSON Schema definitions. The definition keyed by the Identifier of the status object lists all of its status values in the `"enum"` of `"label"`. The definition keyed by the Identifier followed by `.request` lists only the client-settable status values in the `"enum"` of `"label"` and is otherwise identical. Read response schemas MUST reference the first definition. Create and update request schemas MUST reference the `.request` definition.
+
+Rule 29: When a status object has no client-settable status value, the create and update request schemas MUST NOT contain the status data element.
+
+Rule 30: When the status values of a status object in [@!I-D.ietf-rpp-data-objects] state that a client is not required to provide a status value when creating or updating the object, the status data element MUST NOT be listed under `"required"` and MUST NOT carry `"minItems"` in the create and update request schemas, notwithstanding Rules 1, 4, and 23.
+
+Rule 31: When the status values of a status object in [@!I-D.ietf-rpp-data-objects] state that a server MUST assign at least one status value to the object, the status data element MUST be listed under `"required"` in the read response schema, with `"minItems": 1` when it is an array.
+
 ### Inheritance
 
 RPP Data Objects and Component Objects MAY inherit the data elements and operations of another object. The JSON schema for an object must include all the inherited data elements and constraints from its base object, using a flat structure where all properties are defined at the top level of the schema, rather than nested under an `"allOf"` or `"anyOf"` construct.
@@ -1093,11 +1105,11 @@ The following constraints cannot be expressed in JSON Schema and MUST be enforce
 
 ### Status Objects {#status-objects}
 
-Each RPP Data Object type that carries a status uses a type-specific status object, as defined in [@!I-D.ietf-rpp-data-objects].
+Each RPP Data Object type that carries a status uses a type-specific status object, as defined in [@!I-D.ietf-rpp-data-objects]. A status object has a read schema keyed by its Identifier and, when it is embedded in a data object, a request schema keyed by its Identifier followed by `.request` (see (#status-object-rules)).
 
 The following constraints cannot be expressed in JSON Schema and MUST be enforced by implementations:
 
-- Label values with the prefix `"client"` are added and removed by the client; label values with the prefix `"server"` are added and removed by the server. All other label values are server-managed unless stated otherwise below. A client MUST NOT add, remove, or alter a server-managed or `"server"`-prefixed label value. A server MAY alter or override `"client"`-prefixed label values, subject to local server policy.
+- A server MUST keep the status values it has set when it processes a create or update request; their absence from the `"status"` of the request does not remove them. A server MAY alter or override client-settable status values, subject to local server policy.
 - A server MUST reject a request whose `"status"` array contains a combination of label values prohibited by the status exclusion rules for that object type in [@!I-D.ietf-rpp-data-objects].
 - A `"status"` array MUST NOT contain the same `"label"` value more than once.
 
@@ -1156,6 +1168,34 @@ The following constraints cannot be expressed in JSON Schema and MUST be enforce
 }
 ```
 
+Create and update request schema (status values that a client can set):
+
+```json
+{
+  "$defs": {
+    "domainStatus.request": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "domainStatus" },
+        "label": {
+          "type": "string",
+          "enum": [
+            "clientDeleteProhibited",
+            "clientHold",
+            "clientRenewProhibited",
+            "clientTransferProhibited",
+            "clientUpdateProhibited"
+          ]
+        },
+        "reason": { "type": "string" },
+        "due": { "type": "string", "format": "date-time" }
+      },
+      "required": ["@type", "label"]
+    }
+  }
+}
+```
+
 #### Host Status Object
 
 ```json
@@ -1180,6 +1220,24 @@ The following constraints cannot be expressed in JSON Schema and MUST be enforce
             "pendingUpdate"
           ]
         },
+        "reason": { "type": "string" }
+      },
+      "required": ["@type", "label"]
+    }
+  }
+}
+```
+
+Create and update request schema (status values that a client can set):
+
+```json
+{
+  "$defs": {
+    "hostStatus.request": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "hostStatus" },
+        "label": { "type": "string", "enum": ["clientDeleteProhibited", "clientUpdateProhibited"] },
         "reason": { "type": "string" }
       },
       "required": ["@type", "label"]
@@ -1213,6 +1271,27 @@ The following constraints cannot be expressed in JSON Schema and MUST be enforce
             "pendingTransfer",
             "pendingUpdate"
           ]
+        },
+        "reason": { "type": "string" }
+      },
+      "required": ["@type", "label"]
+    }
+  }
+}
+```
+
+Create and update request schema (status values that a client can set):
+
+```json
+{
+  "$defs": {
+    "contactStatus.request": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "contactStatus" },
+        "label": {
+          "type": "string",
+          "enum": ["clientDeleteProhibited", "clientTransferProhibited", "clientUpdateProhibited"]
         },
         "reason": { "type": "string" }
       },
@@ -1283,6 +1362,33 @@ The following constraints cannot be expressed in JSON Schema and MUST be enforce
 }
 ```
 
+Create and update request schema (status values that a client can set):
+
+```json
+{
+  "$defs": {
+    "organisationStatus.request": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "organisationStatus" },
+        "label": {
+          "type": "string",
+          "enum": [
+            "hold",
+            "terminated",
+            "clientLinkProhibited",
+            "clientUpdateProhibited",
+            "clientDeleteProhibited"
+          ]
+        },
+        "reason": { "type": "string" }
+      },
+      "required": ["@type", "label"]
+    }
+  }
+}
+```
+
 #### User Status Object
 
 The following constraints cannot be expressed in JSON Schema and MUST be enforced by implementations:
@@ -1296,7 +1402,25 @@ The following constraints cannot be expressed in JSON Schema and MUST be enforce
       "type": "object",
       "properties": {
         "@type": { "type": "string", "const": "userStatus" },
-        "label": { "type": "string" },
+        "label": { "type": "string", "enum": ["active", "pending", "suspended", "deactivated"] },
+        "reason": { "type": "string" }
+      },
+      "required": ["@type", "label"]
+    }
+  }
+}
+```
+
+Create and update request schema (status values that a client can set):
+
+```json
+{
+  "$defs": {
+    "userStatus.request": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "userStatus" },
+        "label": { "type": "string", "enum": ["suspended", "deactivated"] },
         "reason": { "type": "string" }
       },
       "required": ["@type", "label"]
@@ -2396,8 +2520,7 @@ Create request schema (create-only and read-write properties):
         "lgr": { "type": "string", "writeOnly": true },
         "status": {
           "type": "array",
-          "items": { "$ref": "#/$defs/domainStatus" },
-          "minItems": 1
+          "items": { "$ref": "#/$defs/domainStatus.request" }
         },
         "registrant": { "$ref": "#/$defs/contact.reference" },
         "contacts": {
@@ -2429,7 +2552,7 @@ Create request schema (create-only and read-write properties):
           "required": ["@type"]
         }
       },
-      "required": ["@type", "name", "status"]
+      "required": ["@type", "name"]
     }
   }
 }
@@ -2566,8 +2689,7 @@ Update request schema (read-write properties):
         "@type": { "type": "string", "const": "domainName" },
         "status": {
           "type": "array",
-          "items": { "$ref": "#/$defs/domainStatus" },
-          "minItems": 1
+          "items": { "$ref": "#/$defs/domainStatus.request" }
         },
         "registrant": { "$ref": "#/$defs/contact.reference" },
         "contacts": {
@@ -2588,7 +2710,7 @@ Update request schema (read-write properties):
         "dns": { "$ref": "#/$defs/dnsData" },
         "authInfo": { "$ref": "#/$defs/authInfo" }
       },
-      "required": ["@type", "status"]
+      "required": ["@type"]
     }
   }
 }
@@ -2851,14 +2973,13 @@ Create request schema (create-only and read-write properties):
         "id": { "$ref": "#/$defs/identifier", "writeOnly": true },
         "status": {
           "type": "array",
-          "items": { "$ref": "#/$defs/contactStatus" },
-          "minItems": 1
+          "items": { "$ref": "#/$defs/contactStatus.request" }
         },
         "contactInfo": { "$ref": "#/$defs/Card" },
         "authInfo": { "$ref": "#/$defs/authInfo" },
         "disclose": { "$ref": "#/$defs/disclose" }
       },
-      "required": ["@type", "id", "status", "contactInfo"]
+      "required": ["@type", "id", "contactInfo"]
     }
   }
 }
@@ -2910,14 +3031,13 @@ Update request schema (read-write properties):
         "@type": { "type": "string", "const": "contact" },
         "status": {
           "type": "array",
-          "items": { "$ref": "#/$defs/contactStatus" },
-          "minItems": 1
+          "items": { "$ref": "#/$defs/contactStatus.request" }
         },
         "contactInfo": { "$ref": "#/$defs/Card" },
         "authInfo": { "$ref": "#/$defs/authInfo" },
         "disclose": { "$ref": "#/$defs/disclose" }
       },
-      "required": ["@type", "status", "contactInfo"]
+      "required": ["@type", "contactInfo"]
     }
   }
 }
@@ -2983,12 +3103,11 @@ Create request schema (create-only and read-write properties):
         "hostName": { "type": "string", "format": "hostname" },
         "status": {
           "type": "array",
-          "items": { "$ref": "#/$defs/hostStatus" },
-          "minItems": 1
+          "items": { "$ref": "#/$defs/hostStatus.request" }
         },
         "dns": { "$ref": "#/$defs/dnsData" }
       },
-      "required": ["@type", "hostName", "status"]
+      "required": ["@type", "hostName"]
     }
   }
 }
@@ -3039,12 +3158,11 @@ Update request schema (read-write properties):
         "hostName": { "type": "string", "format": "hostname" },
         "status": {
           "type": "array",
-          "items": { "$ref": "#/$defs/hostStatus" },
-          "minItems": 1
+          "items": { "$ref": "#/$defs/hostStatus.request" }
         },
         "dns": { "$ref": "#/$defs/dnsData" }
       },
-      "required": ["@type", "hostName", "status"]
+      "required": ["@type", "hostName"]
     }
   }
 }
@@ -3096,8 +3214,7 @@ Create request schema (create-only and read-write properties):
         "id": { "$ref": "#/$defs/identifier", "writeOnly": true },
         "status": {
           "type": "array",
-          "items": { "$ref": "#/$defs/organisationStatus" },
-          "minItems": 1
+          "items": { "$ref": "#/$defs/organisationStatus.request" }
         },
         "roles": {
           "type": "object",
@@ -3129,7 +3246,7 @@ Create request schema (create-only and read-write properties):
           }
         }
       },
-      "required": ["@type", "id", "status", "roles"]
+      "required": ["@type", "id", "roles"]
     }
   }
 }
@@ -3207,8 +3324,7 @@ Update request schema (read-write properties):
         "@type": { "type": "string", "const": "organisation" },
         "status": {
           "type": "array",
-          "items": { "$ref": "#/$defs/organisationStatus" },
-          "minItems": 1
+          "items": { "$ref": "#/$defs/organisationStatus.request" }
         },
         "roles": {
           "type": "object",
@@ -3240,7 +3356,7 @@ Update request schema (read-write properties):
           }
         }
       },
-      "required": ["@type", "status", "roles"]
+      "required": ["@type", "roles"]
     }
   }
 }
@@ -3401,9 +3517,9 @@ Create request schema (create-only and read-write properties):
         "id": { "$ref": "#/$defs/identifier", "writeOnly": true },
         "details": { "$ref": "#/$defs/Card" },
         "description": { "type": "string" },
-        "status": { "$ref": "#/$defs/userStatus" }
+        "status": { "$ref": "#/$defs/userStatus.request" }
       },
-      "required": ["@type", "id", "details", "status"]
+      "required": ["@type", "id", "details"]
     }
   }
 }
@@ -3450,9 +3566,9 @@ Update request schema (read-write properties):
         "@type": { "type": "string", "const": "user" },
         "details": { "$ref": "#/$defs/Card" },
         "description": { "type": "string" },
-        "status": { "$ref": "#/$defs/userStatus" }
+        "status": { "$ref": "#/$defs/userStatus.request" }
       },
-      "required": ["@type", "details", "status"]
+      "required": ["@type", "details"]
     }
   }
 }
@@ -4978,6 +5094,7 @@ Example user create response:
             "email": { "address": "john.doe@example.example" }
         }
     },
+    "status": { "@type": "userStatus", "label": "pending" },
     "organisation": { "@type": "organisation", "id": "ORG-12345" }
 }
 ```
@@ -4999,6 +5116,7 @@ Example user read response:
             "email": { "address": "john.doe@example.example" }
         }
     },
+    "status": { "@type": "userStatus", "label": "active" },
     "organisation": { "@type": "organisation", "id": "ORG-12345" }
 }
 ```
@@ -5010,6 +5128,7 @@ Example user update request (suspend the user):
 ```json
 {
     "@type": "user",
+    "status": { "@type": "userStatus", "label": "suspended" },
     "details": {
         "@type": "Card",
         "version": "2.0",
@@ -5450,6 +5569,10 @@ TODO
 - Removed the statement that Composition and Aggregation share the same JSON representation from Association Rules.
 - Added reference schemas for the Process Objects in Process Object Schemas and Domain Name Data Object.
 - Aligned the domain name and message examples with the Process Object schemas in Examples.
+- Added (#status-object-rules) to JSON Schema Definition Rules.
+- Added status request schemas to (#status-objects).
+- Aligned the Domain Name, Contact, Host, Organisation, and User create and update schemas with (#status-object-rules).
+- Aligned the user examples with the User Status Object.
 
 ## Version draft-wullink-rpp-json-02 to draft-ietf-rpp-json-00
 

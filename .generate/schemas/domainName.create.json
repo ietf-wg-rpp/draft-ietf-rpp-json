@@ -11,8 +11,7 @@
         "lgr": { "type": "string", "writeOnly": true },
         "status": {
           "type": "array",
-          "items": { "$ref": "#/$defs/domainStatus" },
-          "minItems": 1
+          "items": { "$ref": "#/$defs/domainStatus.request" }
         },
         "registrant": { "$ref": "#/$defs/contact.reference" },
         "contacts": {
@@ -44,7 +43,7 @@
           "required": ["@type"]
         }
       },
-      "required": ["@type", "name", "status"]
+      "required": ["@type", "name"]
     }
   }
 }
