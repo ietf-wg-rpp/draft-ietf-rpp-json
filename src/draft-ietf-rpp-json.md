@@ -1421,6 +1421,26 @@ The following constraints cannot be expressed in JSON Schema and MUST be enforce
 }
 ```
 
+### Disclose Object
+
+The Disclose Object is used by the `disclose` data element of the Contact Data Object.
+
+A> TODO: The Disclose Object is not yet fully defined in [@!I-D.ietf-rpp-data-objects]. The schema below is a placeholder.
+
+```json
+{
+  "$defs": {
+    "disclose": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "disclose" }
+      },
+      "required": ["@type"]
+    }
+  }
+}
+```
+
 ### JSContact Card Object
 
 The Contact Data Object uses version 2.0 of JSContact [@!RFC9982] to represent contact information. The `Contact` object is defined below according to the RPP JSContact Profile [TODO Add Ref].
@@ -1910,30 +1930,24 @@ The Service Notice Message Object extends the Base Message Object. It is not lin
 }
 ```
 
-#### Maintenance Message Object
+## Process Object Schemas
 
-The Maintenance Message Object extends the Base Message Object. It is not linked to a specific object or process and, at this time, defines no data elements of its own.
+### Base Process Object
+
+The Base Process Object is extended by all Process Objects, which repeat its data elements as top-level properties.
+
+The following constraints cannot be expressed in JSON Schema and MUST be enforced by implementations:
+
+- `processId` MUST be unique within the scope of the owning resource object.
 
 ```json
 {
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$ref": "#/$defs/maintenanceMessage",
   "$defs": {
-    "maintenanceMessage": {
+    "baseProcess": {
       "type": "object",
       "properties": {
-        "@type":      { "type": "string", "const": "maintenanceMessage", "readOnly": true },
-        "objectType": { "type": "string", "readOnly": true },
-        "objectId":   { "type": "string", "readOnly": true },
-        "process": {
-          "type": "object",
-          "properties": {
-            "@type":     { "type": "string" },
-            "processId": { "type": "string" }
-          },
-          "required": ["@type", "processId"],
-          "readOnly": true
-        }
+        "@type": { "type": "string", "const": "baseProcess", "readOnly": true },
+        "processId": { "type": "string", "readOnly": true }
       },
       "required": ["@type"]
     }
@@ -1941,11 +1955,9 @@ The Maintenance Message Object extends the Base Message Object. It is not linked
 }
 ```
 
-## Process Object Schemas
-
 ### Create Process Object
 
-The Create Process Object carries the process-specific inputs for a resource creation operation, such as the requested registration period. It is submitted as an element of the `createProcess` array under the `processes` data element of the owning resource object (see Processes Object), following the same Aggregation representation as the other process types.
+The Create Process Object is extended by object-specific create processes and is submitted only within the `processes` data element of the owning resource object's create request.
 
 Create request schema (create-only and read-write properties):
 
@@ -1975,8 +1987,8 @@ Read response schema (read-only properties):
     "createProcess.read": {
       "type": "object",
       "properties": {
-        "@type":  { "type": "string", "const": "createProcess", "readOnly": true },
-        "period": { "$ref": "#/$defs/period", "readOnly": true }
+        "@type": { "type": "string", "const": "createProcess", "readOnly": true },
+        "processId": { "type": "string", "readOnly": true }
       },
       "required": ["@type"]
     }
@@ -2225,6 +2237,27 @@ Read response schema (read-write and read-only properties):
 }
 ```
 
+The Report request applies only to servers that support or require submission of a restore report.
+
+Report request schema (create-only and read-write properties):
+
+```json
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$ref": "#/$defs/restoreProcess.report",
+  "$defs": {
+    "restoreProcess.report": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "restoreProcess" },
+        "restoreReport": { "$ref": "#/$defs/restoreReport" }
+      },
+      "required": ["@type", "restoreReport"]
+    }
+  }
+}
+```
+
 
 ## Domain Name Data Object
 
@@ -2289,6 +2322,49 @@ Create request schema (create-only and read-write properties):
         }
       },
       "required": ["@type", "name", "status"]
+    }
+  }
+}
+```
+
+### Create Process
+
+The Domain Create Process Object extends the Create Process Object and is submitted only within the `processes` data element of the Domain Name create request.
+
+Create request for Domain Create Process Object schema (create-only and read-write properties):
+
+```json
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$ref": "#/$defs/domainCreateProcess.create",
+  "$defs": {
+    "domainCreateProcess.create": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "domainCreateProcess" },
+        "period": { "$ref": "#/$defs/period", "writeOnly": true }
+      },
+      "required": ["@type"]
+    }
+  }
+}
+```
+
+Read response for Domain Create Process Object schema (read-write and read-only properties):
+
+```json
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$ref": "#/$defs/domainCreateProcess.read",
+  "$defs": {
+    "domainCreateProcess.read": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "domainCreateProcess", "readOnly": true },
+        "processId": { "type": "string", "readOnly": true },
+        "period": { "$ref": "#/$defs/period", "readOnly": true }
+      },
+      "required": ["@type"]
     }
   }
 }
@@ -2803,7 +2879,30 @@ Read response schema (read-write and read-only properties):
 
 ### Update
 
-TODO
+Update request schema (read-write properties):
+
+```json
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$ref": "#/$defs/host.update",
+  "$defs": {
+    "host.update": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "host" },
+        "hostName": { "type": "string", "format": "hostname" },
+        "status": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/hostStatus" },
+          "minItems": 1
+        },
+        "dns": { "$ref": "#/$defs/dnsData" }
+      },
+      "required": ["@type", "hostName", "status"]
+    }
+  }
+}
+```
 
 ### Reference
 
@@ -4915,20 +5014,6 @@ Example message read response with a Service Notice Message Object, which is not
 }
 ```
 
-Example message read response with a Maintenance Message Object, which is not linked to a specific object:
-
-```json
-{
-    "@type": "message",
-    "id": "MSG-98774",
-    "creationDate": "2026-09-25T08:00:00.0Z",
-    "status": "queued",
-    "data": {
-        "@type": "maintenanceMessage"
-    }
-}
-```
-
 ### Query
 
 There exist no request message for the message query operation.
@@ -5152,6 +5237,9 @@ TODO
 - Replaced the generic Status Object with type-specific status objects in (#status-objects).
 - Added User Status Object to (#status-objects).
 - Aligned domain name, host, organisation, user, and profile examples with the updated JSON Schema definitions.
+- Added Disclose Object, Base Process Object, and Domain Create Process Object schemas.
+- Added Restore Process Object report request schema and Host Data Object update request schema.
+- Clarified Create Process Object description.
 
 ## Version draft-wullink-rpp-json-02 to draft-ietf-rpp-json-00
 
