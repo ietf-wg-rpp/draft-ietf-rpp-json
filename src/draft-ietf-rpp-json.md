@@ -228,7 +228,7 @@ Some associations between objects carry a string label that provides additional 
 
 ### Aggregation
 
-An `Aggregation[Type]` represents a relationship between two independent objects. When the cardinality allows more than one target, it MUST be represented as a JSON array. Each element of the array MUST be the identifier of the referenced object.
+An `Aggregation[Type]` represents a relationship between two independent objects. When the cardinality allows more than one target, it MUST be represented as a JSON array. Each element of the array is a limited representation of the referenced object, as specified in Rule 8.
 
 Rule 8: `Aggregation[Type]` with cardinality `0+` or `1+` MUST be represented as a JSON array of embedded objects. Each object in the array MUST include the data elements of the referenced object type that are relevant to the context (at minimum the primary identifier field). Other data elements of the referenced object type MAY be included as needed to provide additional context for the client, but are not required. The JSON Schema MUST allow for the presence of these additional fields.
 
@@ -247,7 +247,7 @@ Example: domain nameservers (Aggregation[Host Data Object]) in a read response, 
 
 ### Composition
 
-A `Composition[Type]` represents a parent-child relationship where the child's lifecycle is bound to the parent and the child cannot exist independently of the parent. In JSON, the child object MUST be fully embedded within the parent object. The JSON representation of a composition is the same as that of an aggregation. The distinction between the two is semantic and does not affect the JSON structure.
+A `Type` represents a parent-child relationship where the child's lifecycle is bound to the parent and the child cannot exist independently of the parent. In JSON, the child object MUST be fully embedded within the parent object.
 
 ```json
 { 
@@ -1731,22 +1731,32 @@ The Processes Object is a read-only container grouping the currently active Proc
         "@type": { "type": "string", "const": "processes", "readOnly": true },
         "transferProcess": {
           "type": "array",
-          "items": { "$ref": "#/$defs/transferProcess.read" },
+          "items": {
+            "oneOf": [
+              { "$ref": "#/$defs/transferProcess.reference" },
+              { "$ref": "#/$defs/domainTransferProcess.reference" }
+            ]
+          },
           "readOnly": true
         },
         "renewProcess": {
           "type": "array",
-          "items": { "$ref": "#/$defs/renewProcess.read" },
+          "items": { "$ref": "#/$defs/renewProcess.reference" },
           "readOnly": true
         },
         "restoreProcess": {
           "type": "array",
-          "items": { "$ref": "#/$defs/restoreProcess.read" },
+          "items": { "$ref": "#/$defs/restoreProcess.reference" },
           "readOnly": true
         },
         "createProcess": {
           "type": "array",
-          "items": { "$ref": "#/$defs/createProcess.read" },
+          "items": {
+            "oneOf": [
+              { "$ref": "#/$defs/createProcess.reference" },
+              { "$ref": "#/$defs/domainCreateProcess.reference" }
+            ]
+          },
           "readOnly": true
         }
       },
@@ -1803,7 +1813,18 @@ The following constraints cannot be expressed in JSON Schema and MUST be enforce
         "serverTransactionId": { "type": "string", "readOnly": true },
         "completionDate": { "type": "string", "format": "date-time", "readOnly": true },
         "message": { "type": "string", "readOnly": true },
-        "process": { "$ref": "#/$defs/baseProcess", "readOnly": true }
+        "process": {
+          "oneOf": [
+            { "$ref": "#/$defs/baseProcess" },
+            { "$ref": "#/$defs/transferProcess.read" },
+            { "$ref": "#/$defs/domainTransferProcess.read" },
+            { "$ref": "#/$defs/restoreProcess.read" },
+            { "$ref": "#/$defs/renewProcess.read" },
+            { "$ref": "#/$defs/createProcess.read" },
+            { "$ref": "#/$defs/domainCreateProcess.read" }
+          ],
+          "readOnly": true
+        }
       },
       "required": ["@type", "approved", "serverTransactionId", "completionDate", "message"]
     }
@@ -1825,7 +1846,13 @@ The following constraints cannot be expressed in JSON Schema and MUST be enforce
         "status": { "type": "string", "enum": ["pending"], "readOnly": true },
         "requestDate": { "type": "string", "format": "date-time", "readOnly": true },
         "actionDate": { "type": "string", "format": "date-time", "readOnly": true },
-        "process": { "$ref": "#/$defs/transferProcess.read", "readOnly": true }
+        "process": {
+          "oneOf": [
+            { "$ref": "#/$defs/transferProcess.read" },
+            { "$ref": "#/$defs/domainTransferProcess.read" }
+          ],
+          "readOnly": true
+        }
       },
       "required": ["@type", "status", "requestDate"]
     }
@@ -1858,7 +1885,13 @@ The following constraints cannot be expressed in JSON Schema and MUST be enforce
         "requestDate": { "type": "string", "format": "date-time", "readOnly": true },
         "actionDate": { "type": "string", "format": "date-time", "readOnly": true },
         "expiryDate": { "type": "string", "format": "date-time", "readOnly": true },
-        "process": { "$ref": "#/$defs/transferProcess.read", "readOnly": true }
+        "process": {
+          "oneOf": [
+            { "$ref": "#/$defs/transferProcess.read" },
+            { "$ref": "#/$defs/domainTransferProcess.read" }
+          ],
+          "readOnly": true
+        }
       },
       "required": ["@type", "trStatus", "requestDate", "actionDate"]
     }
@@ -1992,6 +2025,25 @@ Read response schema (read-only properties):
 }
 ```
 
+Reference schema (identifier only):
+
+```json
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$ref": "#/$defs/createProcess.reference",
+  "$defs": {
+    "createProcess.reference": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "createProcess" },
+        "processId": { "type": "string", "readOnly": true }
+      },
+      "required": ["@type", "processId"]
+    }
+  }
+}
+```
+
 ### Renew Process Object
 
 Renew request schema (create-only properties):
@@ -2030,6 +2082,25 @@ Renew response schema (read-only properties):
         "renewalPeriod": { "$ref": "#/$defs/period", "readOnly": true }
       },
       "required": ["@type"]
+    }
+  }
+}
+```
+
+Reference schema (identifier only):
+
+```json
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$ref": "#/$defs/renewProcess.reference",
+  "$defs": {
+    "renewProcess.reference": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "renewProcess" },
+        "processId": { "type": "string", "readOnly": true }
+      },
+      "required": ["@type", "processId"]
     }
   }
 }
@@ -2177,6 +2248,27 @@ Reject request schema:
 
 Reject response schema MUST equal the read response schema.
 
+#### Reference
+
+Reference schema (identifier only):
+
+```json
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$ref": "#/$defs/transferProcess.reference",
+  "$defs": {
+    "transferProcess.reference": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "transferProcess" },
+        "processId": { "type": "string", "readOnly": true }
+      },
+      "required": ["@type", "processId"]
+    }
+  }
+}
+```
+
 ### Restore Process Object
 
 The Restore Process Object represents the current state of a restore request for an object that has entered the Redemption Grace Period (RGP). It is returned as a response for all restore operations.
@@ -2255,6 +2347,25 @@ Report request schema (create-only and read-write properties):
 }
 ```
 
+
+Reference schema (identifier only):
+
+```json
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$ref": "#/$defs/restoreProcess.reference",
+  "$defs": {
+    "restoreProcess.reference": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "restoreProcess" },
+        "processId": { "type": "string", "readOnly": true }
+      },
+      "required": ["@type", "processId"]
+    }
+  }
+}
+```
 
 ## Domain Name Data Object
 
@@ -2362,6 +2473,25 @@ Read response for Domain Create Process Object schema (read-write and read-only 
         "period": { "$ref": "#/$defs/period", "readOnly": true }
       },
       "required": ["@type"]
+    }
+  }
+}
+```
+
+Reference for Domain Create Process Object schema (identifier only):
+
+```json
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$ref": "#/$defs/domainCreateProcess.reference",
+  "$defs": {
+    "domainCreateProcess.reference": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "domainCreateProcess" },
+        "processId": { "type": "string", "readOnly": true }
+      },
+      "required": ["@type", "processId"]
     }
   }
 }
@@ -2645,6 +2775,25 @@ Reject response schema (read-write and read-only properties):
   "$defs": {
     "transferProcess.reject.domain": {
       "$ref": "#/$defs/transferProcess.read.domain"
+    }
+  }
+}
+```
+
+Reference for Domain Transfer Process Object schema (identifier only):
+
+```json
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$ref": "#/$defs/domainTransferProcess.reference",
+  "$defs": {
+    "domainTransferProcess.reference": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "domainTransferProcess" },
+        "processId": { "type": "string", "readOnly": true }
+      },
+      "required": ["@type", "processId"]
     }
   }
 }
@@ -3137,7 +3286,18 @@ Create request schema. Only the server is authorised to create Message Data Obje
       "type": "object",
       "properties": {
         "@type": { "type": "string", "const": "message" },
-        "data": { "$ref": "#/$defs/baseMessage", "writeOnly": true }
+        "data": {
+          "oneOf": [
+            { "$ref": "#/$defs/baseMessage" },
+            { "$ref": "#/$defs/reviewResponseMessage" },
+            { "$ref": "#/$defs/transferRequestMessage" },
+            { "$ref": "#/$defs/transferOutcomeMessage" },
+            { "$ref": "#/$defs/expirationDeletionMessage" },
+            { "$ref": "#/$defs/autoRenewalMessage" },
+            { "$ref": "#/$defs/serviceNoticeMessage" }
+          ],
+          "writeOnly": true
+        }
       },
       "required": ["@type", "data"]
     }
@@ -3161,7 +3321,18 @@ Read response schema (read-only properties):
         "id": { "$ref": "#/$defs/identifier", "readOnly": true },
         "creationDate": { "type": "string", "format": "date-time", "readOnly": true },
         "status": { "type": "string", "enum": ["queued", "delivered", "removed"], "readOnly": true },
-        "data": { "$ref": "#/$defs/baseMessage", "readOnly": true }
+        "data": {
+          "oneOf": [
+            { "$ref": "#/$defs/baseMessage" },
+            { "$ref": "#/$defs/reviewResponseMessage" },
+            { "$ref": "#/$defs/transferRequestMessage" },
+            { "$ref": "#/$defs/transferOutcomeMessage" },
+            { "$ref": "#/$defs/expirationDeletionMessage" },
+            { "$ref": "#/$defs/autoRenewalMessage" },
+            { "$ref": "#/$defs/serviceNoticeMessage" }
+          ],
+          "readOnly": true
+        }
       },
       "required": ["@type", "id", "creationDate", "status", "data"]
     }
@@ -3607,7 +3778,7 @@ Example domain create request:
         "@type": "processes",
         "createProcess": [
             {
-                "@type": "createProcess",
+                "@type": "domainCreateProcess",
                 "period": {
                     "@type": "period",
                     "value": 2,
@@ -3646,7 +3817,7 @@ Example Create Process Object for a two-year registration period, as embedded ab
 
 ```json
 {
-    "@type": "createProcess",
+    "@type": "domainCreateProcess",
     "period": {
         "@type": "period",
         "value": 2,
@@ -3711,14 +3882,7 @@ Example domain read response:
     "processes": {
         "@type": "processes",
         "createProcess": [
-            {
-                "@type": "createProcess",
-                "period": {
-                    "@type": "period",
-                    "value": 2,
-                    "unit": "y"
-                }
-            }
+            { "@type": "domainCreateProcess", "processId": "CRT-1001" }
         ]
     }
 }
@@ -4886,7 +5050,16 @@ Example message create request using a Transfer Request Message Object, notifyin
         "@type": "transferRequestMessage",
         "objectType": "domainName",
         "objectId": "transfer-test.example",
-        "process": { "@type": "transferProcess", "processId": "TRF-1001" },
+        "process": {
+            "@type": "domainTransferProcess",
+            "processId": "TRF-1001",
+            "trStatus": "pending",
+            "transferDir": "pull",
+            "reqClientId": "ClientX",
+            "requestDate": "2026-09-17T09:00:00.0Z",
+            "actClientId": "ClientY",
+            "actionDate": "2026-09-22T09:00:00.0Z"
+        },
         "status": "pending",
         "requestDate": "2026-09-17T09:00:00.0Z",
         "actionDate": "2026-09-22T09:00:00.0Z"
@@ -4906,7 +5079,16 @@ Example message create response:
         "@type": "transferRequestMessage",
         "objectType": "domainName",
         "objectId": "transfer-test.example",
-        "process": { "@type": "transferProcess", "processId": "TRF-1001" },
+        "process": {
+            "@type": "domainTransferProcess",
+            "processId": "TRF-1001",
+            "trStatus": "pending",
+            "transferDir": "pull",
+            "reqClientId": "ClientX",
+            "requestDate": "2026-09-17T09:00:00.0Z",
+            "actClientId": "ClientY",
+            "actionDate": "2026-09-22T09:00:00.0Z"
+        },
         "status": "pending",
         "requestDate": "2026-09-17T09:00:00.0Z",
         "actionDate": "2026-09-22T09:00:00.0Z"
@@ -4928,7 +5110,16 @@ Example message read response:
         "@type": "transferRequestMessage",
         "objectType": "domainName",
         "objectId": "transfer-test.example",
-        "process": { "@type": "transferProcess", "processId": "TRF-1001" },
+        "process": {
+            "@type": "domainTransferProcess",
+            "processId": "TRF-1001",
+            "trStatus": "pending",
+            "transferDir": "pull",
+            "reqClientId": "ClientX",
+            "requestDate": "2026-09-17T09:00:00.0Z",
+            "actClientId": "ClientY",
+            "actionDate": "2026-09-22T09:00:00.0Z"
+        },
         "status": "pending",
         "requestDate": "2026-09-17T09:00:00.0Z",
         "actionDate": "2026-09-22T09:00:00.0Z"
@@ -4969,7 +5160,16 @@ Example message read response with a Transfer Outcome Message Object:
         "@type": "transferOutcomeMessage",
         "objectType": "domainName",
         "objectId": "transfer-test.example",
-        "process": { "@type": "transferProcess", "processId": "TRF-1001" },
+        "process": {
+            "@type": "domainTransferProcess",
+            "processId": "TRF-1001",
+            "trStatus": "serverApproved",
+            "transferDir": "pull",
+            "reqClientId": "ClientX",
+            "requestDate": "2026-09-17T09:00:00.0Z",
+            "actClientId": "ClientY",
+            "actionDate": "2026-09-22T09:00:00.0Z"
+        },
         "trStatus": "serverApproved",
         "requestDate": "2026-09-17T09:00:00.0Z",
         "actionDate": "2026-09-22T09:00:00.0Z",
@@ -5027,7 +5227,16 @@ Example message query response, containing a Transfer Request Message Object for
         "@type": "transferRequestMessage",
         "objectType": "domainName",
         "objectId": "transfer-test.example",
-        "process": { "@type": "transferProcess", "processId": "TRF-1001" },
+        "process": {
+            "@type": "domainTransferProcess",
+            "processId": "TRF-1001",
+            "trStatus": "pending",
+            "transferDir": "pull",
+            "reqClientId": "ClientX",
+            "requestDate": "2026-09-17T09:00:00.0Z",
+            "actClientId": "ClientY",
+            "actionDate": "2026-09-22T09:00:00.0Z"
+        },
         "status": "pending",
         "requestDate": "2026-09-17T09:00:00.0Z",
         "actionDate": "2026-09-22T09:00:00.0Z"
@@ -5237,6 +5446,10 @@ TODO
 - Added Disclose Object, Base Process Object, and Domain Create Process Object schemas.
 - Added Restore Process Object report request schema and Host Data Object update request schema.
 - Clarified Create Process Object description.
+- Aligned the Aggregation description with Rule 8 in Association Rules.
+- Removed the statement that Composition and Aggregation share the same JSON representation from Association Rules.
+- Added reference schemas for the Process Objects in Process Object Schemas and Domain Name Data Object.
+- Aligned the domain name and message examples with the Process Object schemas in Examples.
 
 ## Version draft-wullink-rpp-json-02 to draft-ietf-rpp-json-00
 

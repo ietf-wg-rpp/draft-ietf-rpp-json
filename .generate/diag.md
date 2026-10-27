@@ -14,8 +14,8 @@
   (dnsControls.ttl, dnsControls.maxSigLifetime)
 - Cardinality '1-2' is not covered by Rules 1-4; mapped to an array with minItems/maxItems
   (restoreReport.statements)
-- Polymorphism (an object extending the referenced base object may be used in its place) has no JSON rule; only the base object is referenced
-  (processes.transferProcess -> transferProcess (not: domainTransferProcess), processes.createProcess -> createProcess (not: domainCreateProcess), reviewResponseMessage.process -> baseProcess (not: transferProcess, domainTransferProcess, restoreProcess, renewProcess, createProcess, domainCreateProcess), transferRequestMessage.process -> transferProcess (not: domainTransferProcess), transferOutcomeMessage.process -> transferProcess (not: domainTransferProcess), message.data -> baseMessage (not: reviewResponseMessage, transferRequestMessage, transferOutcomeMessage, expirationDeletionMessage, autoRenewalMessage, serviceNoticeMessage))
+- Polymorphism (an object extending the referenced base object may be used in its place) has no JSON rule; oneOf over all candidates applied
+  (processes.transferProcess -> transferProcess, domainTransferProcess, processes.createProcess -> createProcess, domainCreateProcess, reviewResponseMessage.process -> baseProcess, transferProcess, domainTransferProcess, restoreProcess, renewProcess, createProcess, domainCreateProcess, transferRequestMessage.process -> transferProcess, domainTransferProcess, transferOutcomeMessage.process -> transferProcess, domainTransferProcess, message.data -> baseMessage, reviewResponseMessage, transferRequestMessage, transferOutcomeMessage, expirationDeletionMessage, autoRenewalMessage, serviceNoticeMessage)
 - Direct Access (sub-resource addressing) has no JSON rule; the inline representation is generated unchanged
   (processes.transferProcess, processes.renewProcess, processes.restoreProcess, processes.createProcess, domainName.processes, contact.processes, host.processes, organisation.users, organisation.processes, user.processes)
 - Cross-element conditions have no JSON rule; if/then applied

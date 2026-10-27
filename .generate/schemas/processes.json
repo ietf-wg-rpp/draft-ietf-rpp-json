@@ -6,22 +6,32 @@
         "@type": { "type": "string", "const": "processes", "readOnly": true },
         "transferProcess": {
           "type": "array",
-          "items": { "$ref": "#/$defs/transferProcess.read" },
+          "items": {
+            "oneOf": [
+              { "$ref": "#/$defs/transferProcess.reference" },
+              { "$ref": "#/$defs/domainTransferProcess.reference" }
+            ]
+          },
           "readOnly": true
         },
         "renewProcess": {
           "type": "array",
-          "items": { "$ref": "#/$defs/renewProcess.read" },
+          "items": { "$ref": "#/$defs/renewProcess.reference" },
           "readOnly": true
         },
         "restoreProcess": {
           "type": "array",
-          "items": { "$ref": "#/$defs/restoreProcess.read" },
+          "items": { "$ref": "#/$defs/restoreProcess.reference" },
           "readOnly": true
         },
         "createProcess": {
           "type": "array",
-          "items": { "$ref": "#/$defs/createProcess.read" },
+          "items": {
+            "oneOf": [
+              { "$ref": "#/$defs/createProcess.reference" },
+              { "$ref": "#/$defs/domainCreateProcess.reference" }
+            ]
+          },
           "readOnly": true
         }
       },

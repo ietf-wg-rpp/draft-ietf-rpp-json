@@ -34,10 +34,11 @@ Generation decisions (precedence: draft rules > YAML content > draft schema shap
     carries input data elements, keyed by the operation Identifier
     (e.g. "transferProcess.transferReject"). Derived objects use their own id.
   * Inheritance ("extends") is flattened (draft section "Inheritance").
-  * Polymorphism: a reference to a base object references only the base object;
-    objects extending it are not offered in its place (no rule in the draft).
-  * Reference views use the exported "unique_identifier"; objects without
-    one get no reference view.
+  * Polymorphism: a reference to a base object accepts every object extending
+    it, expressed as "oneOf" over the candidates (each fixed by its "@type").
+  * Reference views (resources and processes) use the exported
+    "unique_identifier"; objects without one get no reference view.
+    Aggregations of resources and processes reference the reference view (Rule 8).
   * View elements follow the "Elements" of the operations' Input/Output items
     (create Input Object, read Output Object); update views hold the read-write
     elements (Rules 5-7). Operation views carry the operation's
@@ -380,6 +381,8 @@ class Generator:
                 v = self.view_of(op, owner)
                 if Model.definitions(op, "Input Data Elements") and v not in views:
                     views.append(v)
+            if self.m.unique_id(o) is not None:
+                views.append("reference")
             return views
         views = [v for v in ("create", "read", "update") if v in sfx]
         if "query" in sfx and "read" in views:
@@ -779,22 +782,26 @@ class Generator:
             self.diag.add("yaml-issue", f"Unknown data type '{name}'", ctx)
             return {}
         is_ref = norm_name(name)[1]
-        if o.children:
-            self.diag.add("rule-gap", "Polymorphism (an object extending the referenced base object may be "
-                                      "used in its place) has no JSON rule; only the base object is referenced",
-                          f"{ctx} -> {o.id} (not: {', '.join(c.id for c in o.descendants())})")
-        return {"$ref": f"#/$defs/{self.ref_name(o, assoc, view, is_ref, ctx)}"}
+        cands = [o] + o.descendants()
+        refs = [{"$ref": f"#/$defs/{self.ref_name(c, assoc, view, is_ref, ctx)}"} for c in cands]
+        if len(refs) == 1:
+            return refs[0]
+        self.diag.add("rule-gap", "Polymorphism (an object extending the referenced base object may be "
+                                  "used in its place) has no JSON rule; oneOf over all candidates applied",
+                      f"{ctx} -> {', '.join(c.id for c in cands)}")
+        return {"oneOf": refs}
 
     def ref_name(self, o, assoc, view, is_ref, ctx):
         if o.kind == "Component":
             return o.id
+        if is_ref or assoc not in COMPOSITIONS:
+            # Rule 8: an aggregation carries at minimum the primary identifier
+            if self.has_def(o, "reference"):
+                return f"{o.id}.reference"
+            self.diag.add("yaml-gap", f"Referenced {o.kind} Object has no derivable Unique Identifier; "
+                                      "read view used", ctx)
+            return f"{o.id}.read"
         if o.kind == "Resource":
-            if is_ref or assoc not in COMPOSITIONS:
-                if self.has_def(o, "reference"):
-                    return f"{o.id}.reference"
-                self.diag.add("yaml-gap", "Referenced Data Object has no derivable Unique Identifier; "
-                                          "read view used", ctx)
-                return f"{o.id}.read"
             v = view if view in ("create", "read", "update") and self.has_def(o, view) else "read"
             return f"{o.id}.{v}"
         if assoc in COMPOSITIONS and view in ("create", "update") and self.has_def(o, view):
