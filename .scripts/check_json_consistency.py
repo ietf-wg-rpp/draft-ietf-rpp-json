@@ -499,6 +499,88 @@ def collect_nested_types(obj) -> set:
     return found
 
 
+POLYMORPHIC_REF_RE = re.compile(r'^#/\$defs/(.+)$')
+
+
+def check_polymorphic_def(name: str, body, all_defs: dict) -> Optional[list]:
+    """
+    Check a polymorphic definition (draft section "Polymorphism", Rules 27.1-27.2).
+
+    Returns None when `name` is not a polymorphic name (no "core." or "any."
+    prefix). Otherwise returns the list of problems; an empty list means the
+    definition has exactly the required shape and is exempt from the @type rule.
+
+    - core.<base>: {"anyOf": [{"$ref": "#/$defs/<member>"}, ...]}; every member
+      resolves and has an @type const, the consts are unique, and one member is
+      the base object itself (@type == <base> without its operation suffix).
+    - any.<base>:  {"$dynamicAnchor": "any.<base>", "$ref": "#/$defs/core.<base>"}.
+    """
+    if name.startswith("core."):
+        kind, base = "core", name[len("core."):]
+    elif name.startswith("any."):
+        kind, base = "any", name[len("any."):]
+    else:
+        return None
+    if not isinstance(body, dict):
+        return [f"'{name}' is not an object"]
+    problems = []
+
+    if kind == "any":
+        if set(body) != {"$dynamicAnchor", "$ref"}:
+            problems.append(f"'{name}' must contain exactly '$dynamicAnchor' and '$ref' "
+                            f"(found: {sorted(body)})")
+        if body.get("$dynamicAnchor") != name:
+            problems.append(f"'{name}': '$dynamicAnchor' must be \"{name}\"")
+        if body.get("$ref") != f"#/$defs/core.{base}":
+            problems.append(f"'{name}': '$ref' must be \"#/$defs/core.{base}\"")
+        elif f"core.{base}" not in all_defs:
+            problems.append(f"'{name}': 'core.{base}' is not defined")
+        return problems
+
+    if set(body) != {"anyOf"} or not isinstance(body.get("anyOf"), list) or not body["anyOf"]:
+        return [f"'{name}' must contain exactly a non-empty 'anyOf' (found: {sorted(body)})"]
+    consts = []
+    for idx, member in enumerate(body["anyOf"]):
+        if not isinstance(member, dict) or set(member) != {"$ref"}:
+            problems.append(f"'{name}': anyOf[{idx}] must contain exactly '$ref'")
+            continue
+        m = POLYMORPHIC_REF_RE.match(member["$ref"])
+        target = all_defs.get(m.group(1)) if m else None
+        if target is None:
+            problems.append(f"'{name}': anyOf[{idx}] '{member['$ref']}' does not resolve")
+            continue
+        tc = schema_find_type_const(target, all_defs)
+        if tc is None:
+            problems.append(f"'{name}': anyOf[{idx}] '{member['$ref']}' has no '@type' const")
+        else:
+            consts.append(tc)
+    dupes = sorted({tc for tc in consts if consts.count(tc) > 1})
+    if dupes:
+        problems.append(f"'{name}': members share '@type' values {dupes}")
+    base_type = base.split(".", 1)[0]
+    if base_type not in consts:
+        problems.append(f"'{name}': no member has '@type' \"{base_type}\" (the base object)")
+    return problems
+
+
+def find_dynamic_refs(schema_obj) -> list:
+    """Return (value, path) for every $dynamicRef in the schema."""
+    found = []
+
+    def walk(node, path=""):
+        if isinstance(node, dict):
+            if isinstance(node.get("$dynamicRef"), str):
+                found.append((node["$dynamicRef"], path))
+            for k, v in node.items():
+                walk(v, f"{path}/{k}")
+        elif isinstance(node, list):
+            for idx, item in enumerate(node):
+                walk(item, f"{path}/{idx}")
+
+    walk(schema_obj)
+    return found
+
+
 def find_unresolved_refs(schema_obj: dict, available_defs: set) -> list:
     """
     Walk the schema recursively and collect any $ref values pointing to
@@ -696,6 +778,8 @@ def run_checks(md_path: Path, deep_type_check: bool = True) -> int:
     schemas_by_type: dict[str, list[SchemaEntry]] = {}
     # Track which def_names have unresolved refs (to suppress cascade errors in examples)
     defs_with_unresolved_refs: set[str] = set()
+    # any.<base> definitions referenced by at least one $dynamicRef
+    dynamic_refs_used: set[str] = set()
 
     for entry in schema_entries:
         path_str = " > ".join(entry.block.chapter_path)
@@ -725,8 +809,15 @@ def run_checks(md_path: Path, deep_type_check: bool = True) -> int:
         props     = def_body.get("properties", {}) if isinstance(def_body, dict) else {}
         type_rule = SCHEMA_SUBCHAPTER_TYPE_RULES.get(entry.subchapter, "required")
         has_type  = "@type" in props
+        poly_problems = check_polymorphic_def(entry.def_name, def_body, combined.get("$defs", {}))
 
-        if type_rule == "forbidden":
+        if poly_problems is not None:
+            for p in poly_problems:
+                err(f"  -> {p}")
+            total_errors += len(poly_problems)
+            if not poly_problems:
+                ok(f"  -> '{entry.def_name}': polymorphic definition — exempt from the '@type' rule")
+        elif type_rule == "forbidden":
             if has_type:
                 err(f"  -> '{entry.def_name}': '@type' MUST NOT be present in '{entry.subchapter}' schemas")
                 total_errors += 1
@@ -764,6 +855,21 @@ def run_checks(md_path: Path, deep_type_check: bool = True) -> int:
         for ref, path in unresolved:
             err(f"  -> '{entry.def_name}': unresolved $ref '{ref}' at {path}")
             total_errors += 1
+        # --- $dynamicRef must be "#any.<base>" with a matching $dynamicAnchor (Rule 27.3) ---
+        all_defs = combined.get("$defs", {})
+        for dref, path in find_dynamic_refs(entry.schema):
+            target = dref[1:] if dref.startswith("#any.") else None
+            body = all_defs.get(target) if target else None
+            if target is None:
+                err(f"  -> '{entry.def_name}': $dynamicRef '{dref}' at {path} is not of the form '#any.<base>'")
+            elif not isinstance(body, dict) or body.get("$dynamicAnchor") != target:
+                err(f"  -> '{entry.def_name}': $dynamicRef '{dref}' at {path} has no matching $dynamicAnchor")
+            else:
+                dynamic_refs_used.add(target)
+                continue
+            total_errors += 1
+            unresolved.append((dref, path))
+
         if unresolved:
             defs_with_unresolved_refs.add(entry.def_name)
 
@@ -778,6 +884,11 @@ def run_checks(md_path: Path, deep_type_check: bool = True) -> int:
         # index by type const
         if entry.type_const:
             schemas_by_type.setdefault(entry.type_const, []).append(entry)
+
+    for name in sorted(available_defs):
+        if name.startswith("any.") and name not in dynamic_refs_used:
+            warn(f"'{name}': not used by any $dynamicRef")
+            total_warnings += 1
 
     # ==================================================================
     # 3. Standalone JSON Schemas

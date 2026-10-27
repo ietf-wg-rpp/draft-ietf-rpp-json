@@ -1,0 +1,8 @@
+{
+  "$defs": {
+    "any.createProcess.reference": {
+      "$dynamicAnchor": "any.createProcess.reference",
+      "$ref": "#/$defs/core.createProcess.reference"
+    }
+  }
+}

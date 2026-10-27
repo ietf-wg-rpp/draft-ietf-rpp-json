@@ -1,0 +1,14 @@
+{
+  "$defs": {
+    "core.baseProcess.read": {
+      "anyOf": [
+        { "$ref": "#/$defs/transferProcess.read" },
+        { "$ref": "#/$defs/domainTransferProcess.read" },
+        { "$ref": "#/$defs/restoreProcess.read" },
+        { "$ref": "#/$defs/renewProcess.read" },
+        { "$ref": "#/$defs/createProcess.read" },
+        { "$ref": "#/$defs/domainCreateProcess.read" }
+      ]
+    }
+  }
+}

@@ -14,8 +14,6 @@
   (dnsControls.ttl, dnsControls.maxSigLifetime)
 - Cardinality '1-2' is not covered by Rules 1-4; mapped to an array with minItems/maxItems
   (restoreReport.statements)
-- Polymorphism (an object extending the referenced base object may be used in its place) has no JSON rule; oneOf over all candidates applied
-  (processes.transferProcess -> transferProcess, domainTransferProcess, processes.createProcess -> createProcess, domainCreateProcess, reviewResponseMessage.process -> transferProcess, domainTransferProcess, restoreProcess, renewProcess, createProcess, domainCreateProcess, transferRequestMessage.process -> transferProcess, domainTransferProcess, transferOutcomeMessage.process -> transferProcess, domainTransferProcess, message.data -> reviewResponseMessage, transferRequestMessage, transferOutcomeMessage, expirationDeletionMessage, autoRenewalMessage, serviceNoticeMessage)
 - Direct Access (sub-resource addressing) has no JSON rule; the inline representation is generated unchanged
   (processes.transferProcess, processes.renewProcess, processes.restoreProcess, processes.createProcess, domainName.processes, contact.processes, host.processes, organisation.users, organisation.processes, user.processes)
 - Cross-element conditions have no JSON rule; if/then applied
@@ -57,7 +55,7 @@
 - Object has no data elements
   (disclose)
 - Component Object without create-only or read-write elements embedded in request content; read view used
-  (contact.disclose, message.data)
+  (contact.disclose, message.data, core.baseMessage.read)
 - Common Data Type syntax is given only as prose (no restrictions exported); no syntax keywords generated
   (identifier)
 - External type definition is not exported; an open object placeholder is generated (Rule 15)

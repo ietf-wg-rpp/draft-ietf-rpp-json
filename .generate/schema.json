@@ -443,12 +443,7 @@
         "@type": { "type": "string", "const": "processes", "readOnly": true },
         "transferProcess": {
           "type": "array",
-          "items": {
-            "oneOf": [
-              { "$ref": "#/$defs/transferProcess.reference" },
-              { "$ref": "#/$defs/domainTransferProcess.reference" }
-            ]
-          },
+          "items": { "$dynamicRef": "#any.transferProcess.reference" },
           "readOnly": true
         },
         "renewProcess": {
@@ -463,12 +458,7 @@
         },
         "createProcess": {
           "type": "array",
-          "items": {
-            "oneOf": [
-              { "$ref": "#/$defs/createProcess.reference" },
-              { "$ref": "#/$defs/domainCreateProcess.reference" }
-            ]
-          },
+          "items": { "$dynamicRef": "#any.createProcess.reference" },
           "readOnly": true
         }
       },
@@ -502,17 +492,7 @@
         "serverTransactionId": { "type": "string", "readOnly": true },
         "completionDate": { "type": "string", "format": "date-time", "readOnly": true },
         "message": { "type": "string", "readOnly": true },
-        "process": {
-          "oneOf": [
-            { "$ref": "#/$defs/transferProcess.read" },
-            { "$ref": "#/$defs/domainTransferProcess.read" },
-            { "$ref": "#/$defs/restoreProcess.read" },
-            { "$ref": "#/$defs/renewProcess.read" },
-            { "$ref": "#/$defs/createProcess.read" },
-            { "$ref": "#/$defs/domainCreateProcess.read" }
-          ],
-          "readOnly": true
-        }
+        "process": { "$dynamicRef": "#any.baseProcess.read", "readOnly": true }
       },
       "required": ["@type", "approved", "serverTransactionId", "completionDate", "message"]
     },
@@ -525,13 +505,7 @@
         "status": { "type": "string", "enum": ["pending"], "readOnly": true },
         "requestDate": { "type": "string", "format": "date-time", "readOnly": true },
         "actionDate": { "type": "string", "format": "date-time", "readOnly": true },
-        "process": {
-          "oneOf": [
-            { "$ref": "#/$defs/transferProcess.read" },
-            { "$ref": "#/$defs/domainTransferProcess.read" }
-          ],
-          "readOnly": true
-        }
+        "process": { "$dynamicRef": "#any.transferProcess.read", "readOnly": true }
       },
       "required": ["@type", "status", "requestDate"]
     },
@@ -555,13 +529,7 @@
         "requestDate": { "type": "string", "format": "date-time", "readOnly": true },
         "actionDate": { "type": "string", "format": "date-time", "readOnly": true },
         "expiryDate": { "type": "string", "format": "date-time", "readOnly": true },
-        "process": {
-          "oneOf": [
-            { "$ref": "#/$defs/transferProcess.read" },
-            { "$ref": "#/$defs/domainTransferProcess.read" }
-          ],
-          "readOnly": true
-        }
+        "process": { "$dynamicRef": "#any.transferProcess.read", "readOnly": true }
       },
       "required": ["@type", "trStatus", "requestDate", "actionDate"]
     },
@@ -1322,17 +1290,7 @@
       "type": "object",
       "properties": {
         "@type": { "type": "string", "const": "message" },
-        "data": {
-          "oneOf": [
-            { "$ref": "#/$defs/reviewResponseMessage.read" },
-            { "$ref": "#/$defs/transferRequestMessage.read" },
-            { "$ref": "#/$defs/transferOutcomeMessage.read" },
-            { "$ref": "#/$defs/expirationDeletionMessage.read" },
-            { "$ref": "#/$defs/autoRenewalMessage.read" },
-            { "$ref": "#/$defs/serviceNoticeMessage.read" }
-          ],
-          "writeOnly": true
-        }
+        "data": { "$dynamicRef": "#any.baseMessage.read", "writeOnly": true }
       },
       "required": ["@type", "data"]
     },
@@ -1343,17 +1301,7 @@
         "id": { "$ref": "#/$defs/identifier", "readOnly": true },
         "creationDate": { "type": "string", "format": "date-time", "readOnly": true },
         "status": { "type": "string", "enum": ["queued", "delivered", "removed"], "readOnly": true },
-        "data": {
-          "oneOf": [
-            { "$ref": "#/$defs/reviewResponseMessage.read" },
-            { "$ref": "#/$defs/transferRequestMessage.read" },
-            { "$ref": "#/$defs/transferOutcomeMessage.read" },
-            { "$ref": "#/$defs/expirationDeletionMessage.read" },
-            { "$ref": "#/$defs/autoRenewalMessage.read" },
-            { "$ref": "#/$defs/serviceNoticeMessage.read" }
-          ],
-          "readOnly": true
-        }
+        "data": { "$dynamicRef": "#any.baseMessage.read", "readOnly": true }
       },
       "required": ["@type", "id", "creationDate", "status", "data"]
     },
@@ -1509,6 +1457,64 @@
         "name": { "type": "string", "readOnly": true }
       },
       "required": ["@type", "name"]
+    },
+    "core.transferProcess.reference": {
+      "anyOf": [
+        { "$ref": "#/$defs/transferProcess.reference" },
+        { "$ref": "#/$defs/domainTransferProcess.reference" }
+      ]
+    },
+    "any.transferProcess.reference": {
+      "$dynamicAnchor": "any.transferProcess.reference",
+      "$ref": "#/$defs/core.transferProcess.reference"
+    },
+    "core.createProcess.reference": {
+      "anyOf": [
+        { "$ref": "#/$defs/createProcess.reference" },
+        { "$ref": "#/$defs/domainCreateProcess.reference" }
+      ]
+    },
+    "any.createProcess.reference": {
+      "$dynamicAnchor": "any.createProcess.reference",
+      "$ref": "#/$defs/core.createProcess.reference"
+    },
+    "core.baseProcess.read": {
+      "anyOf": [
+        { "$ref": "#/$defs/transferProcess.read" },
+        { "$ref": "#/$defs/domainTransferProcess.read" },
+        { "$ref": "#/$defs/restoreProcess.read" },
+        { "$ref": "#/$defs/renewProcess.read" },
+        { "$ref": "#/$defs/createProcess.read" },
+        { "$ref": "#/$defs/domainCreateProcess.read" }
+      ]
+    },
+    "any.baseProcess.read": {
+      "$dynamicAnchor": "any.baseProcess.read",
+      "$ref": "#/$defs/core.baseProcess.read"
+    },
+    "core.transferProcess.read": {
+      "anyOf": [
+        { "$ref": "#/$defs/transferProcess.read" },
+        { "$ref": "#/$defs/domainTransferProcess.read" }
+      ]
+    },
+    "any.transferProcess.read": {
+      "$dynamicAnchor": "any.transferProcess.read",
+      "$ref": "#/$defs/core.transferProcess.read"
+    },
+    "core.baseMessage.read": {
+      "anyOf": [
+        { "$ref": "#/$defs/reviewResponseMessage.read" },
+        { "$ref": "#/$defs/transferRequestMessage.read" },
+        { "$ref": "#/$defs/transferOutcomeMessage.read" },
+        { "$ref": "#/$defs/expirationDeletionMessage.read" },
+        { "$ref": "#/$defs/autoRenewalMessage.read" },
+        { "$ref": "#/$defs/serviceNoticeMessage.read" }
+      ]
+    },
+    "any.baseMessage.read": {
+      "$dynamicAnchor": "any.baseMessage.read",
+      "$ref": "#/$defs/core.baseMessage.read"
     }
   }
 }

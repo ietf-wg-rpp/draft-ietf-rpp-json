@@ -1,0 +1,8 @@
+{
+  "$defs": {
+    "any.baseProcess.read": {
+      "$dynamicAnchor": "any.baseProcess.read",
+      "$ref": "#/$defs/core.baseProcess.read"
+    }
+  }
+}

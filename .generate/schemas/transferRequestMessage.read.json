@@ -9,13 +9,7 @@
         "status": { "type": "string", "enum": ["pending"], "readOnly": true },
         "requestDate": { "type": "string", "format": "date-time", "readOnly": true },
         "actionDate": { "type": "string", "format": "date-time", "readOnly": true },
-        "process": {
-          "oneOf": [
-            { "$ref": "#/$defs/transferProcess.read" },
-            { "$ref": "#/$defs/domainTransferProcess.read" }
-          ],
-          "readOnly": true
-        }
+        "process": { "$dynamicRef": "#any.transferProcess.read", "readOnly": true }
       },
       "required": ["@type", "status", "requestDate"]
     }

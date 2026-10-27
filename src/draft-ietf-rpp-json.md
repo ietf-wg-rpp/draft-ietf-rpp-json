@@ -597,6 +597,51 @@ Example Circle Object instance:
 }
 ```
 
+### Polymorphism {#polymorphism}
+
+This section defines the JSON Schema representation of a data element whose data type is an extensible base object, so that the data element accepts the base object and every object that directly or indirectly extends it, as required by the polymorphism rule of [@!I-D.ietf-rpp-data-objects].
+
+An extensible base object is an object that at least one other object directly extends, as defined in [@!I-D.ietf-rpp-data-objects]. Extensions MAY add further objects that extend an extensible base object (see (#polymorphic-extensions)). The extensible base objects in this document are the Base Message Object, the Base Process Object, the Create Process Object, and the Transfer Process Object.
+
+The names used by these rules are derived from the schema definition name of the base object for the representation in which the data element is used, denoted `<base>`. For a base object that has a single schema definition, `<base>` is the identifier of the base object (e.g. `baseMessage`). For a base object whose derived objects have operation-specific schema definitions, `<base>` is the identifier of the base object followed by the operation suffix of the representation (e.g. `baseProcess.read`).
+
+Rule 27.1: For each `<base>` that is the data type of at least one data element, the JSON Schema document MUST contain a definition named `core.<base>`. This definition consists of an `"anyOf"` with one `"$ref"` for the base object and one `"$ref"` for each object defined in the same document that directly or indirectly extends the base object. Each `"$ref"` references the schema definition of the object for the same representation, or the single schema definition of an object that has no operation-specific schema definitions.
+
+Rule 27.2: For each `core.<base>`, the JSON Schema document MUST contain a definition named `any.<base>` that consists of `"$dynamicAnchor": "any.<base>"` and a `"$ref"` to `#/$defs/core.<base>`.
+
+Rule 27.3: A data element whose data type is an extensible base object MUST be defined with `"$dynamicRef": "#any.<base>"` instead of `"$ref"`. Mutability keywords (`"readOnly"`, `"writeOnly"`) are placed alongside `"$dynamicRef"`.
+
+Rule 27.4: The `"@type"` value of an instance identifies the concrete object. Because every member of `core.<base>` fixes `"@type"` with a `"const"` constraint (Rule 25), an instance validates against at most one member, and an instance whose `"@type"` identifies no member does not validate against `any.<base>`.
+
+When a JSON Schema document is used without an effective schema, `"$dynamicRef": "#any.<base>"` resolves to `any.<base>` in the same document, and only the objects listed in `core.<base>` are accepted. An effective schema replaces `any.<base>` to accept objects contributed by extensions, as specified in (#polymorphic-extensions).
+
+Example: the Shape Object and the Circle Object from the previous section, where Shape is an extensible base object and a Drawing Object has a data element `shape` whose data type is the Shape Object.
+
+```json
+{
+  "$defs": {
+    "core.shape": {
+      "anyOf": [
+        { "$ref": "#/$defs/shape" },
+        { "$ref": "#/$defs/circle" }
+      ]
+    },
+    "any.shape": {
+      "$dynamicAnchor": "any.shape",
+      "$ref": "#/$defs/core.shape"
+    },
+    "drawing": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "drawing" },
+        "shape": { "$dynamicRef": "#any.shape" }
+      },
+      "required": ["@type", "shape"]
+    }
+  }
+}
+```
+
 ### RPP Profiles and Validation
 
 RPP profiles, such as the EPP Compatibility Profile, may impose additional constraints on top of the base RPP data model. These additional constraints MUST be enforced by implementations through validation rules that go beyond what can be expressed in JSON Schema. Such validation rules MUST be clearly documented in the profile specification and implemented by both clients and servers when operating under that profile. For example, the EPP Compatibility Profile requires that certain fields be present in specific object types, and that certain identifier fields conform to EPP syntax rules. These constraints cannot be fully captured in JSON Schema and therefore require additional validation logic in implementations.
@@ -2147,12 +2192,7 @@ Read schema:
         "@type": { "type": "string", "const": "processes", "readOnly": true },
         "transferProcess": {
           "type": "array",
-          "items": {
-            "oneOf": [
-              { "$ref": "#/$defs/transferProcess.reference" },
-              { "$ref": "#/$defs/domainTransferProcess.reference" }
-            ]
-          },
+          "items": { "$dynamicRef": "#any.transferProcess.reference" },
           "readOnly": true
         },
         "renewProcess": {
@@ -2167,12 +2207,7 @@ Read schema:
         },
         "createProcess": {
           "type": "array",
-          "items": {
-            "oneOf": [
-              { "$ref": "#/$defs/createProcess.reference" },
-              { "$ref": "#/$defs/domainCreateProcess.reference" }
-            ]
-          },
+          "items": { "$dynamicRef": "#any.createProcess.reference" },
           "readOnly": true
         }
       },
@@ -2233,17 +2268,7 @@ Read schema:
         "serverTransactionId": { "type": "string", "readOnly": true },
         "completionDate": { "type": "string", "format": "date-time", "readOnly": true },
         "message": { "type": "string", "readOnly": true },
-        "process": {
-          "oneOf": [
-            { "$ref": "#/$defs/transferProcess.read" },
-            { "$ref": "#/$defs/domainTransferProcess.read" },
-            { "$ref": "#/$defs/restoreProcess.read" },
-            { "$ref": "#/$defs/renewProcess.read" },
-            { "$ref": "#/$defs/createProcess.read" },
-            { "$ref": "#/$defs/domainCreateProcess.read" }
-          ],
-          "readOnly": true
-        }
+        "process": { "$dynamicRef": "#any.baseProcess.read", "readOnly": true }
       },
       "required": ["@type", "approved", "serverTransactionId", "completionDate", "message"]
     }
@@ -2267,13 +2292,7 @@ Read schema:
         "status": { "type": "string", "enum": ["pending"], "readOnly": true },
         "requestDate": { "type": "string", "format": "date-time", "readOnly": true },
         "actionDate": { "type": "string", "format": "date-time", "readOnly": true },
-        "process": {
-          "oneOf": [
-            { "$ref": "#/$defs/transferProcess.read" },
-            { "$ref": "#/$defs/domainTransferProcess.read" }
-          ],
-          "readOnly": true
-        }
+        "process": { "$dynamicRef": "#any.transferProcess.read", "readOnly": true }
       },
       "required": ["@type", "status", "requestDate"]
     }
@@ -2308,13 +2327,7 @@ Read schema:
         "requestDate": { "type": "string", "format": "date-time", "readOnly": true },
         "actionDate": { "type": "string", "format": "date-time", "readOnly": true },
         "expiryDate": { "type": "string", "format": "date-time", "readOnly": true },
-        "process": {
-          "oneOf": [
-            { "$ref": "#/$defs/transferProcess.read" },
-            { "$ref": "#/$defs/domainTransferProcess.read" }
-          ],
-          "readOnly": true
-        }
+        "process": { "$dynamicRef": "#any.transferProcess.read", "readOnly": true }
       },
       "required": ["@type", "trStatus", "requestDate", "actionDate"]
     }
@@ -2383,6 +2396,42 @@ Read schema:
         "message": { "type": "string", "readOnly": true }
       },
       "required": ["@type", "message"]
+    }
+  }
+}
+```
+
+#### Polymorphic Message Schemas {#polymorphic-message-schemas}
+
+The Base Message Object is an extensible base object. The following definitions represent the Base Message Object and the message objects that extend it, per (#polymorphism).
+
+Core schema:
+
+```json
+{
+  "$defs": {
+    "core.baseMessage.read": {
+      "anyOf": [
+        { "$ref": "#/$defs/reviewResponseMessage.read" },
+        { "$ref": "#/$defs/transferRequestMessage.read" },
+        { "$ref": "#/$defs/transferOutcomeMessage.read" },
+        { "$ref": "#/$defs/expirationDeletionMessage.read" },
+        { "$ref": "#/$defs/autoRenewalMessage.read" },
+        { "$ref": "#/$defs/serviceNoticeMessage.read" }
+      ]
+    }
+  }
+}
+```
+
+Any schema:
+
+```json
+{
+  "$defs": {
+    "any.baseMessage.read": {
+      "$dynamicAnchor": "any.baseMessage.read",
+      "$ref": "#/$defs/core.baseMessage.read"
     }
   }
 }
@@ -2778,7 +2827,6 @@ Update request schema (read-write properties):
 }
 ```
 
-
 Reference schema (identifier only):
 
 ```json
@@ -2793,6 +2841,126 @@ Reference schema (identifier only):
         "processId": { "type": "string", "readOnly": true }
       },
       "required": ["@type", "processId"]
+    }
+  }
+}
+```
+
+### Polymorphic Process Schemas {#polymorphic-process-schemas}
+
+The Base Process Object, the Create Process Object, and the Transfer Process Object are extensible base objects. The following definitions represent, per (#polymorphism), each of these objects and the Process Objects that directly or indirectly extend it in the representations used by data elements: the read representation of the Base Process Object and the Transfer Process Object, and the reference representation of the Create Process Object and the Transfer Process Object.
+
+Base Process Object core schema (read representation):
+
+```json
+{
+  "$defs": {
+    "core.baseProcess.read": {
+      "anyOf": [
+        { "$ref": "#/$defs/transferProcess.read" },
+        { "$ref": "#/$defs/domainTransferProcess.read" },
+        { "$ref": "#/$defs/restoreProcess.read" },
+        { "$ref": "#/$defs/renewProcess.read" },
+        { "$ref": "#/$defs/createProcess.read" },
+        { "$ref": "#/$defs/domainCreateProcess.read" }
+      ]
+    }
+  }
+}
+```
+
+Base Process Object any schema (read representation):
+
+```json
+{
+  "$defs": {
+    "any.baseProcess.read": {
+      "$dynamicAnchor": "any.baseProcess.read",
+      "$ref": "#/$defs/core.baseProcess.read"
+    }
+  }
+}
+```
+
+Create Process Object core schema (reference representation):
+
+```json
+{
+  "$defs": {
+    "core.createProcess.reference": {
+      "anyOf": [
+        { "$ref": "#/$defs/createProcess.reference" },
+        { "$ref": "#/$defs/domainCreateProcess.reference" }
+      ]
+    }
+  }
+}
+```
+
+Create Process Object any schema (reference representation):
+
+```json
+{
+  "$defs": {
+    "any.createProcess.reference": {
+      "$dynamicAnchor": "any.createProcess.reference",
+      "$ref": "#/$defs/core.createProcess.reference"
+    }
+  }
+}
+```
+
+Transfer Process Object core schema (read representation):
+
+```json
+{
+  "$defs": {
+    "core.transferProcess.read": {
+      "anyOf": [
+        { "$ref": "#/$defs/transferProcess.read" },
+        { "$ref": "#/$defs/domainTransferProcess.read" }
+      ]
+    }
+  }
+}
+```
+
+Transfer Process Object any schema (read representation):
+
+```json
+{
+  "$defs": {
+    "any.transferProcess.read": {
+      "$dynamicAnchor": "any.transferProcess.read",
+      "$ref": "#/$defs/core.transferProcess.read"
+    }
+  }
+}
+```
+
+Transfer Process Object core schema (reference representation):
+
+```json
+{
+  "$defs": {
+    "core.transferProcess.reference": {
+      "anyOf": [
+        { "$ref": "#/$defs/transferProcess.reference" },
+        { "$ref": "#/$defs/domainTransferProcess.reference" }
+      ]
+    }
+  }
+}
+```
+
+Transfer Process Object any schema (reference representation):
+
+```json
+{
+  "$defs": {
+    "any.transferProcess.reference": {
+      "$dynamicAnchor": "any.transferProcess.reference",
+      "$ref": "#/$defs/core.transferProcess.reference"
     }
   }
 }
@@ -3622,9 +3790,7 @@ Reference schema (identifier only):
 
 ## Message Data Object
 
-The following constraints cannot be expressed in JSON Schema and MUST be enforced by implementations:
-
-- `data` is polymorphic: it MUST contain an instance of a message object that directly or indirectly extends the Base Message Object. The concrete message object is identified by the `@type` of the value used for `data` property.
+The `data` data element contains an instance of the Base Message Object or of any message object that directly or indirectly extends it, as defined in [@!I-D.ietf-rpp-data-objects]. It is represented per (#polymorphism) and the concrete message object is identified by the `@type` of its value.
 
 ### Create
 
@@ -3639,17 +3805,7 @@ Create request schema. Only the server is authorised to create Message Data Obje
       "type": "object",
       "properties": {
         "@type": { "type": "string", "const": "message" },
-        "data": {
-          "oneOf": [
-            { "$ref": "#/$defs/reviewResponseMessage.read" },
-            { "$ref": "#/$defs/transferRequestMessage.read" },
-            { "$ref": "#/$defs/transferOutcomeMessage.read" },
-            { "$ref": "#/$defs/expirationDeletionMessage.read" },
-            { "$ref": "#/$defs/autoRenewalMessage.read" },
-            { "$ref": "#/$defs/serviceNoticeMessage.read" }
-          ],
-          "writeOnly": true
-        }
+        "data": { "$dynamicRef": "#any.baseMessage.read", "writeOnly": true }
       },
       "required": ["@type", "data"]
     }
@@ -3673,17 +3829,7 @@ Read response schema (read-only properties):
         "id": { "$ref": "#/$defs/identifier", "readOnly": true },
         "creationDate": { "type": "string", "format": "date-time", "readOnly": true },
         "status": { "type": "string", "enum": ["queued", "delivered", "removed"], "readOnly": true },
-        "data": {
-          "oneOf": [
-            { "$ref": "#/$defs/reviewResponseMessage.read" },
-            { "$ref": "#/$defs/transferRequestMessage.read" },
-            { "$ref": "#/$defs/transferOutcomeMessage.read" },
-            { "$ref": "#/$defs/expirationDeletionMessage.read" },
-            { "$ref": "#/$defs/autoRenewalMessage.read" },
-            { "$ref": "#/$defs/serviceNoticeMessage.read" }
-          ],
-          "readOnly": true
-        }
+        "data": { "$dynamicRef": "#any.baseMessage.read", "readOnly": true }
       },
       "required": ["@type", "id", "creationDate", "status", "data"]
     }
@@ -4094,6 +4240,85 @@ Domain Name effective schema, which includes the full schema of the base domain 
         }
       },
       "required": ["foo"]
+    }
+  }
+}
+```
+
+## Polymorphic Extensions {#polymorphic-extensions}
+
+This section defines how an extension adds objects that extend an extensible base object (see (#polymorphism)), so that these objects are accepted wherever the base object is the data type of a data element.
+
+An extension MAY define objects that directly or indirectly extend an extensible base object. The schema definition of such an object follows the Inheritance rules and Rule 25. Its `"@type"` value MUST differ from the `"@type"` value of every object defined in this document and in every other extension.
+
+An extension declares the objects it adds using the `rpp:derives` property within the extension schema. The keys of `rpp:derives` are the URIs of the `any.<base>` definitions in the base schema, and each value is an array of references to the local definitions that extend the corresponding base object. For example, this mapping where the local definition `#/$defs/ext.lowBalanceMessage` is added to the Base Message Object:
+
+```json
+{
+  "rpp:derives": {
+    "https://rpp.example/rpp/schema.json#/$defs/any.baseMessage.read": [
+      "#/$defs/ext.lowBalanceMessage"
+    ]
+  }
+}
+```
+
+For each `any.<base>` that has at least one object declared by an applicable extension, the effective schema MUST contain a definition named `effective.any.<base>`. This definition consists of `"$dynamicAnchor": "any.<base>"` and an `"anyOf"` whose first member is a `"$ref"` to `core.<base>` in the base schema, followed by one `"$ref"` for each object declared for that `any.<base>` by the applicable extensions. The definition MUST NOT repeat the members of `core.<base>`. An object declared for `any.<base>` also indirectly extends every ancestor of the base object; the effective schema MUST therefore also include it in `effective.any.<ancestor>` for every ancestor that is an extensible base object with an `any.<ancestor>` definition for the same representation.
+
+The effective schema references the schema definitions of the base schema with `"$ref"`. A `"$dynamicRef"` resolves to the definition carrying the matching `"$dynamicAnchor"` in the outermost schema resource of the dynamic scope [@!I-D.ietf-jsonschema-json-schema]. A validator therefore MUST start the evaluation at the effective schema, or at a definition within it, so that `effective.any.<base>` takes precedence over `any.<base>` of the base schema. Evaluation that starts at the base schema accepts only the members of `core.<base>`.
+
+The following is an example of an extension JSON Schema, which adds a low balance message object to the Base Message Object:
+
+```json
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://rpp.example/schemas/extension2.json",
+
+  "rpp:derives": {
+    "https://rpp.example/rpp/schema.json#/$defs/any.baseMessage.read": [
+      "#/$defs/ext.lowBalanceMessage"
+    ]
+  },
+
+  "$defs": {
+    "ext.lowBalanceMessage": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "lowBalanceMessage", "readOnly": true },
+        "objectType": { "type": "string", "readOnly": true },
+        "objectId": { "type": "string", "readOnly": true },
+        "creditLimit": { "type": "string", "readOnly": true },
+        "availableCredit": { "type": "string", "readOnly": true }
+      },
+      "required": ["@type", "creditLimit", "availableCredit"]
+    }
+  }
+}
+```
+
+Message Data Object effective schema for the read representation, which accepts the core message objects and the low balance message object as the value of `data`:
+
+```json
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://rpp.example/rpp/effective/message.json",
+
+  "$ref": "#/$defs/effective.message.read",
+  "$defs": {
+    "effective.message.read": {
+      "$ref": "https://rpp.example/rpp/schema.json#/$defs/message.read"
+    },
+
+    "effective.any.baseMessage.read": {
+      "$dynamicAnchor": "any.baseMessage.read",
+      "anyOf": [
+        {
+          "$ref": "https://rpp.example/rpp/schema.json#/$defs/core.baseMessage.read"
+        },
+        {
+          "$ref": "https://rpp.example/schemas/extension2.json#/$defs/ext.lowBalanceMessage"
+        }
+      ]
     }
   }
 }
@@ -5839,6 +6064,10 @@ TODO
 - Generalised the Mutability Rules to derive request and response content from operation Input and Output.
 - Changed server handling of disallowed request data elements from ignore to reject in the Mutability Rules.
 - Replaced the primary identifier with the Unique Identifier in Association Rules.
+- Added (#polymorphism) to JSON Schema Definition Rules.
+- Added (#polymorphic-message-schemas) and (#polymorphic-process-schemas).
+- Changed data elements whose data type is an extensible base object to use `"$dynamicRef"`.
+- Added (#polymorphic-extensions) to (#extension-framework).
 
 ## Version draft-wullink-rpp-json-02 to draft-ietf-rpp-json-00
 
