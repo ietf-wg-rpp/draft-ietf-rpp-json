@@ -155,8 +155,8 @@
 #                   "Operation Input and Output" notation; [] for "(None)".
 #                   A Data Object operation that declares no Input gets the
 #                   Uniform interface default for its identifier. Each
-#                   Reference / Object / Changes item:
-#                     kind:        "Reference" | "Object" | "Changes"
+#                   Reference / Object item:
+#                     kind:        "Reference" | "Object"
 #                     target:      an object Name, "This Object" (the object
 #                                  defining the operation) or "Owner Data
 #                                  Object" (of a Process Object)
@@ -1231,6 +1231,108 @@ components:
     subsections: []
   supported_processes: []
   conditions: []
+- identifier: userStatus
+  name: User Status Object
+  object_type: Component
+  unique_identifier: ''
+  owner: ''
+  extends: ''
+  description: Represents the status value associated with a User Data Object. A User Data Object MUST
+    always have exactly one associated status value.
+  preamble: []
+  elements:
+  - identifier: label
+    name: Label
+    cardinality: '1'
+    mutability: create-only
+    data_type: String
+    description: machine-readable enum label of a status
+    constraints:
+    - Only status values defined in [Status Values](#user-status-values) are allowed.
+    restrictions: {}
+    direct_access: false
+    visibility: default
+    notes: []
+  - identifier: reason
+    name: Reason
+    cardinality: 0-1
+    mutability: create-only
+    data_type: String
+    description: a human-readable text that describes the rationale for the status applied to the object.
+    constraints:
+    - None
+    restrictions: {}
+    direct_access: false
+    visibility: default
+    notes: []
+  operations: []
+  subsections:
+  - heading: Status Values
+    anchor: '{#user-status-values}'
+    notes:
+    - The `pending` status value is server-managed. The `suspended` and `deactivated` status values are
+      server-managed and MAY additionally be client-managed by a client with permission to manage users
+      in the owning organisation, based on server policy. The `active` status value is set and removed
+      by the server as other status values are added or removed.
+    tables:
+    - caption: User Status Values
+      anchor: '{#tbl-user-status-values}'
+      columns:
+      - Status Value
+      - Description
+      rows:
+      - Status Value: active
+        Description: This is the normal status value for a user that is permitted to authenticate and
+          act within the permissions of its roles.
+      - Status Value: pending
+        Description: The user has been created, but activation has not been completed by the server. Server
+          operators can delay activation for a variety of reasons, such as to allow for verification of
+          the user's details or human review. Requests authenticated as the user MUST be rejected.
+      - Status Value: suspended
+        Description: The user has been temporarily suspended. Requests authenticated as the user MUST
+          be rejected.
+      - Status Value: deactivated
+        Description: The user has been deactivated. Requests authenticated as the user MUST be rejected.
+    subsections: []
+  - heading: Allowed Transitions
+    anchor: ''
+    notes:
+    - The following diagram describes the allowed status transitions for a user object.
+    - 'State descriptions:'
+    - 1. A create operation is received and processed. If the server defers activation, the object enters
+      the `pending` state. If the server activates the user immediately, the object enters the `active`
+      state directly. 2. Activation completes and the `pending` status is replaced by `active`. 3. A `suspended`
+      status is set, replacing `active`. 4. The `suspended` status is removed and the object returns to
+      `active`, by the same parties that are allowed to set it. 5. A `deactivated` status is set, from
+      either `active` or `suspended`. Whether and how an object can leave the `deactivated` state is subject
+      to server policy. 6. A delete operation completes and the object is purged. A delete operation can
+      be received in any state; only the transition from `deactivated` is depicted.
+    tables: []
+    subsections: []
+  - heading: Pending Status Removal
+    anchor: ''
+    notes:
+    - When activation has been completed, the `pending` status value MUST be replaced by `active`. The
+      client that created the user MUST be notified using a service message that activation has been completed
+      and that the status of the object has changed.
+    tables: []
+    subsections: []
+  - heading: Status Exclusions
+    anchor: ''
+    notes: []
+    tables:
+    - caption: User Status Exclusions
+      anchor: '{#tbl-user-status-exclusions}'
+      columns:
+      - Status Value
+      - MUST NOT be combined with
+      rows:
+      - Status Value: active, pending, suspended, deactivated
+        MUST NOT be combined with: Each other (mutually exclusive); a user MUST have exactly one of these
+          statuses
+    subsections: []
+  supported_processes: []
+  conditions: []
 - identifier: dnsRecord
   name: DNS Resource Record Object
   object_type: Component
@@ -1563,13 +1665,12 @@ components:
     notes: []
   - identifier: statements
     name: Statements
-    cardinality: 0+
+    cardinality: 1-2
     mutability: read-write
     data_type: String
     description: Client statements required by the RGP process.
     constraints:
-    - At least one and at most two statements MUST be provided. In EPP Compatibility Profile exactly two
-      statements MUST be present as defined in [@!RFC3915].
+    - In EPP Compatibility Profile exactly two statements MUST be present as defined in [@!RFC3915].
     restrictions: {}
     direct_access: false
     visibility: default
@@ -3285,7 +3386,7 @@ resources:
       target: This Object
       elements: []
       cardinality: '1'
-    - kind: Changes
+    - kind: Object
       target: This Object
       elements:
       - read-write
@@ -3384,7 +3485,7 @@ resources:
     notes: []
   - identifier: contactInfo
     name: Contact Information
-    cardinality: 1-2
+    cardinality: '1'
     mutability: read-write
     data_type: External:RPP-JSContact-Profile:Card
     description: Contains contact information.
@@ -3514,7 +3615,7 @@ resources:
       target: This Object
       elements: []
       cardinality: '1'
-    - kind: Changes
+    - kind: Object
       target: This Object
       elements:
       - read-write
@@ -3700,7 +3801,7 @@ resources:
       target: This Object
       elements: []
       cardinality: '1'
-    - kind: Changes
+    - kind: Object
       target: This Object
       elements:
       - read-write
@@ -3826,7 +3927,7 @@ resources:
     visibility: default
     notes: []
   - identifier: parent
-    name: Parent Organisation ID
+    name: Parent Organisation
     cardinality: 0-1
     mutability: read-write
     data_type: Aggregation[Organisation Data Object]
@@ -3944,7 +4045,7 @@ resources:
       target: This Object
       elements: []
       cardinality: '1'
-    - kind: Changes
+    - kind: Object
       target: This Object
       elements:
       - read-write
@@ -4198,16 +4299,17 @@ resources:
     name: Status
     cardinality: '1'
     mutability: read-write
-    data_type: String
-    description: The status of the user
+    data_type: User Status Object
+    description: The current status of the user.
     constraints:
-    - '-'
+    - Allowed status values and transitions are specified in [User Status Values](#user-status-values).
+    - A client MUST NOT alter server status values set by the server itself.
     restrictions: {}
     direct_access: false
     visibility: default
     notes: []
-  - identifier: organisationId
-    name: Organisation ID
+  - identifier: organisation
+    name: Organisation
     cardinality: '1'
     mutability: read-only
     data_type: Aggregation[Organisation Data Object]
@@ -4285,7 +4387,7 @@ resources:
       target: This Object
       elements: []
       cardinality: '1'
-    - kind: Changes
+    - kind: Object
       target: This Object
       elements:
       - read-write

@@ -11,11 +11,13 @@
         "restoreReason": { "type": "string" },
         "statements": {
           "type": "array",
-          "items": { "type": "string" }
+          "items": { "type": "string" },
+          "minItems": 1,
+          "maxItems": 2
         },
         "other": { "type": "string" }
       },
-      "required": ["@type"]
+      "required": ["@type", "statements"]
     }
   }
 }

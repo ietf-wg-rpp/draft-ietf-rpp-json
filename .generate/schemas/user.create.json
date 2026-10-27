@@ -9,7 +9,7 @@
         "id": { "$ref": "#/$defs/identifier", "writeOnly": true },
         "details": { "$ref": "#/$defs/Card" },
         "description": { "type": "string" },
-        "status": { "type": "string" }
+        "status": { "$ref": "#/$defs/userStatus" }
       },
       "required": ["@type", "id", "details", "status"]
     }

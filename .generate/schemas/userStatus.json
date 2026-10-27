@@ -1,0 +1,13 @@
+{
+  "$defs": {
+    "userStatus": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "userStatus" },
+        "label": { "type": "string" },
+        "reason": { "type": "string" }
+      },
+      "required": ["@type", "label"]
+    }
+  }
+}

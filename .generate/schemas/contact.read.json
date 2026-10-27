@@ -13,12 +13,7 @@
           "items": { "$ref": "#/$defs/contactStatus" },
           "minItems": 1
         },
-        "contactInfo": {
-          "type": "array",
-          "items": { "$ref": "#/$defs/Card" },
-          "minItems": 1,
-          "maxItems": 2
-        },
+        "contactInfo": { "$ref": "#/$defs/Card" },
         "authInfo": { "$ref": "#/$defs/authInfo" },
         "disclose": { "$ref": "#/$defs/disclose" },
         "processes": { "$ref": "#/$defs/processes", "readOnly": true }

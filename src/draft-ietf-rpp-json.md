@@ -3111,7 +3111,7 @@ Create request schema (create-only and read-write properties):
         "id": { "$ref": "#/$defs/identifier", "writeOnly": true },
         "details": { "$ref": "#/$defs/Card" },
         "description": { "type": "string" },
-        "status": { "type": "string" }
+        "status": { "$ref": "#/$defs/userStatus" }
       },
       "required": ["@type", "id", "details", "status"]
     }
@@ -3131,20 +3131,15 @@ Read response schema (read-write and read-only properties):
     "user.read": {
       "type": "object",
       "properties": {
-        "@type":  { "type": "string", "const": "user", "readOnly": true },
-        "organisationId": { "$ref": "#/$defs/organisationObject.reference" },
-        "userId": { "$ref": "#/$defs/identifier", "readOnly": true },
-        "details": { "$ref": "#/$defs/contactObject.reference" },
-        "status": {
-          "type": "array",
-          "items": {
-            "type": "string",
-            "enum": ["active", "suspended", "deactivated", "pending"]
-          }
-        },
-        "description":  { "type": "string", "const": "user" }
+        "@type": { "type": "string", "const": "user", "readOnly": true },
+        "id": { "$ref": "#/$defs/identifier", "readOnly": true },
+        "details": { "$ref": "#/$defs/Card" },
+        "description": { "type": "string" },
+        "status": { "$ref": "#/$defs/userStatus" },
+        "organisation": { "$ref": "#/$defs/organisation.reference", "readOnly": true },
+        "processes": { "$ref": "#/$defs/processes", "readOnly": true }
       },
-      "required": ["@type", "id", "details", "status", "organisationId"]
+      "required": ["@type", "id", "details", "status", "organisation"]
     }
   }
 }
@@ -3162,17 +3157,12 @@ Update request schema (read-write properties):
     "user.update": {
       "type": "object",
       "properties": {
-        "@type":  { "type": "string", "const": "user" },
-        "details": { "$ref": "#/$defs/contactObject.reference" },
-        "status": {
-          "type": "array",
-          "items": {
-            "type": "string",
-            "enum": ["active", "suspended", "deactivated", "pending"]
-          }
-        }
+        "@type": { "type": "string", "const": "user" },
+        "details": { "$ref": "#/$defs/Card" },
+        "description": { "type": "string" },
+        "status": { "$ref": "#/$defs/userStatus" }
       },
-      "required": ["@type"]
+      "required": ["@type", "details", "status"]
     }
   }
 }
