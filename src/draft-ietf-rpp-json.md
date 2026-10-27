@@ -483,7 +483,7 @@ The view names are:
 - `update`: the request content of the Update operation.
 - `reference`: the limited representation of an aggregated object (see Aggregation), containing `@type` and the object's Unique Identifier as defined in [@!I-D.ietf-rpp-data-objects].
 - `query`: the response content of the Query operation.
-- The Identifier of the operation: the request or response content of any other operation that has input data elements.
+- The Identifier of the operation: the request or response content of any other operation.
 
 Each key MUST be unique within the shared `$defs` object. Common Data Types and types defined by an external specification are not subject to this rule. They MAY use a key that is not derived from an RPP Identifier.
 
