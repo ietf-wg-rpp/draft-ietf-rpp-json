@@ -14,7 +14,8 @@
         },
         "requestDate": { "type": "string", "format": "date-time", "readOnly": true },
         "reportDate": { "type": "string", "format": "date-time", "readOnly": true },
-        "reportDueDate": { "type": "string", "format": "date-time", "readOnly": true }
+        "reportDueDate": { "type": "string", "format": "date-time", "readOnly": true },
+        "restoreReport": { "$ref": "#/$defs/restoreReport" }
       },
       "required": ["@type", "restoreStatus"]
     }

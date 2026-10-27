@@ -6,7 +6,6 @@
         "@type": { "type": "string", "const": "autoRenewalMessage", "readOnly": true },
         "objectType": { "type": "string", "readOnly": true },
         "objectId": { "type": "string", "readOnly": true },
-        "process": { "$ref": "#/$defs/baseProcess", "readOnly": true },
         "renewalDate": { "type": "string", "format": "date-time", "readOnly": true },
         "expiryDate": { "type": "string", "format": "date-time", "readOnly": true }
       },

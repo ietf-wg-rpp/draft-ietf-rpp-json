@@ -3,15 +3,15 @@
     "reviewResponseMessage": {
       "type": "object",
       "properties": {
-        "@type": { "type": "string", "const": "reviewResponseMessage" },
+        "@type": { "type": "string", "const": "reviewResponseMessage", "readOnly": true },
         "objectType": { "type": "string", "readOnly": true },
         "objectId": { "type": "string", "readOnly": true },
-        "process": { "$ref": "#/$defs/baseProcess", "readOnly": true },
         "approved": { "type": "boolean", "readOnly": true },
         "clientTransactionId": { "type": "string", "readOnly": true },
         "serverTransactionId": { "type": "string", "readOnly": true },
         "completionDate": { "type": "string", "format": "date-time", "readOnly": true },
-        "message": { "type": "string" }
+        "message": { "type": "string", "readOnly": true },
+        "process": { "$ref": "#/$defs/baseProcess", "readOnly": true }
       },
       "required": ["@type", "approved", "serverTransactionId", "completionDate", "message"]
     }

@@ -6,10 +6,10 @@
         "@type": { "type": "string", "const": "transferRequestMessage", "readOnly": true },
         "objectType": { "type": "string", "readOnly": true },
         "objectId": { "type": "string", "readOnly": true },
-        "process": { "$ref": "#/$defs/baseProcess", "readOnly": true },
         "status": { "type": "string", "enum": ["pending"], "readOnly": true },
         "requestDate": { "type": "string", "format": "date-time", "readOnly": true },
-        "actionDate": { "type": "string", "format": "date-time", "readOnly": true }
+        "actionDate": { "type": "string", "format": "date-time", "readOnly": true },
+        "process": { "$ref": "#/$defs/transferProcess.read", "readOnly": true }
       },
       "required": ["@type", "status", "requestDate"]
     }

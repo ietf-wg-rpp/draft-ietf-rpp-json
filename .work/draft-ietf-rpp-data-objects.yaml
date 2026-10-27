@@ -101,6 +101,8 @@
 #                                 would be a redundant second key). The
 #                                 short form is accepted: "Renew Process"
 #                                 refers to "Renew Process Object".
+#                                 Bracketed parts (e.g. an "(#anchor)"
+#                                 reference) are dropped.
 #                     constraints: list of strings — same convention as an
 #                                 element's Constraints
 #                     notes:      orphan prose inside this entry's own block.
@@ -136,7 +138,8 @@
 #
 #   Each operation entry:
 #     identifier, name: as defined in the operation heading /
-#       "* Identifier:" bullet
+#       "* Identifier:" bullet; bracketed parts of the heading are
+#       dropped ("Delete (Transfer Cancel)" -> "Delete")
 #     description:  plain prose describing the operation (this document's
 #                   convention: NOT a "* Description:" bullet, which is
 #                   element/object-only — every operation's description is
@@ -549,7 +552,7 @@ components:
       The object enters `pendingDelete` state. 9. Whether RGP is supported for the domain determines the
       next transition upon completion of the pending delete action. 10. If RGP is not supported, the object
       is purged once the delete action completes. If RGP is supported, the object instead continues into
-      the `redemptionPeriod` state, following the [Redemption Grace Period State Diagram](#fig-rgp-state-diagram)
+      the `rgpRedemptionPeriod` state, following the [Redemption Grace Period State Diagram](#fig-rgp-state-diagram)
       below.
     tables: []
     subsections: []
@@ -632,28 +635,30 @@ components:
       - The following state diagram describes the object lifecycle when the Redemption Grace Period (RGP)
         feature is supported. It adapts the diagram from [@!RFC3915, section 2] to the RPP data model,
         using RPP status labels and operations instead of EPP command names.
-      - In the diagram below, RPP status labels are shown in the `status` field of the object. Standard
-        EPP-origin status labels (e.g., `ok`, `pendingDelete`) are used alongside the RGP-specific labels
-        defined in this document. The `<create>` and `<report>` labels refer to the Create and Report
-        operations on the Restore Process Object, replacing the EPP extended `<update>` command with `op=request`
-        and `op=report` attributes.
+      - In the diagram below, each state box shows the values of the `status` data element of the Domain
+        Name Data Object. The values `ok` and `pendingDelete` are defined in (#domain-status-values),
+        and the values beginning with "rgp" are defined in (#rgp-status-values). The `<delete>` label
+        refers to the Delete operation on the Domain Name Data Object. The `<create>` and `<update>` labels
+        refer to the Create operation ((#restore-create)) and the Update operation ((#restore-report))
+        of the Restore Process Object.
       - 'State descriptions:'
       - 1. The object is in normal operation (`ok` or other status allowing a delete operation). 2. A
         delete operation is received and processed. 3. RGP begins. The object enters `pendingDelete` +
-        `redemptionPeriod` state. The object remains here until a restore operation is requested or the
-        redemption period elapses. 4. A restore Create operation is submitted. The registry accepts the
-        request. Go to step 8 if the redemption period elapses before a restore is received (4a). 5. If
-        the server does not require a restore report, the object returns to its pre-deletion status (1)
-        immediately upon a successful Create operation. If the server requires a report but the client
+        `rgpRedemptionPeriod` state. The object remains here until a restore operation is requested or
+        the redemption period elapses. 4. A restore Create operation is submitted. The registry accepts
+        the request. Go to step 9 if the redemption period elapses before a restore is received (4a).
+        5. If the server does not require a restore report, the object returns to its pre-deletion status
+        (1) immediately upon a successful Create operation. If the server requires a report but the client
         includes it inline in the Create operation, the server processes both atomically and the object
-        transitions directly from `redemptionPeriod` to its pre-deletion status (1), bypassing the `pendingRestore`
-        state. 6. The object enters `pendingDelete` + `pendingRestore` state. The registry awaits a restore
-        report from the sponsoring client. 7. If no restore report is received within the registry-defined
-        time, the object returns to `redemptionPeriod` state (step 3). 8. If a restore report is received
-        and accepted, the object returns to its pre-deletion status and all RGP status labels are removed.
-        9. The redemption period elapses without a restore request being received. 10. The object enters
-        `pendingDelete` + `rgpPendingDelete` state and awaits final purge processing. 11. The pending
-        delete period elapses and the object is purged. 12. The object is purged and available for re-registration.
+        transitions directly from `rgpRedemptionPeriod` to its pre-deletion status (1), bypassing the
+        `rgpPendingRestore` state. 6. The object enters `pendingDelete` + `rgpPendingRestore` state. The
+        registry awaits a restore report from the sponsoring client. 7. If no restore report is received
+        within the registry-defined time, the object returns to `rgpRedemptionPeriod` state (step 3).
+        8. If a restore report is received and accepted, the object returns to its pre-deletion status
+        and all RGP status labels are removed. 9. The redemption period elapses without a restore request
+        being received. 10. The object enters `pendingDelete` + `rgpPendingDelete` state and awaits final
+        purge processing. 11. The pending delete period elapses and the object is purged. 12. The object
+        is purged and available for re-registration.
       tables: []
       subsections: []
   supported_processes: []
@@ -1739,7 +1744,7 @@ components:
   description: A container grouping the Process Objects (#process-objects) currently or recently initiated
     on a Data Object. Each data element MUST be named after the identifier of a Process Object and MUST
     be of type Aggregation of that Process Object. The data elements below are the process types defined
-    in this document.
+    in this document. Extensions MUST add further data elements for the Process Objects they define.
   preamble: []
   elements:
   - identifier: transferProcess
@@ -1855,18 +1860,6 @@ components:
     direct_access: false
     visibility: default
     notes: []
-  - identifier: process
-    name: Process
-    cardinality: 0-1
-    mutability: read-only
-    data_type: Aggregation[Base Process Object]
-    description: The transfer process the message pertains to.
-    constraints:
-    - Not all messages may be related to a specific process, and in such cases, this field may be empty.
-    restrictions: {}
-    direct_access: false
-    visibility: default
-    notes: []
   operations: []
   subsections: []
   supported_processes: []
@@ -1931,10 +1924,24 @@ components:
   - identifier: message
     name: Message
     cardinality: '1'
-    mutability: create-only
+    mutability: read-only
     data_type: String
     description: Human-readable message associated with the review response.
     constraints: []
+    restrictions: {}
+    direct_access: false
+    visibility: default
+    notes: []
+  - identifier: process
+    name: Process
+    cardinality: 0-1
+    mutability: read-only
+    data_type: Base Process Object
+    description: The process whose operation was subject to the offline review.
+    constraints:
+    - Present when the reviewed operation was performed through a Process Object (create, renew, transfer,
+      or restore) and the server exposes that Process Object; absent otherwise, including for update and
+      delete operations.
     restrictions: {}
     direct_access: false
     visibility: default
@@ -1985,6 +1992,18 @@ components:
     description: The deadline for responding before the server takes an automated action.
     constraints:
     - The action date MUST be later than the request date and is subject to server policy.
+    restrictions: {}
+    direct_access: false
+    visibility: default
+    notes: []
+  - identifier: process
+    name: Process
+    cardinality: 0-1
+    mutability: read-only
+    data_type: Transfer Process Object
+    description: The transfer process the message pertains to.
+    constraints:
+    - Absent if the server does not expose the Transfer Process Object.
     restrictions: {}
     direct_access: false
     visibility: default
@@ -2049,6 +2068,18 @@ components:
     description: The end of the object's validity period if the operation causes a change in the validity
       period.
     constraints: []
+    restrictions: {}
+    direct_access: false
+    visibility: default
+    notes: []
+  - identifier: process
+    name: Process
+    cardinality: 0-1
+    mutability: read-only
+    data_type: Transfer Process Object
+    description: The transfer process the message pertains to.
+    constraints:
+    - Absent if the server does not expose the Transfer Process Object.
     restrictions: {}
     direct_access: false
     visibility: default
@@ -2478,7 +2509,7 @@ processes:
     notes: []
   operations:
   - identifier: transferCreate
-    name: Create (Transfer Request)
+    name: Create
     description: The Create operation initiates a transfer by creating a Transfer Process Object associated
       with the provisioned object. The transfer direction and gaining client (for push transfers) are
       provided as `create-only` data elements of the Transfer Process Object.
@@ -2510,7 +2541,7 @@ processes:
       cardinality: '1'
     notes: []
   - identifier: transferRead
-    name: Read (Transfer Query)
+    name: Read
     description: The Read operation allows a client to determine the real-time status of a pending or
       recently completed transfer request.
     authorisation:
@@ -2536,7 +2567,7 @@ processes:
       cardinality: '1'
     notes: []
   - identifier: transferDelete
-    name: Delete (Transfer Cancel)
+    name: Delete
     description: The Delete operation allows the initiating client to cancel its own pending transfer
       request.
     authorisation:
@@ -2692,19 +2723,43 @@ processes:
     mutability: read-only
     data_type: Timestamp
     description: The date and time by which a restore report must be submitted before the object reverts
-      to `redemptionPeriod` state. Only present when the object is in `pendingRestore` state.
+      to `rgpRedemptionPeriod` state. Only present when the object is in `rgpPendingRestore` state.
     constraints:
     - MUST NOT be present when `restoreStatus` is not `"pendingRestore"`.
     restrictions: {}
     direct_access: false
     visibility: default
     notes: []
+  - identifier: restoreReport
+    name: Restore Report
+    cardinality: 0-1
+    mutability: read-write
+    data_type: Restore Report Object
+    description: The restore report submitted by the sponsoring client as required by the RGP process.
+      A client MAY provide it in the Create operation, so that the restore request and the report are
+      processed atomically, or in a later Update operation while the object is in `rgpPendingRestore`
+      state. A report provided in an Update operation replaces any previously submitted report.
+    constraints:
+    - MUST NOT be provided if the server does not require a restore report.
+    - 'In EPP Compatibility Profile, the restore report is write-only: the server does not return it in
+      the output of any operation, because [@!RFC3915] provides no means to retrieve a submitted report.'
+    - In EPP Compatibility Profile, providing this element in the Create operation corresponds to `op="report"`,
+      omitting it corresponds to `op="request"`, and providing it in the Update operation corresponds
+      to `op="report"` as defined in [@!RFC3915].
+    restrictions: {}
+    direct_access: false
+    visibility: onDemand
+    notes: []
   operations:
   - identifier: create
-    name: Create (Restore Request)
-    description: The Create operation initiates the recovery of an object in the `redemptionPeriod` state
-      by creating a Restore Process Object. The server MUST reject this operation if the owning object
-      is not in the `redemptionPeriod` state.
+    name: Create
+    description: 'The Create operation initiates the recovery of an object in the `rgpRedemptionPeriod`
+      state by creating a Restore Process Object. The server MUST reject this operation if the owning
+      object is not in the `rgpRedemptionPeriod` state.
+
+      If the server requires a restore report and `restoreReport` is absent, the object transitions to
+      `rgpPendingRestore` state awaiting a subsequent Update operation. Otherwise the restore is completed
+      immediately.'
     authorisation:
     - Only the sponsoring client is authorised to perform this operation.
     input:
@@ -2745,7 +2800,7 @@ processes:
       cardinality: '1'
     notes: []
   - identifier: read
-    name: Read (Restore Query)
+    name: Read
     description: The Read operation allows the sponsoring client to retrieve the current state of the
       RGP process for an object.
     authorisation:
@@ -2769,14 +2824,16 @@ processes:
       cardinality: '1'
     notes:
     - In EPP Compatibility Profile this operation is not supported.
-  - identifier: report
-    name: Report
+  - identifier: update
+    name: Update
     description: 'This operation is OPTIONAL, only for servers which support or require submission of
       a restore report.
 
-      The Report operation submits the restore report required by the RGP process for an object in the
-      `pendingRestore` state. A report MAY be submitted more than once if corrections are required. The
-      server MUST reject this operation if the object is not in the `pendingRestore` state.'
+      The Update operation submits the restore report required by the RGP process for an object in the
+      `rgpPendingRestore` state. Since `restoreReport` is the only read-write data element of the Restore
+      Process Object, the client MUST provide it in this operation. A report MAY be submitted more than
+      once if corrections are required. The server MUST reject this operation if the object is not in
+      the `rgpPendingRestore` state.'
     authorisation:
     - Only the sponsoring client is authorised to perform this operation.
     input:
@@ -2849,7 +2906,7 @@ processes:
     notes: []
   operations:
   - identifier: renewCreate
-    name: Create (Renew Request)
+    name: Create
     description: The renew operation extends the validity period of an existing object by creating a Renew
       Process Object.
     authorisation:
@@ -3434,6 +3491,14 @@ resources:
   - name: Restore Process
     constraints:
     - OPTIONAL; available only when the RGP feature is supported.
+    notes:
+    - 'The Domain Name Data Object supports the following Process Objects extended by an object-specific
+      definition:'
+  - name: Domain Create Process
+    constraints: []
+    notes: []
+  - name: Domain Transfer Process
+    constraints: []
     notes: []
   conditions: []
 - identifier: contact
@@ -3660,7 +3725,7 @@ resources:
   - name: Transfer Process
     constraints: []
     notes:
-    - Renewal semantics do not apply to contact objects.
+    - The Contact Data Object supports no Process Objects extended by an object-specific definition.
   conditions: []
 - identifier: host
   name: Host Data Object
@@ -3851,15 +3916,13 @@ resources:
     - The error response SHOULD indicate the related associated objects.
   subsections: []
   supported_processes:
-  - name: Restore Process
-    constraints:
-    - OPTIONAL; available only when the RGP feature for the Host Data Object is supported by the server.
-    notes: []
   - name: Transfer Process
     constraints:
     - Host objects MUST NOT be transferred directly. They are transferred implicitly when their superordinate
       domain object is transferred.
-    notes: []
+    notes:
+    - The Host Data Object supports no Process Objects (#process-objects) extended by an object-specific
+      definition.
   conditions: []
 - identifier: organisation
   name: Organisation Data Object
@@ -4421,7 +4484,9 @@ resources:
       - read-only
       cardinality: 0-1
     notes:
-    - The server MUST reject this operation if the User is associated with an Organisation Object.
+    - The server MUST reject this operation if the target User Object is the last user of the owning organisation
+      that is permitted to manage users.
+    - User Objects are deleted together with their owning Organisation Object.
   subsections: []
   supported_processes: []
   conditions: []

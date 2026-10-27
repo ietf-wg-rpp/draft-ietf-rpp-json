@@ -5,8 +5,7 @@
       "properties": {
         "@type": { "type": "string", "const": "baseMessage", "readOnly": true },
         "objectType": { "type": "string", "readOnly": true },
-        "objectId": { "type": "string", "readOnly": true },
-        "process": { "$ref": "#/$defs/baseProcess", "readOnly": true }
+        "objectId": { "type": "string", "readOnly": true }
       },
       "required": ["@type"]
     }

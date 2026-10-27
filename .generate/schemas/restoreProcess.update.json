@@ -8,7 +8,7 @@
         "@type": { "type": "string", "const": "restoreProcess" },
         "restoreReport": { "$ref": "#/$defs/restoreReport" }
       },
-      "required": ["@type"]
+      "required": ["@type", "restoreReport"]
     }
   }
 }

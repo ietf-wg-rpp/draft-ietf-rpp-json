@@ -1779,8 +1779,7 @@ The following constraints cannot be expressed in JSON Schema and MUST be enforce
       "properties": {
         "@type": { "type": "string", "const": "baseMessage", "readOnly": true },
         "objectType": { "type": "string", "readOnly": true },
-        "objectId": { "type": "string", "readOnly": true },
-        "process": { "$ref": "#/$defs/baseProcess", "readOnly": true }
+        "objectId": { "type": "string", "readOnly": true }
       },
       "required": ["@type"]
     }
@@ -1796,15 +1795,15 @@ The following constraints cannot be expressed in JSON Schema and MUST be enforce
     "reviewResponseMessage": {
       "type": "object",
       "properties": {
-        "@type": { "type": "string", "const": "reviewResponseMessage" },
+        "@type": { "type": "string", "const": "reviewResponseMessage", "readOnly": true },
         "objectType": { "type": "string", "readOnly": true },
         "objectId": { "type": "string", "readOnly": true },
-        "process": { "$ref": "#/$defs/baseProcess", "readOnly": true },
         "approved": { "type": "boolean", "readOnly": true },
         "clientTransactionId": { "type": "string", "readOnly": true },
         "serverTransactionId": { "type": "string", "readOnly": true },
         "completionDate": { "type": "string", "format": "date-time", "readOnly": true },
-        "message": { "type": "string" }
+        "message": { "type": "string", "readOnly": true },
+        "process": { "$ref": "#/$defs/baseProcess", "readOnly": true }
       },
       "required": ["@type", "approved", "serverTransactionId", "completionDate", "message"]
     }
@@ -1823,10 +1822,10 @@ The following constraints cannot be expressed in JSON Schema and MUST be enforce
         "@type": { "type": "string", "const": "transferRequestMessage", "readOnly": true },
         "objectType": { "type": "string", "readOnly": true },
         "objectId": { "type": "string", "readOnly": true },
-        "process": { "$ref": "#/$defs/baseProcess", "readOnly": true },
         "status": { "type": "string", "enum": ["pending"], "readOnly": true },
         "requestDate": { "type": "string", "format": "date-time", "readOnly": true },
-        "actionDate": { "type": "string", "format": "date-time", "readOnly": true }
+        "actionDate": { "type": "string", "format": "date-time", "readOnly": true },
+        "process": { "$ref": "#/$defs/transferProcess.read", "readOnly": true }
       },
       "required": ["@type", "status", "requestDate"]
     }
@@ -1845,7 +1844,6 @@ The following constraints cannot be expressed in JSON Schema and MUST be enforce
         "@type": { "type": "string", "const": "transferOutcomeMessage", "readOnly": true },
         "objectType": { "type": "string", "readOnly": true },
         "objectId": { "type": "string", "readOnly": true },
-        "process": { "$ref": "#/$defs/baseProcess", "readOnly": true },
         "trStatus": {
           "type": "string",
           "enum": [
@@ -1859,7 +1857,8 @@ The following constraints cannot be expressed in JSON Schema and MUST be enforce
         },
         "requestDate": { "type": "string", "format": "date-time", "readOnly": true },
         "actionDate": { "type": "string", "format": "date-time", "readOnly": true },
-        "expiryDate": { "type": "string", "format": "date-time", "readOnly": true }
+        "expiryDate": { "type": "string", "format": "date-time", "readOnly": true },
+        "process": { "$ref": "#/$defs/transferProcess.read", "readOnly": true }
       },
       "required": ["@type", "trStatus", "requestDate", "actionDate"]
     }
@@ -1878,7 +1877,6 @@ The following constraints cannot be expressed in JSON Schema and MUST be enforce
         "@type": { "type": "string", "const": "expirationDeletionMessage", "readOnly": true },
         "objectType": { "type": "string", "readOnly": true },
         "objectId": { "type": "string", "readOnly": true },
-        "process": { "$ref": "#/$defs/baseProcess", "readOnly": true },
         "deletionDate": { "type": "string", "format": "date-time", "readOnly": true }
       },
       "required": ["@type", "deletionDate"]
@@ -1898,7 +1896,6 @@ The following constraints cannot be expressed in JSON Schema and MUST be enforce
         "@type": { "type": "string", "const": "autoRenewalMessage", "readOnly": true },
         "objectType": { "type": "string", "readOnly": true },
         "objectId": { "type": "string", "readOnly": true },
-        "process": { "$ref": "#/$defs/baseProcess", "readOnly": true },
         "renewalDate": { "type": "string", "format": "date-time", "readOnly": true },
         "expiryDate": { "type": "string", "format": "date-time", "readOnly": true }
       },
@@ -1921,7 +1918,6 @@ The Service Notice Message Object extends the Base Message Object. It is not lin
         "@type": { "type": "string", "const": "serviceNoticeMessage", "readOnly": true },
         "objectType": { "type": "string", "readOnly": true },
         "objectId": { "type": "string", "readOnly": true },
-        "process": { "$ref": "#/$defs/baseProcess", "readOnly": true },
         "message": { "type": "string", "readOnly": true }
       },
       "required": ["@type", "message"]
@@ -2229,7 +2225,8 @@ Read response schema (read-write and read-only properties):
         },
         "requestDate": { "type": "string", "format": "date-time", "readOnly": true },
         "reportDate": { "type": "string", "format": "date-time", "readOnly": true },
-        "reportDueDate": { "type": "string", "format": "date-time", "readOnly": true }
+        "reportDueDate": { "type": "string", "format": "date-time", "readOnly": true },
+        "restoreReport": { "$ref": "#/$defs/restoreReport" }
       },
       "required": ["@type", "restoreStatus"]
     }
