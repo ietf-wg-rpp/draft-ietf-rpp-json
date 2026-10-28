@@ -5601,7 +5601,7 @@ There exist no request message for the message query operation.
 Example message query response, containing a Transfer Request Message Object for the domain `transfer-test.example`:
 
 ```json
-{
+[{
     "@type": "message",
     "id": "MSG-98765",
     "creationDate": "2026-09-17T09:00:00.0Z",
@@ -5624,7 +5624,7 @@ Example message query response, containing a Transfer Request Message Object for
         "requestDate": "2026-09-17T09:00:00.0Z",
         "actionDate": "2026-09-22T09:00:00.0Z"
     }
-}
+}]
 ```
 
 ## Discovery

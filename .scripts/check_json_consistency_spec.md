@@ -52,6 +52,7 @@ The sub-chapter determines what `@type` rules apply:
 
 ### Rules checked per schema block
 - Must be valid JSON
+- Must be a JSON object — **error** otherwise (e.g. a schema wrapped in `[...]`)
 - Must contain `$defs` with **exactly one** named definition
 - `@type` rule per sub-chapter (see table above):
   - `forbidden`: `@type` property MUST NOT appear in the definition — **error** if present
@@ -88,7 +89,7 @@ Examples come from the `Examples` chapter and from `Update Rules > Schema > Exam
 ### Rules checked per example block
 - Must be valid JSON
 - An example in `Update Rules > Schema > Examples` without a top-level `"@type"` (e.g. a partial update request, which is a JSON array) is validated against the standalone schemas of `Update Rules > Schema`, as written (no `unevaluatedProperties` injection) — **error** if it validates against none, or if no usable standalone schema exists. Its nested `"@type"` values count towards Section 5 coverage.
-- Must have a top-level `"@type"` property — **error** if missing
+- Must have a top-level `"@type"` property — **error** if missing. A non-empty JSON array whose items are objects sharing one `"@type"` (e.g. a query response) takes that `"@type"` and is validated as a whole, so it passes against an array schema such as `message.query`
 - Must have at least one matching schema (matched by `@type` value == schema's `@type` const) — **error** if none found
 - Schemas with unresolved `$ref`s are skipped for validation (already flagged in section 2); if all matching schemas are skipped, validation is marked as not possible
 - Must validate against at least one matching schema — **error** if all fail; **warning** if some fail but at least one passes

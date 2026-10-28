@@ -70,8 +70,8 @@ class ExampleEntry:
     block: JsonBlock
     section: str              # section title path
     caption: str
-    obj: Optional[dict]       # None if JSON parsing failed
-    type_value: Optional[str] # value of top-level @type
+    obj: Optional[dict | list]  # None if JSON parsing failed
+    type_value: Optional[str] # value of top-level @type (common item @type for arrays)
     scope: Optional[tuple] = None  # chapter path whose standalone schemas validate untyped examples
 
 
@@ -276,6 +276,10 @@ def _try_parse_schema(blk: JsonBlock) -> SchemaEntry:
     except json.JSONDecodeError as e:
         return SchemaEntry(block=blk, def_name=f"<JSON parse error: {e}>",
                            type_const=None, schema={}, subchapter=subchapter)
+    if not isinstance(obj, dict):
+        return SchemaEntry(block=blk,
+                           def_name=f"<schema is a JSON {type(obj).__name__}, expected an object>",
+                           type_const=None, schema={}, subchapter=subchapter)
 
     defs = obj.get("$defs", {})
     if not isinstance(defs, dict) or len(defs) != 1:
@@ -299,7 +303,15 @@ def _parse_example(blk: JsonBlock, section: str) -> ExampleEntry:
         obj = json.loads(blk.raw)
     except json.JSONDecodeError:
         obj = None
-    type_value = obj.get("@type") if isinstance(obj, dict) else None
+    type_value = None
+    if isinstance(obj, dict):
+        type_value = obj.get("@type")
+    elif isinstance(obj, list) and obj and all(isinstance(i, dict) for i in obj):
+        # Array response (e.g. a query): typed by the @type its items share,
+        # and validated as a whole against the array schemas for that @type.
+        item_types = {i.get("@type") for i in obj}
+        if len(item_types) == 1:
+            type_value = item_types.pop()
     return ExampleEntry(block=blk, section=section, caption=blk.caption,
                         obj=obj, type_value=type_value)
 
