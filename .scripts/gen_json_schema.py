@@ -122,6 +122,7 @@ OUTPUT_SUFFIX = ".output"  # response view of an operation whose output differs 
 REQUEST_VIEWS = ("create", "update")
 RESPONSE_VIEWS = ("read", "query", "reference")
 WRITABLE = ("create-only", "read-write")
+MUTABILITIES = ("create-only", "read-write", "read-only")
 STATUS_RESTRICTIONS = ("client_values", "server_only_values")
 
 COMPOSITIONS = {"Composition", "LabelledComposition", "DictionaryComposition"}
@@ -331,6 +332,22 @@ class Model:
                           owner.id)
         return o
 
+    def item_mutabilities(self, op, owner, item, side):
+        """Mutability values of the data elements an Object item carries (data-objects "Data
+        Element Semantics" and "Operation Input and Output"): all of them in output; in input
+        read-write only when both the Object item and the Input's Reference are "This Object"
+        (an existing object being modified, i.e. Update), else create-only and read-write (an
+        object being created)."""
+        if side == "output":
+            return set(MUTABILITIES)
+        refs = [r for r in op.get("input") or [] if r["kind"] == "Reference"]
+        if len(refs) > 1:
+            self.diag.add("yaml-issue", "Input has more than one Reference item",
+                          f"{owner.id}.{op['identifier']}")
+        if item["target"] == "This Object" and any(r["target"] == "This Object" for r in refs):
+            return {"read-write"}
+        return set(WRITABLE)
+
     @staticmethod
     def conditions(o):
         """Cross-element conditions of an object, inherited first."""
@@ -419,7 +436,7 @@ class Generator:
 
     def output_items(self, o, op, owner):
         """Output Object items of an operation that name the object itself."""
-        return [item for item in self.m.io(op, owner, "output") if item["kind"] == "Object"
+        return [(op, owner, item) for item in self.m.io(op, owner, "output") if item["kind"] == "Object"
                 and (t := self.m.io_target(item, owner)) is not None and o.is_a(t)]
 
     def output_views(self, o):
@@ -436,7 +453,7 @@ class Generator:
                 continue  # returns another object, or nothing
             if read_muts is None:
                 read_muts = self.view_mutabilities(o, "read")
-            muts = {m for item in items for m in item["elements"]}
+            muts = self.items_mutabilities(items, "output")
             if Model.definitions(op, "Output Data Elements", "output") or muts != read_muts:
                 views.append(v + OUTPUT_SUFFIX)
         return views
@@ -561,7 +578,7 @@ class Generator:
     def build_view(self, o, view):
         if view == "query":
             items = self.view_items(o, view)
-            card = items[0]["cardinality"] if items else "0+"
+            card = items[0][2]["cardinality"] if items else "0+"
             self.diag.add("rule-gap", f"An Output Object with cardinality '{card}' has no JSON rule; "
                                       "array of read representations applied following the draft", o.id)
             return {"type": "array", "items": {"$ref": f"#/$defs/{o.id}.read"}}
@@ -614,7 +631,7 @@ class Generator:
         ops = [(op, ow) for op, ow in o.operations if self.view_of(op, ow) == op_view]
         props = {"@type": self.type_prop(o, "read")}
         required = ["@type"]
-        muts = {m for op, ow in ops for item in self.output_items(o, op, ow) for m in item["elements"]}
+        muts = self.items_mutabilities([t for op, ow in ops for t in self.output_items(o, op, ow)], "output")
         for e in o.elements:
             if e["mutability"] in muts:
                 self.add_element(o, e, "read", props, required)
@@ -744,8 +761,12 @@ class Generator:
                 if item["kind"] == kind:
                     t = self.m.io_target(item, owner)
                     if t is not None and o.is_a(t):
-                        out.append(item)
+                        out.append((op, owner, item))
         return out
+
+    def items_mutabilities(self, items, side):
+        """Mutability values carried by (op, owner, item) Object items."""
+        return {m for op, owner, item in items for m in self.m.item_mutabilities(op, owner, item, side)}
 
     def view_mutabilities(self, o, view):
         """Mutability values of the elements in a view, from the operations' Input/Output."""
@@ -762,7 +783,7 @@ class Generator:
                                        "selected by mutability (create: create-only, read-write; "
                                        "read: all)", f"{o.id}.{view}")
             return self.DEFAULT_MUTS[view]
-        return {m for item in items for m in item["elements"]}
+        return self.items_mutabilities(items, self.VIEW_IO[view][0])
 
     # -- elements ----------------------------------------------------------
 
