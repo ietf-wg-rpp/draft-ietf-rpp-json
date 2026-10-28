@@ -33,4 +33,6 @@ jobs:
         run: pip install -r .scripts/requirements.txt
 
       - name: Check JSON schemas and examples
-        run: python .scripts/check_json_consistency.py -vq src/draft-ietf-rpp-json.md
+        env:
+          PYTHONUNBUFFERED: "1"
+        run: python .scripts/check_json_consistency.py -q src/draft-ietf-rpp-json.md 2>&1
