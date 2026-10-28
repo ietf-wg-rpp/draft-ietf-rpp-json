@@ -39,7 +39,7 @@ organization = "DENIC"
 
 .# Abstract
 
-This document defines the rules for representing the RESTful Provisioning Protocol (RPP) data objects, as defined in [@!I-D.ietf-rpp-data-objects], using the JavaScript Object Notation (JSON) Data Interchange Format [@!RFC8259]. It specifies how RPP primitive types, common data types, component objects, resource objects, and associations are mapped to JSON and JSON Schema, and provides normative JSON Schema definitions and worked examples for domain name, contact, and host data objects.
+This document defines the rules for representing the RESTful Provisioning Protocol (RPP) data objects using the JavaScript Object Notation (JSON) Data Interchange Format [@!RFC8259]. It specifies how RPP primitive types, common data types, component objects, resource objects, and associations are mapped to JSON and JSON Schema, and provides normative JSON Schema definitions and worked examples for domain name, contact, and host data objects.
 
 {mainmatter}
 
@@ -65,6 +65,8 @@ However, the absence of a standardized JSON format for domain provisioning has l
 
 In this document, the following terminology is used.
 
+Terms of the RPP data model, such as Data Object, Component Object, Process Object, Common Data Type, data element, cardinality, mutability, Identifier, Unique Identifier, Input Data Element, Parameter, Visibility, and Direct Access, are used as defined in [@!I-D.ietf-rpp-data-objects].
+
 RPP Data Objects - The abstract data model definitions for domain name, contact, and host resources, as specified in [@!I-D.ietf-rpp-data-objects].
 
 RESTful Provisioning Protocol - A RESTful protocol for provisioning heterogeneous database objects.
@@ -89,7 +91,7 @@ All JSON Schema definitions in this document use JSON Schema draft 2020-12 [@!I-
 
 # JSON Representation Rules
 
-This section defines the normative rules for representing the RPP data model in JSON. The data model is specified in [@!I-D.ietf-rpp-data-objects], which defines all primitive types, common data types, component objects, resource objects, and associations independently of any concrete representation format. The rules in this section specify how those abstract definitions map to JSON and JSON Schema version 2020-12.
+This section defines the normative rules for representing the RPP data model in JSON. The data model defines all primitive types, common data types, component objects, resource objects, and associations independently of any concrete representation format. The rules in this section specify how those abstract definitions map to JSON and JSON Schema version 2020-12.
 
 ## Primitive Type Mappings
 
@@ -471,7 +473,7 @@ Rule 26: When a transfer request or other operation requires authorization infor
 
 Rule 27: The JSON Schema definitions of all RPP objects MUST be located in a single shared `$defs` object at the top level of the RPP schema document. A schema that refers to another definition MUST use the `$ref` keyword with a JSON Pointer fragment to the definition in the shared `$defs` object.
 
-The key of a definition in the shared `$defs` object MUST be formed as follows, using Identifiers exactly as defined in [@!I-D.ietf-rpp-data-objects]:
+The key of a definition in the shared `$defs` object MUST be formed as follows, using the Identifiers of the data model unchanged:
 
 - Data Object, Process Object, or Component Object: its Identifier, followed by a `.` and the name of the view. An object that extends another object uses its own Identifier, not the Identifier of the object it extends.
 
@@ -480,7 +482,7 @@ The view names are:
 - `create`: the request content of the Create operation.
 - `read`: the object representation returned in responses.
 - `update`: the request content of the Update operation.
-- `reference`: the limited representation of an aggregated object (see Aggregation), containing `@type` and the object's Unique Identifier as defined in [@!I-D.ietf-rpp-data-objects].
+- `reference`: the limited representation of an aggregated object (see Aggregation), containing `@type` and the object's Unique Identifier.
 - `query`: the response content of the Query operation.
 - The Identifier of the operation: the request content of any other operation.
 - The Identifier of the operation followed by `.output`: the response content of an operation, other than Read and Query, whose output is not an existing view of the object.
@@ -526,7 +528,7 @@ Example (structure of the final RPP schema document):
 
 ### Status Objects {#status-object-rules}
 
-Each status object in [@!I-D.ietf-rpp-data-objects] has a status values table whose "Set By" column identifies the entity that adds and removes each status value: `client`, `server`, or `client, server`. In this section, a client-settable status value is a value whose "Set By" column contains `client`.
+Each status object has a status values table whose "Set By" column identifies the entity that adds and removes each status value: `client`, `server`, or `client, server`. In this section, a client-settable status value is a value whose "Set By" column contains `client`.
 
 Rule 28: The `read` view of a status object lists all of its status values in the `"enum"` of `"label"`. Its `create` view lists only the client-settable status values in the `"enum"` of `"label"`.
 
@@ -592,7 +594,7 @@ Example Circle Object instance:
 
 ### RPP Profiles and Validation
 
-RPP profiles, such as the EPP Compatibility Profile defined in [@!I-D.ietf-rpp-data-objects], may impose additional constraints on top of the base RPP data model. These additional constraints MUST be enforced by implementations through validation rules that go beyond what can be expressed in JSON Schema. Such validation rules MUST be clearly documented in the profile specification and implemented by both clients and servers when operating under that profile. For example, the EPP Compatibility Profile requires that certain fields be present in specific object types, and that certain identifier fields conform to EPP syntax rules. These constraints cannot be fully captured in JSON Schema and therefore require additional validation logic in implementations.
+RPP profiles, such as the EPP Compatibility Profile, may impose additional constraints on top of the base RPP data model. These additional constraints MUST be enforced by implementations through validation rules that go beyond what can be expressed in JSON Schema. Such validation rules MUST be clearly documented in the profile specification and implemented by both clients and servers when operating under that profile. For example, the EPP Compatibility Profile requires that certain fields be present in specific object types, and that certain identifier fields conform to EPP syntax rules. These constraints cannot be fully captured in JSON Schema and therefore require additional validation logic in implementations.
 
 # Update Rules
 
@@ -1184,12 +1186,12 @@ Read schema:
 
 ### Status Objects {#status-objects}
 
-Each RPP Data Object type that carries a status uses a type-specific status object, as defined in [@!I-D.ietf-rpp-data-objects]. The `create` view of a status object holds only the status values that a client can set (see (#status-object-rules)).
+Each RPP Data Object type that carries a status uses a type-specific status object. The `create` view of a status object holds only the status values that a client can set (see (#status-object-rules)).
 
 The following constraints cannot be expressed in JSON Schema and MUST be enforced by implementations:
 
 - A server MUST keep the status values it has set when it processes a create or update request; their absence from the `"status"` of the request does not remove them. A server MAY alter or override client-settable status values, subject to local server policy.
-- A server MUST reject a request whose `"status"` array contains a combination of label values prohibited by the status exclusion rules for that object type in [@!I-D.ietf-rpp-data-objects].
+- A server MUST reject a request whose `"status"` array contains a combination of label values prohibited by the status exclusion rules for that object type.
 - A `"status"` array MUST NOT contain the same `"label"` value more than once.
 
 Extensions MAY define additional `"label"` values for a status object; such values are added to the `"enum"` of the corresponding status object in the effective schema, as described in (#extension-framework).
@@ -1767,7 +1769,7 @@ Create schema:
 
 The Disclose Object is used by the `disclose` data element of the Contact Data Object.
 
-A> TODO: The Disclose Object is not yet fully defined in [@!I-D.ietf-rpp-data-objects]. The schema below is a placeholder.
+A> TODO: The Disclose Object is not yet fully defined in the data model. The schema below is a placeholder.
 
 Read schema:
 
@@ -3617,7 +3619,7 @@ Reference schema (identifier only):
 
 The following constraints cannot be expressed in JSON Schema and MUST be enforced by implementations:
 
-- `data` is polymorphic: it MUST contain an instance of a message object that directly or indirectly extends the Base Message Object, as defined in [@!I-D.ietf-rpp-data-objects]. The concrete message object is identified by the `@type` of the value used for `data` property.
+- `data` is polymorphic: it MUST contain an instance of a message object that directly or indirectly extends the Base Message Object. The concrete message object is identified by the `@type` of the value used for `data` property.
 
 ### Create
 
@@ -5792,7 +5794,7 @@ The "RESTful Provisioning Protocol (RPP)" registry group is defined in [@!I-D.ie
 
 # Internationalization Considerations {#internationalization-considerations}
 
-Internationalized Domain Names (IDN) are represented using the paired `name`/`uName` data elements described in the Domain Name Data Object in [@!I-D.ietf-rpp-data-objects]. The `name` property, which addresses the resource and is used for object identity, MUST always contain the ACE A-label form; the `uName` property carries the Unicode U-label form for display and MUST be Unicode Normalization Form C (NFC) as defined in [UNICODE.NFC].
+Internationalized Domain Names (IDN) are represented using the paired `name`/`uName` data elements described in the Domain Name Data Object. The `name` property, which addresses the resource and is used for object identity, MUST always contain the ACE A-label form; the `uName` property carries the Unicode U-label form for display and MUST be Unicode Normalization Form C (NFC) as defined in [UNICODE.NFC].
 
 Because JSON strings are Unicode character sequences, implementations MUST take the following precautions to avoid producing or misinterpreting `uName` (and any other Unicode-bearing string value) in a way that breaks common JSON consumers, in particular JavaScript, whose native strings are sequences of UTF-16 code units rather than Unicode code points:
 
@@ -5827,6 +5829,8 @@ TODO
 - Regenerated the JSON Schema definitions from the RPP Data Objects model, replacing the generic Status Object with type-specific objects in (#status-objects) and adding (#status-object-rules) and `read`/`create` views for Component Objects to JSON Schema Composition Rules.
 - Added the Disclose Object and Process Object (Base, Create, Restore) schemas, and removed redundant Process alias and Transfer response schemas.
 - Aligned all examples, including those in (#extension-framework), with the updated JSON Schema definitions.
+- Added a reference to the RPP data model terms in Terminology.
+- Removed repeated references to the RPP data model document that Terminology covers.
 
 ## Version draft-wullink-rpp-json-02 to draft-ietf-rpp-json-00
 
