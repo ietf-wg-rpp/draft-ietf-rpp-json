@@ -8,7 +8,6 @@
         "@type": { "type": "string", "const": "message" },
         "data": {
           "oneOf": [
-            { "$ref": "#/$defs/baseMessage.read" },
             { "$ref": "#/$defs/reviewResponseMessage.read" },
             { "$ref": "#/$defs/transferRequestMessage.read" },
             { "$ref": "#/$defs/transferOutcomeMessage.read" },

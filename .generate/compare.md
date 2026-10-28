@@ -86,118 +86,118 @@ Draft keys that differ from the Rule 27 key: 0 of 94 (case only: 0)
 
 ## `reviewResponseMessage.read` (draft line 2215) -> `reviewResponseMessage.read`
 
-## `transferRequestMessage.read` (draft line 2252) -> `transferRequestMessage.read`
+## `transferRequestMessage.read` (draft line 2251) -> `transferRequestMessage.read`
 
-## `transferOutcomeMessage.read` (draft line 2282) -> `transferOutcomeMessage.read`
+## `transferOutcomeMessage.read` (draft line 2281) -> `transferOutcomeMessage.read`
 
-## `expirationDeletionMessage.read` (draft line 2323) -> `expirationDeletionMessage.read`
+## `expirationDeletionMessage.read` (draft line 2322) -> `expirationDeletionMessage.read`
 
-## `autoRenewalMessage.read` (draft line 2344) -> `autoRenewalMessage.read`
+## `autoRenewalMessage.read` (draft line 2343) -> `autoRenewalMessage.read`
 
-## `serviceNoticeMessage.read` (draft line 2368) -> `serviceNoticeMessage.read`
+## `serviceNoticeMessage.read` (draft line 2367) -> `serviceNoticeMessage.read`
 
-## `baseProcess.read` (draft line 2397) -> `baseProcess.read`
+## `baseProcess.read` (draft line 2396) -> `baseProcess.read`
 
-## `createProcess.create` (draft line 2418) -> `createProcess.create`
+## `createProcess.create` (draft line 2417) -> `createProcess.create`
 
-## `createProcess.read` (draft line 2436) -> `createProcess.read`
+## `createProcess.read` (draft line 2435) -> `createProcess.read`
 
-## `createProcess.reference` (draft line 2455) -> `createProcess.reference`
+## `createProcess.reference` (draft line 2454) -> `createProcess.reference`
 
-## `renewProcess.create` (draft line 2476) -> `renewProcess.create`
+## `renewProcess.create` (draft line 2475) -> `renewProcess.create`
 
-## `renewProcess.read` (draft line 2496) -> `renewProcess.read`
+## `renewProcess.read` (draft line 2495) -> `renewProcess.read`
 
-## `renewProcess.reference` (draft line 2517) -> `renewProcess.reference`
+## `renewProcess.reference` (draft line 2516) -> `renewProcess.reference`
 
-## `transferProcess.create` (draft line 2540) -> `transferProcess.create`
+## `transferProcess.create` (draft line 2539) -> `transferProcess.create`
 - draft structure: allOf
 
-## `transferProcess.read` (draft line 2584) -> `transferProcess.read`
+## `transferProcess.read` (draft line 2583) -> `transferProcess.read`
 - draft structure: allOf
 
-## `transferProcess.transferReject` (draft line 2657) -> `transferProcess.transferReject`
+## `transferProcess.transferReject` (draft line 2656) -> `transferProcess.transferReject`
 
-## `transferProcess.reference` (draft line 2680) -> `transferProcess.reference`
+## `transferProcess.reference` (draft line 2679) -> `transferProcess.reference`
 
-## `restoreProcess.create` (draft line 2709) -> `restoreProcess.create`
+## `restoreProcess.create` (draft line 2708) -> `restoreProcess.create`
 
-## `restoreProcess.read` (draft line 2728) -> `restoreProcess.read`
+## `restoreProcess.read` (draft line 2727) -> `restoreProcess.read`
 
-## `restoreProcess.report` (draft line 2758) -> NO COUNTERPART
+## `restoreProcess.update` (draft line 2757) -> `restoreProcess.update`
 
-## `restoreProcess.reference` (draft line 2778) -> `restoreProcess.reference`
+## `restoreProcess.reference` (draft line 2777) -> `restoreProcess.reference`
 
-## `domainName.create` (draft line 2810) -> `domainName.create`
+## `domainName.create` (draft line 2809) -> `domainName.create`
 
-## `domainCreateProcess.create` (draft line 2868) -> `domainCreateProcess.create`
+## `domainCreateProcess.create` (draft line 2867) -> `domainCreateProcess.create`
 
-## `domainCreateProcess.read` (draft line 2887) -> `domainCreateProcess.read`
+## `domainCreateProcess.read` (draft line 2886) -> `domainCreateProcess.read`
 
-## `domainCreateProcess.reference` (draft line 2907) -> `domainCreateProcess.reference`
+## `domainCreateProcess.reference` (draft line 2906) -> `domainCreateProcess.reference`
 
-## `domainName.read` (draft line 2928) -> `domainName.read`
+## `domainName.read` (draft line 2927) -> `domainName.read`
 
-## `domainName.update` (draft line 2982) -> `domainName.update`
+## `domainName.update` (draft line 2981) -> `domainName.update`
 
-## `domainTransferProcess.create` (draft line 3025) -> `domainTransferProcess.create`
+## `domainTransferProcess.create` (draft line 3024) -> `domainTransferProcess.create`
 - draft structure: allOf
 
-## `domainTransferProcess.read` (draft line 3068) -> `domainTransferProcess.read`
+## `domainTransferProcess.read` (draft line 3067) -> `domainTransferProcess.read`
 - draft structure: allOf
 
-## `domainTransferProcess.transferReject` (draft line 3133) -> `domainTransferProcess.transferReject`
+## `domainTransferProcess.transferReject` (draft line 3132) -> `domainTransferProcess.transferReject`
 
-## `domainTransferProcess.reference` (draft line 3154) -> `domainTransferProcess.reference`
+## `domainTransferProcess.reference` (draft line 3153) -> `domainTransferProcess.reference`
 
-## `domainName.reference` (draft line 3175) -> `domainName.reference`
+## `domainName.reference` (draft line 3174) -> `domainName.reference`
 
-## `contact.create` (draft line 3211) -> `contact.create`
+## `contact.create` (draft line 3210) -> `contact.create`
 
-## `contact.read` (draft line 3239) -> `contact.read`
+## `contact.read` (draft line 3238) -> `contact.read`
 
-## `contact.update` (draft line 3270) -> `contact.update`
+## `contact.update` (draft line 3269) -> `contact.update`
 
-## `contact.reference` (draft line 3297) -> `contact.reference`
+## `contact.reference` (draft line 3296) -> `contact.reference`
 
-## `host.create` (draft line 3325) -> `host.create`
+## `host.create` (draft line 3324) -> `host.create`
 
-## `host.read` (draft line 3351) -> `host.read`
+## `host.read` (draft line 3350) -> `host.read`
 
-## `host.update` (draft line 3380) -> `host.update`
+## `host.update` (draft line 3379) -> `host.update`
 
-## `host.reference` (draft line 3406) -> `host.reference`
+## `host.reference` (draft line 3405) -> `host.reference`
 
-## `organisation.create` (draft line 3436) -> `organisation.create`
+## `organisation.create` (draft line 3435) -> `organisation.create`
 
-## `organisation.read` (draft line 3490) -> `organisation.read`
+## `organisation.read` (draft line 3489) -> `organisation.read`
 
-## `organisation.update` (draft line 3547) -> `organisation.update`
+## `organisation.update` (draft line 3546) -> `organisation.update`
 
-## `organisation.reference` (draft line 3600) -> `organisation.reference`
+## `organisation.reference` (draft line 3599) -> `organisation.reference`
 
-## `message.create` (draft line 3627) -> `message.create`
+## `message.create` (draft line 3626) -> `message.create`
 
-## `message.read` (draft line 3659) -> `message.read`
+## `message.read` (draft line 3657) -> `message.read`
 
-## `message.query` (draft line 3694) -> `message.query`
+## `message.query` (draft line 3691) -> `message.query`
 
-## `message.reference` (draft line 3711) -> `message.reference`
+## `message.reference` (draft line 3708) -> `message.reference`
 
-## `user.create` (draft line 3739) -> `user.create`
+## `user.create` (draft line 3736) -> `user.create`
 
-## `user.read` (draft line 3763) -> `user.read`
+## `user.read` (draft line 3760) -> `user.read`
 
-## `user.update` (draft line 3789) -> `user.update`
+## `user.update` (draft line 3786) -> `user.update`
 
-## `user.reference` (draft line 3812) -> `user.reference`
+## `user.reference` (draft line 3809) -> `user.reference`
 
-## `discovery.read` (draft line 3844) -> `discovery.read`
+## `discovery.read` (draft line 3841) -> `discovery.read`
 
-## `profile.read` (draft line 3927) -> `profile.read`
+## `profile.read` (draft line 3924) -> `profile.read`
 
-## `profile.reference` (draft line 3972) -> `profile.reference`
+## `profile.reference` (draft line 3969) -> `profile.reference`
 
 ## Generated definitions without a draft counterpart
 
-`restoreProcess.update`
+(none)

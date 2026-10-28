@@ -504,7 +504,6 @@
         "message": { "type": "string", "readOnly": true },
         "process": {
           "oneOf": [
-            { "$ref": "#/$defs/baseProcess.read" },
             { "$ref": "#/$defs/transferProcess.read" },
             { "$ref": "#/$defs/domainTransferProcess.read" },
             { "$ref": "#/$defs/restoreProcess.read" },
@@ -1325,7 +1324,6 @@
         "@type": { "type": "string", "const": "message" },
         "data": {
           "oneOf": [
-            { "$ref": "#/$defs/baseMessage.read" },
             { "$ref": "#/$defs/reviewResponseMessage.read" },
             { "$ref": "#/$defs/transferRequestMessage.read" },
             { "$ref": "#/$defs/transferOutcomeMessage.read" },
@@ -1347,7 +1345,6 @@
         "status": { "type": "string", "enum": ["queued", "delivered", "removed"], "readOnly": true },
         "data": {
           "oneOf": [
-            { "$ref": "#/$defs/baseMessage.read" },
             { "$ref": "#/$defs/reviewResponseMessage.read" },
             { "$ref": "#/$defs/transferRequestMessage.read" },
             { "$ref": "#/$defs/transferOutcomeMessage.read" },

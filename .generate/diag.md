@@ -15,7 +15,7 @@
 - Cardinality '1-2' is not covered by Rules 1-4; mapped to an array with minItems/maxItems
   (restoreReport.statements)
 - Polymorphism (an object extending the referenced base object may be used in its place) has no JSON rule; oneOf over all candidates applied
-  (processes.transferProcess -> transferProcess, domainTransferProcess, processes.createProcess -> createProcess, domainCreateProcess, reviewResponseMessage.process -> baseProcess, transferProcess, domainTransferProcess, restoreProcess, renewProcess, createProcess, domainCreateProcess, transferRequestMessage.process -> transferProcess, domainTransferProcess, transferOutcomeMessage.process -> transferProcess, domainTransferProcess, message.data -> baseMessage, reviewResponseMessage, transferRequestMessage, transferOutcomeMessage, expirationDeletionMessage, autoRenewalMessage, serviceNoticeMessage)
+  (processes.transferProcess -> transferProcess, domainTransferProcess, processes.createProcess -> createProcess, domainCreateProcess, reviewResponseMessage.process -> transferProcess, domainTransferProcess, restoreProcess, renewProcess, createProcess, domainCreateProcess, transferRequestMessage.process -> transferProcess, domainTransferProcess, transferOutcomeMessage.process -> transferProcess, domainTransferProcess, message.data -> reviewResponseMessage, transferRequestMessage, transferOutcomeMessage, expirationDeletionMessage, autoRenewalMessage, serviceNoticeMessage)
 - Direct Access (sub-resource addressing) has no JSON rule; the inline representation is generated unchanged
   (processes.transferProcess, processes.renewProcess, processes.restoreProcess, processes.createProcess, domainName.processes, contact.processes, host.processes, organisation.users, organisation.processes, user.processes)
 - Cross-element conditions have no JSON rule; if/then applied
@@ -62,10 +62,3 @@
   (identifier)
 - External type definition is not exported; an open object placeholder is generated (Rule 15)
   (RPP-JSContact-Profile:Card)
-
-## yaml-issue: YAML content inconsistent with the data-objects conventions
-
-- Object referenced as 'Authorisation Information Object' but defined as 'Authorisation Information'
-  (domainName.authInfo, contact.authInfo)
-- Object referenced as 'Disclose Object' but defined as 'Disclose'
-  (contact.disclose)

@@ -13,7 +13,6 @@
         "message": { "type": "string", "readOnly": true },
         "process": {
           "oneOf": [
-            { "$ref": "#/$defs/baseProcess.read" },
             { "$ref": "#/$defs/transferProcess.read" },
             { "$ref": "#/$defs/domainTransferProcess.read" },
             { "$ref": "#/$defs/restoreProcess.read" },
