@@ -65,7 +65,7 @@ However, the absence of a standardized JSON format for domain provisioning has l
 
 In this document, the following terminology is used.
 
-Terms of the RPP data model, such as Data Object, Component Object, Process Object, Common Data Type, data element, cardinality, mutability, Identifier, Unique Identifier, Input Data Element, Parameter, Visibility, and Direct Access, are used as defined in [@!I-D.ietf-rpp-data-objects].
+Terms of the RPP data model, such as Data Object, Component Object, Process Object, Common Data Type, data element, cardinality, mutability, Identifier, Unique Identifier, Input Data Element, Parameter, Visibility, Direct Access, Input, Output, Reference, Owner Data Object, and This Object, are used as defined in [@!I-D.ietf-rpp-data-objects].
 
 RPP Data Objects - The abstract data model definitions for domain name, contact, and host resources, as specified in [@!I-D.ietf-rpp-data-objects].
 
@@ -200,9 +200,15 @@ Rule 4: A data element with cardinality `1+` (one or more) MUST be represented a
 
 ## Mutability Rules
 
-Data elements in the RPP data model carry a mutability attribute: `create-only`, `read-only`, or `read-write`. These MUST be represented in JSON Schema as follows:
+Data elements in the RPP data model carry a mutability attribute: `create-only`, `read-write`, or `read-only`. Which of them an object representation contains follows from the Input and Output of the operation:
 
-Rule 5: Data elements with mutability `read-only` MUST be annotated with `"readOnly": true` in the JSON Schema. Clients MUST NOT include read-only properties in create or update request bodies. Servers MUST ignore any read-only properties provided by a client in a request.
+- Response content contains data elements of every mutability. A data element is left out only when it is not present on the object, when its Visibility is `onDemand` and the client did not request it, or when authorisation or server policy withholds it.
+- Request content for an object being created contains its `create-only` and `read-write` data elements. For a Component Object or an Aggregation object creation can take place in create or update operation on the containing object, when a value is set or added.
+- Request content for an existing object being modified, i.e. when both the Reference and the Object of the Input are This Object, contains its `read-write` data elements.
+
+Input Data Elements and Parameters are not data elements of the object, have no mutability, and are not subject to Rules 5 to 7.
+
+Rule 5: Data elements with mutability `read-only` MUST be annotated with `"readOnly": true` in the JSON Schema and MUST NOT be part of any request view.
 
 ```json
 {
@@ -213,9 +219,11 @@ Rule 5: Data elements with mutability `read-only` MUST be annotated with `"readO
 }
 ```
 
-Rule 6: Data elements with mutability `create-only` MUST be annotated with `"writeOnly": true` in the JSON Schema for request schemas, and excluded from update request schemas. Servers MUST reject requests that attempt to modify a `create-only` element after object creation. For a data element of a Component Object, object creation is the creation of the instance of the Component Object, which can take place in create or update operation on the containing object.
+Rule 6: Data elements with mutability `create-only` MUST be annotated with `"writeOnly": true` in request schemas and MUST NOT be part of the `update` view.
 
-Rule 7: Data elements with mutability `read-write` have no additional annotation. They MAY appear in both request and response bodies.
+Rule 7: Data elements with mutability `read-write` have no additional annotation.
+
+A server MUST reject a request whose content contains a data element that is not allowed in that request, such as a `read-only` data element or a `create-only` data element of an existing object. With the enrichment required by Rule 24, such a request fails JSON Schema validation.
 
 ## Association Rules
 
@@ -481,7 +489,7 @@ The view names are:
 - `read`: the object representation returned in responses.
 - `update`: the request content of the Update operation.
 - `reference`: the limited representation of an aggregated object (see Aggregation), containing `@type` and the object's Unique Identifier.
-- `query`: the response content of the Query operation.
+- `query`: the response content of the Query operation, typically an array of `read` views.
 - The Identifier of the operation: the request content of any other operation.
 - The Identifier of the operation followed by `.output`: the response content of an operation, other than Read and Query, whose output is not an existing view of the object.
 
@@ -515,7 +523,6 @@ Example (structure of the final RPP schema document):
       "type": "object",
       "properties": {
         "@type":     { "type": "string", "const": "domainCreateProcess" },
-        "processId": { "type": "string", "readOnly": true },
         "period":    { "$ref": "#/$defs/period.create" }
       },
       "required": ["@type"]
@@ -5829,6 +5836,8 @@ TODO
 - Aligned all examples, including those in (#extension-framework), with the updated JSON Schema definitions.
 - Added a reference to the RPP data model terms in Terminology.
 - Removed repeated references to the RPP data model document that Terminology covers.
+- Generalised the Mutability Rules to derive request and response content from operation Input and Output.
+- Changed server handling of disallowed request data elements from ignore to reject in the Mutability Rules.
 - Replaced the primary identifier with the Unique Identifier in Association Rules.
 
 ## Version draft-wullink-rpp-json-02 to draft-ietf-rpp-json-00
