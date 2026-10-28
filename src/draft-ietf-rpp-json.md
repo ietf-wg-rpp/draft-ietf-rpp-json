@@ -4004,13 +4004,15 @@ It is RECOMMENDED to use the prefix "ext." for every extension sub-schema define
 
 ## Extension Mapping
 
-Each extension MUST define a mapping to every base object it applies to, this is done by using a special `rpp:extends` property within the extension schema. For example, this mapping where the base object `https://rpp.example/rpp/schema.json#/$defs/domainObject.create` is extended by the local definition `#/$defs/ext.domainFoo`:
+Each extension MUST define a mapping to every base object it applies to, this is done by using a special `rpp:extends` property within the extension schema. For example, this mapping where the base object `https://rpp.example/rpp/schema.json#/$defs/domainName.create` is extended by the local definition `#/$defs/ext.domainFoo`:
 
 ```json
- "rpp:extends": {
-    "https://rpp.example/rpp/schema.json#/$defs/domainObject.create":
+{
+  "rpp:extends": {
+    "https://rpp.example/rpp/schema.json#/$defs/domainName.create":
       "#/$defs/ext.domainFoo"
-  },
+  }
+}
 ```
 
 ## Effective Schema
@@ -4027,7 +4029,7 @@ The following is an example of an extension JSON Schema, which adds new properti
   "$id": "https://rpp.example/schemas/extension1.json",
 
   "rpp:extends": {
-    "https://rpp.example/rpp/schema.json#/$defs/domainObject.create":
+    "https://rpp.example/rpp/schema.json#/$defs/domainName.create":
       "#/$defs/ext.domain",
 
     "https://rpp.example/rpp/schema.json#/$defs/contactObject.create":
@@ -4064,12 +4066,12 @@ Domain Name effective schema, which includes the full schema of the base domain 
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://rpp.example/rpp/effective/domain.json",
 
-  "$ref": "#/$defs/effective.domainObject.create",
+  "$ref": "#/$defs/effective.domainName.create",
   "$defs": {
-    "effective.domainObject.create": {
+    "effective.domainName.create": {
       "allOf": [
         {
-          "$ref": "https://rpp.example/rpp/schema.json#/$defs/domainObject.create"
+          "$ref": "https://rpp.example/rpp/schema.json#/$defs/domainName.create"
         },
         {
           "$ref": "#/$defs/ext.domain"
@@ -4865,7 +4867,11 @@ Example host create request:
                 "type": "aaaa",
                 "rdata": { "address": "2001:db8::1" }
             }
-        ]
+        ],
+        "controls": {
+            "@type": "dnsControls",
+            "ttl": { "a": 3600, "aaaa": 3600 }
+        }
     }
 }
 ```
@@ -4907,7 +4913,11 @@ Example host create response:
                 "type": "aaaa",
                 "rdata": { "address": "2001:db8::1" }
             }
-        ]
+        ],
+        "controls": {
+            "@type": "dnsControls",
+            "ttl": { "a": 3600, "aaaa": 3600 }
+        }
     }
 }
 ```
@@ -5552,6 +5562,23 @@ Example message read response with an Auto-Renewal Message Object:
 }
 ```
 
+Example message read response with an Expiration Deletion Message Object:
+
+```json
+{
+    "@type": "message",
+    "id": "MSG-98774",
+    "creationDate": "2026-09-25T00:05:00.0Z",
+    "status": "queued",
+    "data": {
+        "@type": "expirationDeletionMessage",
+        "objectType": "domainName",
+        "objectId": "expired.example",
+        "deletionDate": "2026-09-25T00:00:00.0Z"
+    }
+}
+```
+
 Example message read response with a Service Notice Message Object, which is not linked to a specific object:
 
 ```json
@@ -5820,6 +5847,10 @@ TODO
 - Fixed the registrant identifier in the domain update request example in Examples.
 - Excluded abstract base objects from polymorphic references in Review Response Object and Message Data Object.
 - Added a Create Process Object example to Examples.
+- Added DNS Operational Controls Object usage to the host create examples in Examples.
+- Added an Expiration Deletion Message Object example to Examples.
+- Fixed invalid JSON in the Extension Mapping example in (#extension-framework).
+- Renamed `domainObject.create` to `domainName.create` in the examples in (#extension-framework).
 
 ## Version draft-wullink-rpp-json-02 to draft-ietf-rpp-json-00
 
