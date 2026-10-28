@@ -2,8 +2,8 @@
 
 Inputs:
 
-- object model `.work/draft-ietf-rpp-data-objects.yaml` (export with `unique_identifier`, `owner`, `supported_processes`, `direct_access`, `visibility`, structured subsection `tables`, structured operation `input`/`output` items, `common_data_types`, element `restrictions` including the status `client_values`/`server_only_values` partition, object `conditions`, and the status object flags `at_least_one_status_by_server` and `status_not_required_for_client_request`)
-- draft `src/draft-ietf-rpp-json.md` (branch `feature/generate-schemas`, commit `e58c060` plus uncommitted edits)
+- object model `.work/draft-ietf-rpp-data-objects.yaml` (export with `unique_identifier`, `owner`, `supported_processes`, `direct_access`, `visibility`, structured subsection `tables`, structured operation `input`/`output` items, `common_data_types`, element `restrictions` including the status `client_values`/`server_only_values` partition, object `conditions`, the status object flags `at_least_one_status_by_server` and `status_not_required_for_client_request`, and the object attribute `abstract`)
+- draft `src/draft-ietf-rpp-json.md` (branch `feature/generate-schemas`, commit `cd6a078`)
 - source text `.work/draft-ietf-rpp-data-objects.clean.txt`, checked where the YAML is silent
 
 Generator: `.scripts/gen_json_schema.py`.
@@ -32,7 +32,7 @@ Generation precedence: **the draft's written rules, then the YAML content, then 
 - Prose constraints are **not** turned into keywords. Besides cardinality, mutability and data type, only the exported structured `restrictions` (→ `enum`, `minimum`/`maximum`, `pattern`, `minLength`/`maxLength`, `propertyNames`) and `conditions` (→ `if`/`then`) are used.
 - Common Data Types are built from `common_data_types`: `base_type` plus `restrictions`, under the draft's keys (`identifier`, `clientIdentifier`, `phoneNumber`).
 - A bare object name as a data type is treated as `Composition[Type]` (data-objects §8.2).
-- Inheritance is flattened. Polymorphism is applied: a reference to a base object is a `oneOf` over the base object and all its descendants, each fixed by its `@type` (M8).
+- Inheritance is flattened. Polymorphism is applied: a reference to a base object is a `oneOf` over the base object and all its descendants, each fixed by its `@type` (M8). Objects exported with `abstract: true` (`baseProcess`, `baseMessage`) are left out of the `oneOf`. Their own `read` views are still generated, because the draft has a schema block for each, but nothing references them.
 - Output is compact like the draft's schema blocks (flat objects and arrays on one line); `--expanded` gives one value per line.
 
 ---
@@ -50,7 +50,7 @@ Without these rules, the schemas can't be reproduced the way the draft writes th
 | M5 | open | **The bare `Type` notation is not mentioned.** In data-objects §8.2 a data type given as a bare object name means `Composition[Type]` (`Notation: Composition[Type] or Type`). The Association Rules here only show the bracketed form. The YAML now uses it only for Component Objects (for example `status: Domain Name Status Object`, `authInfo`, `provMetadata`); `registrant`, `parent` and `baseProfile` are now `Aggregation[...]`. | `status`, `authInfo`, `provMetadata` | composition: the component is embedded |
 | M6 | open | **Aggregation with cardinality `1` or `0-1` is not covered.** Rule 8 only covers `0+` and `1+`. | message `process`, `registrant`, `parent`, `organisationId`, `baseProfile` | a single `$ref`, no array |
 | M7 | open | **No rule for aggregating Process Objects.** The Processes Object embeds the full `*.read` view, while messages embed an inline limited object `{ "@type", "processId" }` whose `@type` has no `const`. | `processes`, all `*Message` | Rule 8: `Aggregation[...]` → `<id>.reference` (`processes.*`); the bare-type `process` of messages is a composition → `*.read` |
-| M8 | open | **No rule for polymorphism.** Data-objects §2.5 allows any descendant to be used in place of a base object, but the JSON Representation Rules don't say whether a schema that references a base object also accepts its descendants, or how (`oneOf`/`anyOf` over the descendants, discriminated by the `@type` const). The draft currently uses `oneOf` over the base and its descendants in `processes.transferProcess`/`.createProcess`, every message's `process` and `message.data`. **Suggestion:** add a rule under *Inheritance* that states whether a base-object reference accepts descendants and, if so, how the schema expresses it. It should also say how that combines with the shared Processes Object (M24): a `domainTransferProcess` would otherwise be accepted in `contact.read.processes`. | `processes`, all `*Message.process`, `message.*.data` | `oneOf` over the base object and all its descendants |
+| M8 | open | **No rule for polymorphism.** Data-objects §2.5 allows any descendant to be used in place of a base object, but the JSON Representation Rules don't say whether a schema that references a base object also accepts its descendants, or how (`oneOf`/`anyOf` over the descendants, discriminated by the `@type` const). The draft currently uses `oneOf` over the base and its descendants in `processes.transferProcess`/`.createProcess`, every message's `process` and `message.data`. **Suggestion:** add a rule under *Inheritance* that states whether a base-object reference accepts descendants and, if so, how the schema expresses it. It should also say how that combines with the shared Processes Object (M24): a `domainTransferProcess` would otherwise be accepted in `contact.read.processes`. | `processes`, all `*Message.process`, `message.*.data` | `oneOf` over the base object and all its descendants, without abstract objects (`abstract: true`) |
 | M9 | open | **The `@type` of derived objects is ambiguous in practice.** Rule 25 requires the object's own identifier, but the draft's domain transfer schemas inherit `"const": "transferProcess"` through `allOf`. | `transferProcess.*.domain` | own identifier (`domainTransferProcess`) |
 | M10 | open | **No rule for `readOnly` on `@type`.** The draft sets it in read views and reference views, and leaves it out of create and update views. | all | read views only (components included). It is left out of reference views, because those are sent in requests (Rule 5). |
 | M11 | open | **No annotation rule for `create-only` elements outside request schemas.** Rule 6 covers requests only. The draft marks them `readOnly` in read views. Rule 6 now defines object creation for Component Objects as the creation of the component instance, and components have `read`/`create` views, so the same annotations apply to them. | `domainObject.read.name` | `readOnly` in read views, `writeOnly` in create views (components included) |
@@ -124,8 +124,8 @@ The "In source?" column says whether the information is in `draft-ietf-rpp-data-
 ### YAML data-quality issues found while generating
 
 - (fixed) Trailing periods in data types (`contact.id`, `contact.disclose`).
-- `domainName.authInfo` and `contact.authInfo` use `Authorisation Information Object`, but the object is named `Authorisation Information`.
-- `contact.disclose` uses `Disclose Object`, but the object is named `Disclose`.
+- (fixed) `domainName.authInfo` and `contact.authInfo` used `Authorisation Information Object`, but the object was named `Authorisation Information`; it is now `Authorisation Information Object`.
+- (fixed) `contact.disclose` used `Disclose Object`, but the object was named `Disclose`; it is now `Disclose Object`.
 - (fixed) `user.organisationId` used the `<Object> Reference` notation; it is now `Aggregation[Organisation Data Object]`.
 - (fixed) `domainName.registrant`, `organisation.parent` and `profile.baseProfile` used the bare type (Composition); they are now `Aggregation[...]`, so the generator emits `*.reference` like the draft.
 - `domainTransferProcess` redefines the inherited `processId`, which data-objects §2.5 forbids.
@@ -149,6 +149,7 @@ The generator follows the YAML on all of these, so they show up as differences i
 - **Common Data Type syntax**: the YAML's Client Identifier pattern is `^\S+( \S+)*$`; the draft's is `^[a-zA-Z0-9]([-a-zA-Z0-9]*[a-zA-Z0-9])?$`. The YAML's Phone Number pattern limits the number to 14 digits and has no space before the `x` extension separator; the draft's has `( x[0-9]+)?` and no digit limit. The draft's `identifier` pattern and `maxLength` 89 have no YAML counterpart.
 - **`dnsControls` keys**: the YAML's `key_pattern` is `^[a-z][a-z0-9-]*$`; the draft's `propertyNames` pattern is `^[a-z]+$`.
 - **Enumerations the draft lacks**: `transferRequestMessage.status` (`pending`) and `transferDir` in the domain transfer and message schemas.
+- **Abstract base objects**: the YAML marks Base Process Object and Base Message Object `abstract: true`, so the generated `reviewResponseMessage.process` and `message.*.data` `oneOf` lists leave out `baseProcess.read` and `baseMessage.read`. The draft's lists still include them, and the `message` prose ("an instance of the Base Message Object or of any message object that … extends it") still allows a bare Base Message Object.
 - **`processId`**, inherited from `baseProcess`, is in every process read view in the YAML and absent from all of the draft's process schemas.
 
 A quick check of the draft's `# Examples` against the generated schemas confirms the main breaks. The examples fail on:

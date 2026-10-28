@@ -39,6 +39,7 @@ Generation decisions (precedence: draft rules > YAML content > draft schema shap
   * Inheritance ("extends") is flattened (draft section "Inheritance").
   * Polymorphism: a reference to a base object accepts every object extending
     it, expressed as "oneOf" over the candidates (each fixed by its "@type").
+    Abstract objects ("abstract: true") are never candidates.
   * Reference views (resources and processes) use the exported
     "unique_identifier"; objects without one get no reference view.
     Aggregations of resources and processes reference the reference view (Rule 8).
@@ -199,6 +200,7 @@ class Obj:
         self.id = raw["identifier"]
         self.name = raw["name"]
         self.kind = raw["object_type"]
+        self.abstract = bool(raw.get("abstract"))
         self.parent = None
         self.children = []
         self.elements = []    # flattened, inherited first
@@ -217,6 +219,10 @@ class Obj:
             out.append(c)
             out.extend(c.descendants())
         return out
+
+    def instantiable(self):
+        """The object and its descendants, without abstract ones (polymorphism candidates)."""
+        return [c for c in [self] + self.descendants() if not c.abstract]
 
     def is_a(self, other):
         return self is other or other in self.ancestors()
@@ -692,7 +698,7 @@ class Generator:
             self.diag.add("yaml-issue", "Direct Access on a data element that is not an association "
                                         "with an object", ctx)
         elif e["cardinality"] not in ("1", "0-1") and \
-                any(self.m.unique_id(c) is None for c in [target] + target.descendants()):
+                any(self.m.unique_id(c) is None for c in target.instantiable()):
             self.diag.add("yaml-issue", "Direct Access with cardinality greater than 1 requires the "
                                         "associated object to define a Unique Identifier", ctx)
 
@@ -894,7 +900,10 @@ class Generator:
             self.diag.add("yaml-issue", f"Unknown data type '{name}'", ctx)
             return {}
         is_ref = norm_name(name)[1]
-        cands = [o] + o.descendants()
+        cands = o.instantiable()
+        if not cands:
+            self.diag.add("yaml-issue", f"Abstract object '{o.id}' has no non-abstract descendant", ctx)
+            cands = [o]
         refs = [{"$ref": f"#/$defs/{self.ref_name(c, assoc, view, is_ref, ctx)}"} for c in cands]
         if len(refs) == 1:
             return refs[0]

@@ -2228,7 +2228,6 @@ Read schema:
         "message": { "type": "string", "readOnly": true },
         "process": {
           "oneOf": [
-            { "$ref": "#/$defs/baseProcess.read" },
             { "$ref": "#/$defs/transferProcess.read" },
             { "$ref": "#/$defs/domainTransferProcess.read" },
             { "$ref": "#/$defs/restoreProcess.read" },
@@ -3618,7 +3617,7 @@ Reference schema (identifier only):
 
 The following constraints cannot be expressed in JSON Schema and MUST be enforced by implementations:
 
-- `data` is polymorphic: it MUST contain an instance of the Base Message Object or of any message object that directly or indirectly extends it, as defined in [@!I-D.ietf-rpp-data-objects]. The concrete message object is identified by the `@type` of the value used for `data` property.
+- `data` is polymorphic: it MUST contain an instance of a message object that directly or indirectly extends the Base Message Object, as defined in [@!I-D.ietf-rpp-data-objects]. The concrete message object is identified by the `@type` of the value used for `data` property.
 
 ### Create
 
@@ -3635,7 +3634,6 @@ Create request schema. Only the server is authorised to create Message Data Obje
         "@type": { "type": "string", "const": "message" },
         "data": {
           "oneOf": [
-            { "$ref": "#/$defs/baseMessage.read" },
             { "$ref": "#/$defs/reviewResponseMessage.read" },
             { "$ref": "#/$defs/transferRequestMessage.read" },
             { "$ref": "#/$defs/transferOutcomeMessage.read" },
@@ -3670,7 +3668,6 @@ Read response schema (read-only properties):
         "status": { "type": "string", "enum": ["queued", "delivered", "removed"], "readOnly": true },
         "data": {
           "oneOf": [
-            { "$ref": "#/$defs/baseMessage.read" },
             { "$ref": "#/$defs/reviewResponseMessage.read" },
             { "$ref": "#/$defs/transferRequestMessage.read" },
             { "$ref": "#/$defs/transferOutcomeMessage.read" },
@@ -4160,7 +4157,16 @@ Example domain create response from a server with RGP support:
 
 ### Create Process Data
 
-Example Create Process Object for a two-year registration period, as embedded above in `processes.createProcess`:
+Example Create Process Object without object-specific create inputs, as returned in a read response:
+
+```json
+{
+    "@type": "createProcess",
+    "processId": "CRT-1002"
+}
+```
+
+Example Create Process Object for a two-year domain registration period, as embedded above in `processes.createProcess`:
 
 ```json
 {
@@ -5812,6 +5818,8 @@ TODO
 - Removed the Domain Transfer Process response schemas from Domain Name Data Object.
 - Removed the Renew Process alias schema from Domain Name Data Object and the Transfer Process alias schema from Contact Data Object.
 - Fixed the registrant identifier in the domain update request example in Examples.
+- Excluded abstract base objects from polymorphic references in Review Response Object and Message Data Object.
+- Added a Create Process Object example to Examples.
 
 ## Version draft-wullink-rpp-json-02 to draft-ietf-rpp-json-00
 

@@ -102,12 +102,20 @@ SCHEMA_SUBCHAPTER_NEEDS_TOPLEVEL_EXAMPLE: set[str] = {
     "Profile Data Object",
 }
 
-# Base (abstract) types: only their descendants appear in instances, so no
-# top-level example is expected for them.
-ABSTRACT_TYPES: set[str] = {
-    "baseProcess",
-    "createProcess",
-}
+# Abstract types: only their descendants appear in instances, so no example
+# is expected for them.  Read from the data-objects YAML export ("abstract: true").
+DEFAULT_MODEL = Path(__file__).parent.parent / ".work" / "draft-ietf-rpp-data-objects.yaml"
+ABSTRACT_TYPES: set[str] = set()
+
+
+def load_abstract_types(model_path: Path) -> set[str]:
+    """Identifiers of the objects marked "abstract: true" in the YAML export."""
+    import yaml
+    data = yaml.safe_load(model_path.read_text(encoding="utf-8")) or {}
+    return {o["identifier"]
+            for section in ("components", "processes", "resources")
+            for o in data.get(section) or []
+            if o.get("abstract")}
 
 
 def parse_markdown(md_path: Path):
@@ -793,6 +801,9 @@ if __name__ == "__main__":
                         help="Suppress OK and informational output; show only warnings and errors")
     parser.add_argument("-vq", "--very-quiet", action="store_true",
                         help="Suppress OK, info, and warnings; keep section headers, >> context lines, and errors")
+    parser.add_argument("--model", type=Path, default=DEFAULT_MODEL,
+                        help="Data-objects YAML export that marks abstract objects "
+                             "(default: .work/draft-ietf-rpp-data-objects.yaml)")
     parser.add_argument("--no-deep-type-check", action="store_true",
                         help="Disable deep @type detection via allOf/anyOf/oneOf/$ref traversal "
                              "(by default the deep check is performed)")
@@ -809,5 +820,10 @@ if __name__ == "__main__":
     if not md.exists():
         print(f"ERROR: File not found: {md}", file=sys.stderr)
         sys.exit(1)
+
+    if args.model.exists():
+        ABSTRACT_TYPES = load_abstract_types(args.model)
+    else:
+        print(f"WARNING: Model not found: {args.model}; no abstract types known", file=sys.stderr)
 
     sys.exit(1 if run_checks(md, deep_type_check=not args.no_deep_type_check) > 0 else 0)

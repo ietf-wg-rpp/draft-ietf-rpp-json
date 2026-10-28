@@ -96,6 +96,10 @@
 #     status_not_required_for_client_request: (same) true when a client
 #                   may omit status values when creating or updating the
 #                   object that holds them.
+#     abstract:     true if the object's preamble has "* Abstract: true" —
+#                   the object is used only as a base object and no instance
+#                   ever has it as its own type (e.g. Base Process Object).
+#                   false when the attribute is absent or "false".
 #     supported_processes: the INHERITED-process bullet list from a Data
 #                   Object's "## Processes" section — the Process Objects it
 #                   supports UNMODIFIED. Processes it *extends* are not
@@ -268,6 +272,7 @@ components:
   unique_identifier: ''
   owner: ''
   extends: ''
+  abstract: false
   description: Represents a duration of time.
   preamble: []
   elements:
@@ -309,6 +314,7 @@ components:
   unique_identifier: ''
   owner: ''
   extends: ''
+  abstract: false
   description: Contains standard metadata about the lifecycle and ownership of a provisioned object. This
     metadata is common across all resource objects in the registry system.
   preamble: []
@@ -405,6 +411,7 @@ components:
   unique_identifier: ''
   owner: ''
   extends: ''
+  abstract: false
   description: Represents one of the status values associated with a Domain Name Data Object
   preamble: []
   elements:
@@ -741,6 +748,7 @@ components:
   unique_identifier: ''
   owner: ''
   extends: ''
+  abstract: false
   description: Represents one of the status values associated with a Host Data Object
   preamble: []
   elements:
@@ -918,6 +926,7 @@ components:
   unique_identifier: ''
   owner: ''
   extends: ''
+  abstract: false
   description: Represents one of the status values associated with a Contact Data Object
   preamble: []
   elements:
@@ -1107,6 +1116,7 @@ components:
   unique_identifier: ''
   owner: ''
   extends: ''
+  abstract: false
   description: Represents one of the status values associated with an Organisation Role Object. A role
     SHOULD have at least one associated status value.
   preamble: []
@@ -1221,6 +1231,7 @@ components:
   unique_identifier: ''
   owner: ''
   extends: ''
+  abstract: false
   description: Represents one of the status values associated with an Organisation Data Object, as defined
     in [@!RFC8543, section 3.4]. An Organisation Data Object MUST always have at least one associated
     status value.
@@ -1422,6 +1433,7 @@ components:
   unique_identifier: ''
   owner: ''
   extends: ''
+  abstract: false
   description: Represents the status value associated with a User Data Object. A User Data Object MUST
     always have exactly one associated status value.
   preamble: []
@@ -1544,6 +1556,7 @@ components:
   unique_identifier: ''
   owner: ''
   extends: ''
+  abstract: false
   description: Represents a single DNS resource record. The structure follows the top-level format of
     a DNS resource record as described in Section 3.2.1 of [@!RFC1035], adapted for use in provisioning.
     The RDATA field is represented as a structured object whose fields depend on the record type, following
@@ -1645,6 +1658,7 @@ components:
   unique_identifier: ''
   owner: ''
   extends: ''
+  abstract: false
   description: Contains operational control parameters that a client MAY use to influence server-side
     DNS behaviour for a set of DNS records. A server MAY ignore these values, e.g. for policy reasons.
     This structure is aligned with [@I-D.simmen-rpp-dns-data].
@@ -1697,6 +1711,7 @@ components:
   unique_identifier: ''
   owner: ''
   extends: ''
+  abstract: false
   description: A container for DNS resource records and associated operational controls for a provisioned
     object. This structure groups DNS records together with control parameters that influence server-side
     DNS behaviour. The structure is aligned with [@I-D.simmen-rpp-dns-data].
@@ -1735,11 +1750,12 @@ components:
   supported_processes: []
   conditions: []
 - identifier: authInfo
-  name: Authorisation Information
+  name: Authorisation Information Object
   object_type: Component
   unique_identifier: ''
   owner: ''
   extends: ''
+  abstract: false
   description: Contains information used to authorise operations on a data object. It may hold different
     kinds of authorisation information.
   preamble: []
@@ -1779,11 +1795,12 @@ components:
   supported_processes: []
   conditions: []
 - identifier: disclose
-  name: Disclose
+  name: Disclose Object
   object_type: Component
   unique_identifier: ''
   owner: ''
   extends: ''
+  abstract: false
   description: TBD
   preamble: []
   elements: []
@@ -1797,6 +1814,7 @@ components:
   unique_identifier: ''
   owner: ''
   extends: ''
+  abstract: false
   description: Contains the redemption grace period restore report submitted by the sponsoring client
     as required by the RGP process ([@!RFC3915]). A restore report documents the state of the object before
     and after deletion, provides the reason for restoration, and includes mandatory client statements.
@@ -1902,6 +1920,7 @@ components:
   unique_identifier: ''
   owner: ''
   extends: ''
+  abstract: false
   description: Represents a role that an organisation has within the registry ecosystem. An organisation
     object MUST always have at least one associated role. A single organisation MAY have multiple roles
     with different role types.
@@ -1941,6 +1960,7 @@ components:
   unique_identifier: ''
   owner: ''
   extends: ''
+  abstract: false
   description: A container grouping the Process Objects (#process-objects) currently or recently initiated
     on a Data Object. Each data element MUST be named after the identifier of a Process Object and MUST
     be of type Aggregation of that Process Object. The data elements below are the process types defined
@@ -2001,6 +2021,7 @@ components:
   unique_identifier: ''
   owner: ''
   extends: ''
+  abstract: true
   description: Base structure for all Process Objects, containing the data elements common to every process.
     Each Process Object extends this object.
   preamble: []
@@ -2028,6 +2049,7 @@ components:
   unique_identifier: ''
   owner: ''
   extends: ''
+  abstract: true
   description: Base structure for all message objects, containing common data elements such as the object
     type and object identifier.
   preamble: []
@@ -2070,6 +2092,7 @@ components:
   unique_identifier: ''
   owner: ''
   extends: Base Message Object
+  abstract: false
   description: Notification of the result of an offline-review of a requested operation.
   preamble:
   - The Review Response Object defines the data elements for returning the result of an offline-review.
@@ -2156,6 +2179,7 @@ components:
   unique_identifier: ''
   owner: ''
   extends: Base Message Object
+  abstract: false
   description: Notification for losing client of started transfer request, where the client expected to
     act on the pending transfer request.
   preamble: []
@@ -2218,6 +2242,7 @@ components:
   unique_identifier: ''
   owner: ''
   extends: Base Message Object
+  abstract: false
   description: Notification for a client affected by the completion of a transfer request.
   preamble: []
   elements:
@@ -2294,6 +2319,7 @@ components:
   unique_identifier: ''
   owner: ''
   extends: Base Message Object
+  abstract: false
   description: Notification for the sponsoring client that an object was deleted following expiration.
   preamble: []
   elements:
@@ -2318,6 +2344,7 @@ components:
   unique_identifier: ''
   owner: ''
   extends: Base Message Object
+  abstract: false
   description: Notification for the sponsoring client that the server automatically renewed an object.
   preamble: []
   elements:
@@ -2353,6 +2380,7 @@ components:
   unique_identifier: ''
   owner: ''
   extends: Base Message Object
+  abstract: false
   description: Generic text based message containing information not covered by any other message type.
   preamble:
   - The Service Notice Message Object is not linked to a specific object or process and can be used to
@@ -2382,6 +2410,7 @@ components:
   unique_identifier: ''
   owner: ''
   extends: ''
+  abstract: false
   description: Describes a version of RPP supported by the server.
   preamble: []
   elements:
@@ -2418,6 +2447,7 @@ components:
   unique_identifier: ''
   owner: ''
   extends: ''
+  abstract: false
   description: Describes the environment of the RPP server.
   preamble: []
   elements:
@@ -2453,6 +2483,7 @@ components:
   unique_identifier: ''
   owner: ''
   extends: ''
+  abstract: false
   description: Describes an extension supported by the server.
   preamble: []
   elements:
@@ -2514,6 +2545,7 @@ components:
   unique_identifier: ''
   owner: ''
   extends: ''
+  abstract: false
   description: Describes a Label Generation Ruleset (LGR) supported by the server for internationalized
     domain names.
   preamble: []
@@ -2573,6 +2605,7 @@ components:
   unique_identifier: ''
   owner: ''
   extends: ''
+  abstract: false
   description: Describes a notice from the server operator.
   preamble: []
   elements:
@@ -2609,6 +2642,7 @@ processes:
   unique_identifier: processId
   owner: ''
   extends: Base Process Object
+  abstract: false
   description: Represents a transfer request for a provisioned object. Creating this object initiates
     a transfer. The object supports approve and reject as additional operations, and delete as the cancel
     operation. Reading the object returns the current transfer status.
@@ -2874,6 +2908,7 @@ processes:
   unique_identifier: processId
   owner: ''
   extends: Base Process Object
+  abstract: false
   description: Represents the current state of a restore request for an object that has entered the Redemption
     Grace Period (RGP).
   preamble: []
@@ -3074,6 +3109,7 @@ processes:
   unique_identifier: processId
   owner: ''
   extends: Base Process Object
+  abstract: false
   description: Represents a renew request for a provisioned object. Creating this object initiates a renewal
     process that extends the registration period of the object. Reading this object returns the new expiry
     date if the renewal has been completed.
@@ -3140,6 +3176,7 @@ processes:
   unique_identifier: processId
   owner: ''
   extends: Base Process Object
+  abstract: false
   description: Represents the process initiated when a resource creation operation is performed. It carries
     creation-specific inputs that are consumed during the creation operation and are not stored as persistent
     attributes of the created resource object.
@@ -3210,6 +3247,7 @@ processes:
   unique_identifier: processId
   owner: domainName
   extends: Create Process Object
+  abstract: false
   description: The domain-specific Create Process Object (#create-process). It is implicitly initiated
     by the Domain Name Data Object create operation and carries the domain creation-specific inputs, namely
     the requested initial registration period, that are consumed during creation and not persisted as
@@ -3287,6 +3325,7 @@ processes:
   unique_identifier: processId
   owner: domainName
   extends: Transfer Process Object
+  abstract: false
   description: The domain-specific Transfer Process Object (#transfer-operations). It carries the domain-specific
     transfer inputs and outputs — the requested transfer period and the resulting expiry date — that extend
     the common transfer process.
@@ -3360,6 +3399,7 @@ resources:
   unique_identifier: name
   owner: ''
   extends: ''
+  abstract: false
   description: A Domain Name data object represents a domain name and contains the data required for its
     provisioning and management in the registry.
   preamble:
@@ -3707,6 +3747,7 @@ resources:
   unique_identifier: id
   owner: ''
   extends: ''
+  abstract: false
   description: A Contact Data Object represents the contact information for an individual or organisation
     associated with other objects.
   preamble:
@@ -3933,6 +3974,7 @@ resources:
   unique_identifier: hostName
   owner: ''
   extends: ''
+  abstract: false
   description: A Host Data Object represents a name server that provides DNS services for a domain name.
   preamble:
   - The following data elements are defined for the Host Data Object.
@@ -4130,6 +4172,7 @@ resources:
   unique_identifier: id
   owner: ''
   extends: ''
+  abstract: false
   description: An Organisation Data Object represents an entity, such as a registrar or reseller that
     is involved in the domain registration process. This object is based on the EPP Organisation Mapping
     defined in [@!RFC8543].
@@ -4358,6 +4401,7 @@ resources:
   unique_identifier: id
   owner: ''
   extends: ''
+  abstract: false
   description: A Message Data Object represents a message which is inserted in the message queue of an
     organisation and retrieved by clients associated with that organisation.
   preamble:
@@ -4516,6 +4560,7 @@ resources:
   unique_identifier: id
   owner: ''
   extends: ''
+  abstract: false
   description: Represents a user linked to an Organisation Object. Each user carries a set of RBAC roles
     that define the user's permissions within the context of the owning Organisation Object. The lifecycle
     of a User Object is bound to its Organisation Object.
@@ -4696,6 +4741,7 @@ resources:
   unique_identifier: ''
   owner: ''
   extends: ''
+  abstract: false
   description: A Discovery Data Object describes the capabilities of an RPP server, such as the supported
     versions, TLDs, extensions, profiles, resource collections, authentication methods and endpoints.
     The server provides a single Discovery Data Object, which is therefore not identified by a Unique
@@ -4852,6 +4898,7 @@ resources:
   unique_identifier: name
   owner: ''
   extends: ''
+  abstract: false
   description: A Profile Data Object represents a named set of protocol features and versions that defines
     the compatibility and capabilities of RPP server implementations. A profile is published by the server,
     and a client can retrieve it to determine which features, objects and extensions it can use.

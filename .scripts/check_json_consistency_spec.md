@@ -71,7 +71,7 @@ For each schema with a `@type` const, example coverage is checked according to t
 
 - **Top-level required** (Process Objects, Data Objects): the `@type` value must appear as the top-level `"@type"` of at least one example — **error** if missing
 - **Nested sufficient** (Component Objects): the `@type` value must appear at any depth in any example — **warning** if missing
-- **Abstract types** (`ABSTRACT_TYPES` in the script, currently `baseProcess` and `createProcess`): base types that only occur through their descendants are exempt from example coverage. The draft has no marker for them yet, so the list is maintained by hand.
+- **Abstract types**: objects marked `abstract: true` in the data-objects YAML export (`--model`, default `.work/draft-ietf-rpp-data-objects.yaml`) only occur through their descendants and are exempt from example coverage. Without the file, no type is exempt.
 
 ---
 
