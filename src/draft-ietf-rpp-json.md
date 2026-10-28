@@ -4032,7 +4032,7 @@ The following is an example of an extension JSON Schema, which adds new properti
     "https://rpp.example/rpp/schema.json#/$defs/domainName.create":
       "#/$defs/ext.domain",
 
-    "https://rpp.example/rpp/schema.json#/$defs/contactObject.create":
+    "https://rpp.example/rpp/schema.json#/$defs/contact.create":
       "#/$defs/ext.contact"
   },
 

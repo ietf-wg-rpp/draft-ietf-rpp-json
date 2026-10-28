@@ -58,12 +58,21 @@ class SchemaEntry:
 
 
 @dataclass
+class StandaloneSchema:
+    """A complete JSON Schema document outside "JSON Schema Definitions"."""
+    block: JsonBlock
+    schema: Optional[dict]    # None if JSON parsing failed
+    parse_error: str = ""
+
+
+@dataclass
 class ExampleEntry:
     block: JsonBlock
     section: str              # section title path
     caption: str
     obj: Optional[dict]       # None if JSON parsing failed
     type_value: Optional[str] # value of top-level @type
+    scope: Optional[tuple] = None  # chapter path whose standalone schemas validate untyped examples
 
 
 # ---------------------------------------------------------------------------
@@ -73,6 +82,33 @@ class ExampleEntry:
 TOP_LEVEL_CHAPTER_JSON_REPRESENTATION_RULES = "JSON Representation Rules"
 TOP_LEVEL_CHAPTER_JSON_SCHEMA_DEFINITIONS   = "JSON Schema Definitions"
 TOP_LEVEL_CHAPTER_EXAMPLES                  = "Examples"
+
+# Sections (exact chapter path) whose JSON blocks are complete, standalone JSON
+# Schema documents.  They are validated as JSON Schema and their $refs must
+# resolve, but they are not merged into the combined $defs and the
+# one-$defs/@type rules of "JSON Schema Definitions" do not apply.
+STANDALONE_SCHEMA_SECTIONS: list[tuple] = [
+    ("Update Rules", "Schema"),
+    ("Extension Framework", "Effective Schema"),
+]
+
+# Sections (chapter path prefix) holding examples outside the "Examples"
+# chapter, mapped to the standalone schema section that validates the examples
+# without a top-level "@type".  Typed examples are checked like any other.
+EXTRA_EXAMPLE_SECTIONS: dict[tuple, tuple] = {
+    ("Update Rules", "Schema", "Examples"): ("Update Rules", "Schema"),
+}
+
+# Sections (chapter path prefix) whose JSON blocks are illustrative fragments
+# and are not checked at all (not even reported as "other").
+IGNORED_SECTIONS: list[tuple] = [
+    ("Update Rules", "Partial", "Matching"),
+    ("Extension Framework", "Extension Mapping")
+]
+
+# $id the draft's examples use for the base RPP schema.  Standalone schemas
+# reference "JSON Schema Definitions" through it (e.g. in "rpp:extends").
+BASE_SCHEMA_ID = "https://rpp.example/rpp/schema.json"
 
 # Sub-chapters of JSON Schema Definitions and their @type requirements.
 # "forbidden" = @type MUST NOT be present (error if present)
@@ -118,13 +154,21 @@ def load_abstract_types(model_path: Path) -> set[str]:
             if o.get("abstract")}
 
 
+def section_key(chapter_path: list) -> tuple:
+    """Chapter path without trailing mmark anchors ("Schema {#partial-schema}" -> "Schema")."""
+    return tuple(re.sub(r'\s*\{#[^}]*\}\s*$', '', t) for t in chapter_path)
+
+
 def parse_markdown(md_path: Path):
     """
     Parse the markdown file and return:
       - snippets:       JsonBlock list  (in "JSON Representation Rules")
       - schema_entries: SchemaEntry list (in "JSON Schema Definitions")
-      - example_entries: ExampleEntry list (in "Examples")
+      - standalone_schemas: StandaloneSchema list (in STANDALONE_SCHEMA_SECTIONS)
+      - example_entries: ExampleEntry list (in "Examples" and EXTRA_EXAMPLE_SECTIONS)
       - other_blocks:   JsonBlock list  (everywhere else)
+      - ignored_blocks: JsonBlock list  (in IGNORED_SECTIONS, not checked)
+    JSON blocks inside HTML comments are ignored.
     """
     lines = md_path.read_text(encoding="utf-8").splitlines()
     heading_re = re.compile(r'^(#{1,6})\s+(.*?)\s*$')
@@ -142,11 +186,17 @@ def parse_markdown(md_path: Path):
             heading_stack.append((level, title))
         chapter_paths.append([t for _, t in heading_stack])
 
-    # Pass 2: collect ```json ... ``` blocks
+    # Pass 2: collect ```json ... ``` blocks, skipping those inside <!-- ... -->
     blocks: list[JsonBlock] = []
+    in_comment = False
     i = 0
     while i < len(lines):
-        if lines[i].strip() == '```json':
+        s = lines[i]
+        if in_comment:
+            in_comment = '-->' not in s
+        elif '<!--' in s and '-->' not in s.split('<!--', 1)[1]:
+            in_comment = True
+        elif s.strip() == '```json':
             block_start = i
             block_lines = []
             i += 1
@@ -175,13 +225,32 @@ def parse_markdown(md_path: Path):
     # Classify blocks
     snippets: list[JsonBlock]         = []
     schema_entries: list[SchemaEntry] = []
+    standalone_schemas: list[StandaloneSchema] = []
     example_entries: list[ExampleEntry] = []
     other_blocks: list[JsonBlock]     = []
+    ignored_blocks: list[JsonBlock]   = []
 
     for blk in blocks:
         tlc = blk.chapter_path[0] if blk.chapter_path else ""
+        path = section_key(blk.chapter_path)
+        extra_scope = next((scope for prefix, scope in EXTRA_EXAMPLE_SECTIONS.items()
+                            if path[:len(prefix)] == prefix), None)
 
-        if tlc == TOP_LEVEL_CHAPTER_JSON_REPRESENTATION_RULES:
+        if any(path[:len(prefix)] == prefix for prefix in IGNORED_SECTIONS):
+            ignored_blocks.append(blk)
+
+        elif path in STANDALONE_SCHEMA_SECTIONS:
+            try:
+                standalone_schemas.append(StandaloneSchema(blk, json.loads(blk.raw)))
+            except json.JSONDecodeError as e:
+                standalone_schemas.append(StandaloneSchema(blk, None, str(e)))
+
+        elif extra_scope is not None:
+            entry = _parse_example(blk, " > ".join(blk.chapter_path))
+            entry.scope = extra_scope
+            example_entries.append(entry)
+
+        elif tlc == TOP_LEVEL_CHAPTER_JSON_REPRESENTATION_RULES:
             snippets.append(blk)
 
         elif tlc == TOP_LEVEL_CHAPTER_JSON_SCHEMA_DEFINITIONS:
@@ -195,7 +264,7 @@ def parse_markdown(md_path: Path):
         else:
             other_blocks.append(blk)
 
-    return snippets, schema_entries, example_entries, other_blocks
+    return snippets, schema_entries, standalone_schemas, example_entries, other_blocks, ignored_blocks
 
 
 def _try_parse_schema(blk: JsonBlock) -> SchemaEntry:
@@ -445,6 +514,72 @@ def find_unresolved_refs(schema_obj: dict, available_defs: set) -> list:
     return missing
 
 
+def resolve_pointer(doc, fragment: str) -> bool:
+    """True if the JSON Pointer `fragment` (without '#') resolves within doc."""
+    node = doc
+    for token in fragment.split("/")[1:] if fragment else []:
+        token = token.replace("~1", "/").replace("~0", "~")
+        if isinstance(node, dict) and token in node:
+            node = node[token]
+        elif isinstance(node, list) and token.isdigit() and int(token) < len(node):
+            node = node[int(token)]
+        else:
+            return False
+    return True
+
+
+def find_unresolved_standalone_refs(doc: dict, combined_schema: dict) -> list:
+    """
+    Check every "$ref" and every "rpp:extends" key and value of a standalone
+    schema document.  A reference resolves when it is a local JSON Pointer into
+    `doc`, or points into BASE_SCHEMA_ID and resolves within `combined_schema`.
+    Returns list of (ref_string, path).
+    """
+    own_id = doc.get("$id", "")
+    missing = []
+
+    def resolves(ref: str) -> bool:
+        uri, _, fragment = ref.partition("#")
+        if uri in ("", own_id):
+            return resolve_pointer(doc, fragment)
+        if uri == BASE_SCHEMA_ID:
+            return resolve_pointer(combined_schema, fragment)
+        return False
+
+    def walk(node, path=""):
+        if isinstance(node, dict):
+            if isinstance(node.get("$ref"), str) and not resolves(node["$ref"]):
+                missing.append((node["$ref"], path))
+            extends = node.get("rpp:extends")
+            if isinstance(extends, dict):
+                for base, local in extends.items():
+                    for ref in (base, local):
+                        if not isinstance(ref, str) or not resolves(ref):
+                            missing.append((ref, f"{path}/rpp:extends"))
+            for k, v in node.items():
+                walk(v, f"{path}/{k}")
+        elif isinstance(node, list):
+            for idx, item in enumerate(node):
+                walk(item, f"{path}/{idx}")
+
+    walk(doc)
+    return missing
+
+
+def make_standalone_validator(doc: dict, combined_schema: dict) -> Draft202012Validator:
+    """
+    Build a validator for a standalone schema document as written (no
+    unevaluatedProperties injection).  References into BASE_SCHEMA_ID resolve
+    against the combined "JSON Schema Definitions".
+    """
+    if not HAS_REFERENCING:
+        return Draft202012Validator(doc)
+    base = dict(combined_schema, **{"$id": BASE_SCHEMA_ID})
+    registry = Registry().with_resource(
+        BASE_SCHEMA_ID, Resource.from_contents(base, default_specification=DRAFT202012))
+    return Draft202012Validator(doc, registry=registry)
+
+
 # ---------------------------------------------------------------------------
 # Output helpers
 # ---------------------------------------------------------------------------
@@ -505,7 +640,7 @@ def info(msg: str):
 
 def run_checks(md_path: Path, deep_type_check: bool = True) -> int:
     print(f"\nChecking: {md_path}")
-    snippets, schema_entries, example_entries, other_blocks = parse_markdown(md_path)
+    snippets, schema_entries, standalone_schemas, example_entries, other_blocks, ignored_blocks = parse_markdown(md_path)
 
     total_errors   = 0
     total_warnings = 0
@@ -633,9 +768,51 @@ def run_checks(md_path: Path, deep_type_check: bool = True) -> int:
             schemas_by_type.setdefault(entry.type_const, []).append(entry)
 
     # ==================================================================
-    # 3. Examples
+    # 3. Standalone JSON Schemas
     # ==================================================================
-    section_hdr("3. Examples")
+    section_hdr("3. Standalone JSON Schemas")
+    info(f"Found {len(standalone_schemas)} standalone schema block(s)")
+
+    # chapter path -> standalone schemas usable for untyped examples
+    standalone_by_scope: dict[tuple, list[StandaloneSchema]] = {}
+
+    for ss in standalone_schemas:
+        path_str = " > ".join(ss.block.chapter_path)
+        loc(f"Line {ss.block.line_start:4d} [{path_str}]")
+        if ss.schema is None:
+            err(f"  -> INVALID JSON: {ss.parse_error}")
+            total_errors += 1
+            continue
+        if not isinstance(ss.schema, dict):
+            err(f"  -> Not a JSON object")
+            total_errors += 1
+            continue
+
+        usable = True
+        try:
+            Draft202012Validator.check_schema(ss.schema)
+            ok(f"  -> Is a valid JSON Schema")
+        except SchemaError as e:
+            err(f"  -> Schema error: {e.message}")
+            total_errors += 1
+            usable = False
+
+        unresolved = find_unresolved_standalone_refs(ss.schema, combined)
+        for ref, path in unresolved:
+            err(f"  -> Unresolved reference '{ref}' at {path}")
+            total_errors += 1
+        if unresolved:
+            usable = False
+        else:
+            ok(f"  -> All references resolve")
+
+        if usable:
+            standalone_by_scope.setdefault(section_key(ss.block.chapter_path), []).append(ss)
+
+    # ==================================================================
+    # 4. Examples
+    # ==================================================================
+    section_hdr("4. Examples")
     info(f"Found {len(example_entries)} example(s)")
 
     types_with_examples: set[str] = set()        # top-level @type values
@@ -652,7 +829,30 @@ def run_checks(md_path: Path, deep_type_check: bool = True) -> int:
             total_errors += 1
             continue
 
-        # 3b. @type present?
+        # 3b. @type present?  Untyped examples in an extra example section are
+        #     validated against the standalone schemas of their scope instead.
+        if ex.type_value is None and ex.scope is not None:
+            types_with_nested_examples |= collect_nested_types(ex.obj)
+            candidates = standalone_by_scope.get(ex.scope, [])
+            if not candidates:
+                err(f"  -> No usable standalone schema in [{' > '.join(ex.scope)}] for untyped example")
+                total_errors += 1
+                continue
+            failing = []
+            for ss in candidates:
+                errors_found = list(make_standalone_validator(ss.schema, combined).iter_errors(ex.obj))
+                if not errors_found:
+                    ok(f"  -> Validates OK against standalone schema (line {ss.block.line_start})")
+                    break
+                failing.append((ss.block.line_start, [e.message for e in errors_found]))
+            else:
+                err(f"  -> Example does NOT validate against any standalone schema in [{' > '.join(ex.scope)}]")
+                total_errors += 1
+                for line, msgs in failing:
+                    err(f"     Schema at line {line}:")
+                    for m in msgs[:5]:
+                        err(f"       - {m}")
+            continue
         if ex.type_value is None:
             err(f"  -> Missing top-level '@type' property")
             total_errors += 1
@@ -722,9 +922,9 @@ def run_checks(md_path: Path, deep_type_check: bool = True) -> int:
                     info(f"       ... and {len(msgs) - 3} more")
 
     # ==================================================================
-    # 4. Typed schemas without examples
+    # 5. Typed schemas without examples
     # ==================================================================
-    section_hdr("4. Typed schemas without any example")
+    section_hdr("5. Typed schemas without any example")
     any_missing = False
     for type_const, entries in sorted(schemas_by_type.items()):
         for se in entries:
@@ -751,13 +951,13 @@ def run_checks(md_path: Path, deep_type_check: bool = True) -> int:
         ok("All typed schemas have at least one example")
 
     # ==================================================================
-    # 5. Other JSON blocks
+    # 6. Other JSON blocks
     # ==================================================================
-    section_hdr("5. Other JSON blocks  (outside the three named sections)")
+    section_hdr("6. Other JSON blocks  (outside the checked sections)")
     if not other_blocks:
-        ok("No JSON blocks found outside the three named sections")
+        ok("No JSON blocks found outside the checked sections")
     else:
-        warn(f"Found {len(other_blocks)} JSON block(s) outside named sections:")
+        warn(f"Found {len(other_blocks)} JSON block(s) outside the checked sections:")
         for blk in other_blocks:
             path_str = " > ".join(blk.chapter_path) if blk.chapter_path else "<no chapter>"
             try:
@@ -775,8 +975,10 @@ def run_checks(md_path: Path, deep_type_check: bool = True) -> int:
     section_hdr("Summary")
     print(f"  Snippets (validated):      {len(snippets)}")
     print(f"  Schema definitions:        {len(schema_entries)}")
+    print(f"  Standalone schemas:        {len(standalone_schemas)}")
     print(f"  Examples:                  {len(example_entries)}")
     print(f"  Other JSON blocks:         {len(other_blocks)}")
+    print(f"  Ignored JSON blocks:       {len(ignored_blocks)}")
     print()
     if total_errors == 0 and total_warnings == 0:
         print(c("  All checks passed with no errors or warnings.", GREEN + BOLD))
