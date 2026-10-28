@@ -713,13 +713,13 @@ def run_checks(md_path: Path, deep_type_check: bool = True) -> int:
                 if len(msgs) > 5:
                     err(f"       ... and {len(msgs) - 5} more")
         elif any_pass and failing:
-            warn(f"  -> Failed {len(failing)} schema(s) but passed at least one — acceptable")
+            info(f"  -> Failed {len(failing)} schema(s) but passed at least one — acceptable")
             for def_name, msgs in failing:
-                warn(f"     Failing schema '{def_name}':")
+                info(f"     Failing schema '{def_name}':")
                 for m in msgs[:3]:
-                    warn(f"       - {m}")
+                    info(f"       - {m}")
                 if len(msgs) > 3:
-                    warn(f"       ... and {len(msgs) - 3} more")
+                    info(f"       ... and {len(msgs) - 3} more")
 
     # ==================================================================
     # 4. Typed schemas without examples
