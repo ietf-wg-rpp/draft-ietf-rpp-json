@@ -4414,13 +4414,13 @@ Example domain transfer approve request with empty JSON object:
 ```
 <!-- Is this an empty response? or should we use "{}"? then validation script complains-->
 
-The response is the Transfer Process Object, similar to the transfer create and query responses.
+The response is the Transfer Process Object, similar to the Create (Transfer Request) and Read (Transfer Query) responses.
 
 ### Transfer Cancel
 
 The Transfer cancel operation has an empty request body, the server can identify the transfer process to be cancelled based on the request URL and the authenticated client's permissions.
 
-The response is the Transfer Process Object, similar to the transfer create and query responses.
+The response is the Transfer Process Object, similar to the Create (Transfer Request) and Read (Transfer Query) responses.
 
 ### Transfer Reject
 
@@ -4433,7 +4433,7 @@ Example domain transfer reject request
 }
 ```
 
-The transfer reject response is the Transfer Process Object, similar to the transfer create and query responses.
+The transfer reject response is the Transfer Process Object, similar to the Create (Transfer Request) and Read (Transfer Query) responses.
 
 ### Restore Request
 
@@ -4520,9 +4520,9 @@ Example domain restore report response (Restore Process Object):
 }
 ```
 
-### Restore Query
+### Read (Restore Query)
 
-The Restore Query operation takes no request body (Parameters: None).
+The Read (Restore Query) operation takes no request body (Parameters: None).
 
 Example domain restore query response (Restore Process Object, object in `pendingRestore` state):
 
@@ -4834,7 +4834,7 @@ Example Contact Transfer Reject request
 }
 ```
 
-The transfer reject response is the Transfer Process Object, similar to the transfer create and query responses.
+The transfer reject response is the Transfer Process Object, similar to the Create (Transfer Request) and Read (Transfer Query) responses.
 
 ## Host
 
@@ -5077,9 +5077,9 @@ Example host restore report response (Restore Process Object):
 }
 ```
 
-### Restore Query
+### Read (Restore Query)
 
-The Restore Query operation takes no request body (Parameters: None).
+The Read (Restore Query) operation takes no request body (Parameters: None).
 
 Example host restore query response (Restore Process Object, object in `pendingRestore` state):
 
