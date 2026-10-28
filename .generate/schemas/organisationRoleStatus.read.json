@@ -1,0 +1,17 @@
+{
+  "$defs": {
+    "organisationRoleStatus.read": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "organisationRoleStatus", "readOnly": true },
+        "label": {
+          "type": "string",
+          "enum": ["clientLinkProhibited", "serverLinkProhibited", "linked", "ok"],
+          "readOnly": true
+        },
+        "reason": { "type": "string", "readOnly": true }
+      },
+      "required": ["@type", "label"]
+    }
+  }
+}

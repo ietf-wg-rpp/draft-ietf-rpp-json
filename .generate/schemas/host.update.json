@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$ref": "#/$defs/host.update",
+  "$defs": {
+    "host.update": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "host" },
+        "hostName": { "type": "string", "format": "hostname" },
+        "status": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/hostStatus.create" }
+        },
+        "dns": { "$ref": "#/$defs/dnsData.create" }
+      },
+      "required": ["@type", "hostName"]
+    }
+  }
+}

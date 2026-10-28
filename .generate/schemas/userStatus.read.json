@@ -1,0 +1,17 @@
+{
+  "$defs": {
+    "userStatus.read": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "userStatus", "readOnly": true },
+        "label": {
+          "type": "string",
+          "enum": ["active", "pending", "suspended", "deactivated"],
+          "readOnly": true
+        },
+        "reason": { "type": "string", "readOnly": true }
+      },
+      "required": ["@type", "label"]
+    }
+  }
+}

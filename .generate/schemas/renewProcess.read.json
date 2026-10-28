@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$ref": "#/$defs/renewProcess.read",
+  "$defs": {
+    "renewProcess.read": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "renewProcess", "readOnly": true },
+        "processId": { "type": "string", "readOnly": true },
+        "expiryDate": { "type": "string", "format": "date-time", "readOnly": true },
+        "renewalPeriod": { "$ref": "#/$defs/period.read", "readOnly": true }
+      },
+      "required": ["@type"]
+    }
+  }
+}

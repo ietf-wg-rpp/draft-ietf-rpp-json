@@ -1,0 +1,17 @@
+{
+  "$defs": {
+    "hostStatus.create": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "hostStatus" },
+        "label": {
+          "type": "string",
+          "enum": ["clientDeleteProhibited", "clientUpdateProhibited"],
+          "writeOnly": true
+        },
+        "reason": { "type": "string", "writeOnly": true }
+      },
+      "required": ["@type", "label"]
+    }
+  }
+}

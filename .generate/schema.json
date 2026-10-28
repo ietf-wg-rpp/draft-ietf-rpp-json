@@ -1,0 +1,1514 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$defs": {
+    "clientIdentifier": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 16,
+      "pattern": "^\\S+( \\S+)*$"
+    },
+    "identifier": { "type": "string" },
+    "phoneNumber": { "type": "string", "pattern": "^\\+[0-9]{1,3}\\.[0-9]{1,14}(x[0-9]+)?$" },
+    "Card": {
+      "type": "object",
+      "$comment": "External type from RPP-JSContact-Profile: definition not available in the object model export"
+    },
+    "period.read": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "period", "readOnly": true },
+        "value": { "type": "integer", "minimum": 1, "maximum": 99 },
+        "unit": { "type": "string", "enum": ["y", "m"] }
+      },
+      "required": ["@type", "value", "unit"]
+    },
+    "period.create": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "period" },
+        "value": { "type": "integer", "minimum": 1, "maximum": 99 },
+        "unit": { "type": "string", "enum": ["y", "m"] }
+      },
+      "required": ["@type", "value", "unit"]
+    },
+    "provMetadata.read": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "provMetadata", "readOnly": true },
+        "repositoryId": { "$ref": "#/$defs/identifier", "readOnly": true },
+        "spClientId": { "$ref": "#/$defs/clientIdentifier", "readOnly": true },
+        "crClientId": { "$ref": "#/$defs/clientIdentifier", "readOnly": true },
+        "crDate": { "type": "string", "format": "date-time", "readOnly": true },
+        "upClientId": { "$ref": "#/$defs/clientIdentifier", "readOnly": true },
+        "upDate": { "type": "string", "format": "date-time", "readOnly": true },
+        "trDate": { "type": "string", "format": "date-time", "readOnly": true }
+      },
+      "required": ["@type", "spClientId"]
+    },
+    "domainStatus.read": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "domainStatus", "readOnly": true },
+        "label": {
+          "type": "string",
+          "enum": [
+            "clientDeleteProhibited",
+            "serverDeleteProhibited",
+            "clientHold",
+            "serverHold",
+            "clientRenewProhibited",
+            "serverRenewProhibited",
+            "clientTransferProhibited",
+            "serverTransferProhibited",
+            "clientUpdateProhibited",
+            "serverUpdateProhibited",
+            "inactive",
+            "ok",
+            "pendingCreate",
+            "pendingDelete",
+            "pendingRenew",
+            "pendingTransfer",
+            "pendingUpdate",
+            "rgpAddPeriod",
+            "rgpAutoRenewPeriod",
+            "rgpRenewPeriod",
+            "rgpTransferPeriod",
+            "rgpRedemptionPeriod",
+            "rgpPendingRestore",
+            "rgpPendingDelete"
+          ],
+          "readOnly": true
+        },
+        "reason": { "type": "string", "readOnly": true },
+        "due": { "type": "string", "format": "date-time" }
+      },
+      "required": ["@type", "label"]
+    },
+    "domainStatus.create": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "domainStatus" },
+        "label": {
+          "type": "string",
+          "enum": [
+            "clientDeleteProhibited",
+            "clientHold",
+            "clientRenewProhibited",
+            "clientTransferProhibited",
+            "clientUpdateProhibited"
+          ],
+          "writeOnly": true
+        },
+        "reason": { "type": "string", "writeOnly": true },
+        "due": { "type": "string", "format": "date-time" }
+      },
+      "required": ["@type", "label"]
+    },
+    "hostStatus.read": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "hostStatus", "readOnly": true },
+        "label": {
+          "type": "string",
+          "enum": [
+            "clientDeleteProhibited",
+            "serverDeleteProhibited",
+            "clientUpdateProhibited",
+            "serverUpdateProhibited",
+            "linked",
+            "ok",
+            "pendingCreate",
+            "pendingDelete",
+            "pendingTransfer",
+            "pendingUpdate"
+          ],
+          "readOnly": true
+        },
+        "reason": { "type": "string", "readOnly": true }
+      },
+      "required": ["@type", "label"]
+    },
+    "hostStatus.create": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "hostStatus" },
+        "label": {
+          "type": "string",
+          "enum": ["clientDeleteProhibited", "clientUpdateProhibited"],
+          "writeOnly": true
+        },
+        "reason": { "type": "string", "writeOnly": true }
+      },
+      "required": ["@type", "label"]
+    },
+    "contactStatus.read": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "contactStatus", "readOnly": true },
+        "label": {
+          "type": "string",
+          "enum": [
+            "clientDeleteProhibited",
+            "serverDeleteProhibited",
+            "clientTransferProhibited",
+            "serverTransferProhibited",
+            "clientUpdateProhibited",
+            "serverUpdateProhibited",
+            "linked",
+            "ok",
+            "pendingCreate",
+            "pendingDelete",
+            "pendingTransfer",
+            "pendingUpdate"
+          ],
+          "readOnly": true
+        },
+        "reason": { "type": "string", "readOnly": true }
+      },
+      "required": ["@type", "label"]
+    },
+    "contactStatus.create": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "contactStatus" },
+        "label": {
+          "type": "string",
+          "enum": ["clientDeleteProhibited", "clientTransferProhibited", "clientUpdateProhibited"],
+          "writeOnly": true
+        },
+        "reason": { "type": "string", "writeOnly": true }
+      },
+      "required": ["@type", "label"]
+    },
+    "organisationRoleStatus.read": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "organisationRoleStatus", "readOnly": true },
+        "label": {
+          "type": "string",
+          "enum": ["clientLinkProhibited", "serverLinkProhibited", "linked", "ok"],
+          "readOnly": true
+        },
+        "reason": { "type": "string", "readOnly": true }
+      },
+      "required": ["@type", "label"]
+    },
+    "organisationRoleStatus.create": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "organisationRoleStatus" },
+        "label": { "type": "string", "enum": ["clientLinkProhibited"], "writeOnly": true },
+        "reason": { "type": "string", "writeOnly": true }
+      },
+      "required": ["@type", "label"]
+    },
+    "organisationStatus.read": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "organisationStatus", "readOnly": true },
+        "label": {
+          "type": "string",
+          "enum": [
+            "ok",
+            "hold",
+            "terminated",
+            "linked",
+            "clientLinkProhibited",
+            "serverLinkProhibited",
+            "clientUpdateProhibited",
+            "serverUpdateProhibited",
+            "clientDeleteProhibited",
+            "serverDeleteProhibited",
+            "pendingCreate",
+            "pendingUpdate",
+            "pendingDelete"
+          ],
+          "readOnly": true
+        },
+        "reason": { "type": "string", "readOnly": true }
+      },
+      "required": ["@type", "label"]
+    },
+    "organisationStatus.create": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "organisationStatus" },
+        "label": {
+          "type": "string",
+          "enum": [
+            "hold",
+            "terminated",
+            "clientLinkProhibited",
+            "clientUpdateProhibited",
+            "clientDeleteProhibited"
+          ],
+          "writeOnly": true
+        },
+        "reason": { "type": "string", "writeOnly": true }
+      },
+      "required": ["@type", "label"]
+    },
+    "userStatus.read": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "userStatus", "readOnly": true },
+        "label": {
+          "type": "string",
+          "enum": ["active", "pending", "suspended", "deactivated"],
+          "readOnly": true
+        },
+        "reason": { "type": "string", "readOnly": true }
+      },
+      "required": ["@type", "label"]
+    },
+    "userStatus.create": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "userStatus" },
+        "label": { "type": "string", "enum": ["suspended", "deactivated"], "writeOnly": true },
+        "reason": { "type": "string", "writeOnly": true }
+      },
+      "required": ["@type", "label"]
+    },
+    "dnsRecord.read": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "dnsRecord", "readOnly": true },
+        "name": { "type": "string" },
+        "class": { "type": "string" },
+        "type": { "type": "string" },
+        "rdata": { "type": "object", "unevaluatedProperties": true }
+      },
+      "required": ["@type", "name", "type", "rdata"]
+    },
+    "dnsRecord.create": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "dnsRecord" },
+        "name": { "type": "string" },
+        "class": { "type": "string" },
+        "type": { "type": "string" },
+        "rdata": { "type": "object", "unevaluatedProperties": true }
+      },
+      "required": ["@type", "name", "type", "rdata"]
+    },
+    "dnsControls.read": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "dnsControls", "readOnly": true },
+        "ttl": {
+          "type": "object",
+          "additionalProperties": { "type": "integer", "minimum": 1 },
+          "propertyNames": { "pattern": "^[a-z][a-z0-9-]*$" }
+        },
+        "maxSigLifetime": {
+          "type": "object",
+          "additionalProperties": { "type": "integer", "minimum": 1 },
+          "propertyNames": { "pattern": "^[a-z][a-z0-9-]*$" }
+        }
+      },
+      "required": ["@type"]
+    },
+    "dnsControls.create": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "dnsControls" },
+        "ttl": {
+          "type": "object",
+          "additionalProperties": { "type": "integer", "minimum": 1 },
+          "propertyNames": { "pattern": "^[a-z][a-z0-9-]*$" }
+        },
+        "maxSigLifetime": {
+          "type": "object",
+          "additionalProperties": { "type": "integer", "minimum": 1 },
+          "propertyNames": { "pattern": "^[a-z][a-z0-9-]*$" }
+        }
+      },
+      "required": ["@type"]
+    },
+    "dnsData.read": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "dnsData", "readOnly": true },
+        "records": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/dnsRecord.read" }
+        },
+        "controls": { "$ref": "#/$defs/dnsControls.read" }
+      },
+      "required": ["@type"]
+    },
+    "dnsData.create": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "dnsData" },
+        "records": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/dnsRecord.create" }
+        },
+        "controls": { "$ref": "#/$defs/dnsControls.create" }
+      },
+      "required": ["@type"]
+    },
+    "authInfo.read": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "authInfo", "readOnly": true },
+        "method": { "type": "string", "readOnly": true },
+        "authdata": { "type": "string", "readOnly": true }
+      },
+      "required": ["@type", "method", "authdata"]
+    },
+    "authInfo.create": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "authInfo" },
+        "method": { "type": "string", "writeOnly": true },
+        "authdata": { "type": "string", "writeOnly": true }
+      },
+      "required": ["@type", "method", "authdata"]
+    },
+    "disclose.read": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "disclose", "readOnly": true }
+      },
+      "required": ["@type"]
+    },
+    "restoreReport.read": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "restoreReport", "readOnly": true },
+        "preData": { "type": "string" },
+        "postData": { "type": "string" },
+        "deleteTime": { "type": "string", "format": "date-time" },
+        "restoreTime": { "type": "string", "format": "date-time" },
+        "restoreReason": { "type": "string" },
+        "statements": {
+          "type": "array",
+          "items": { "type": "string" },
+          "minItems": 1,
+          "maxItems": 2
+        },
+        "other": { "type": "string" }
+      },
+      "required": ["@type", "statements"]
+    },
+    "restoreReport.create": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "restoreReport" },
+        "preData": { "type": "string" },
+        "postData": { "type": "string" },
+        "deleteTime": { "type": "string", "format": "date-time" },
+        "restoreTime": { "type": "string", "format": "date-time" },
+        "restoreReason": { "type": "string" },
+        "statements": {
+          "type": "array",
+          "items": { "type": "string" },
+          "minItems": 1,
+          "maxItems": 2
+        },
+        "other": { "type": "string" }
+      },
+      "required": ["@type", "statements"]
+    },
+    "organisationRole.read": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "organisationRole", "readOnly": true },
+        "roleId": { "type": "string" },
+        "status": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/organisationRoleStatus.read" }
+        }
+      },
+      "required": ["@type"]
+    },
+    "organisationRole.create": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "organisationRole" },
+        "roleId": { "type": "string" },
+        "status": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/organisationRoleStatus.create" }
+        }
+      },
+      "required": ["@type"]
+    },
+    "processes.read": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "processes", "readOnly": true },
+        "transferProcess": {
+          "type": "array",
+          "items": {
+            "oneOf": [
+              { "$ref": "#/$defs/transferProcess.reference" },
+              { "$ref": "#/$defs/domainTransferProcess.reference" }
+            ]
+          },
+          "readOnly": true
+        },
+        "renewProcess": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/renewProcess.reference" },
+          "readOnly": true
+        },
+        "restoreProcess": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/restoreProcess.reference" },
+          "readOnly": true
+        },
+        "createProcess": {
+          "type": "array",
+          "items": {
+            "oneOf": [
+              { "$ref": "#/$defs/createProcess.reference" },
+              { "$ref": "#/$defs/domainCreateProcess.reference" }
+            ]
+          },
+          "readOnly": true
+        }
+      },
+      "required": ["@type"]
+    },
+    "baseProcess.read": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "baseProcess", "readOnly": true },
+        "processId": { "type": "string", "readOnly": true }
+      },
+      "required": ["@type"]
+    },
+    "baseMessage.read": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "baseMessage", "readOnly": true },
+        "objectType": { "type": "string", "readOnly": true },
+        "objectId": { "type": "string", "readOnly": true }
+      },
+      "required": ["@type"]
+    },
+    "reviewResponseMessage.read": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "reviewResponseMessage", "readOnly": true },
+        "objectType": { "type": "string", "readOnly": true },
+        "objectId": { "type": "string", "readOnly": true },
+        "approved": { "type": "boolean", "readOnly": true },
+        "clientTransactionId": { "type": "string", "readOnly": true },
+        "serverTransactionId": { "type": "string", "readOnly": true },
+        "completionDate": { "type": "string", "format": "date-time", "readOnly": true },
+        "message": { "type": "string", "readOnly": true },
+        "process": {
+          "oneOf": [
+            { "$ref": "#/$defs/transferProcess.read" },
+            { "$ref": "#/$defs/domainTransferProcess.read" },
+            { "$ref": "#/$defs/restoreProcess.read" },
+            { "$ref": "#/$defs/renewProcess.read" },
+            { "$ref": "#/$defs/createProcess.read" },
+            { "$ref": "#/$defs/domainCreateProcess.read" }
+          ],
+          "readOnly": true
+        }
+      },
+      "required": ["@type", "approved", "serverTransactionId", "completionDate", "message"]
+    },
+    "transferRequestMessage.read": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "transferRequestMessage", "readOnly": true },
+        "objectType": { "type": "string", "readOnly": true },
+        "objectId": { "type": "string", "readOnly": true },
+        "status": { "type": "string", "enum": ["pending"], "readOnly": true },
+        "requestDate": { "type": "string", "format": "date-time", "readOnly": true },
+        "actionDate": { "type": "string", "format": "date-time", "readOnly": true },
+        "process": {
+          "oneOf": [
+            { "$ref": "#/$defs/transferProcess.read" },
+            { "$ref": "#/$defs/domainTransferProcess.read" }
+          ],
+          "readOnly": true
+        }
+      },
+      "required": ["@type", "status", "requestDate"]
+    },
+    "transferOutcomeMessage.read": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "transferOutcomeMessage", "readOnly": true },
+        "objectType": { "type": "string", "readOnly": true },
+        "objectId": { "type": "string", "readOnly": true },
+        "trStatus": {
+          "type": "string",
+          "enum": [
+            "clientApproved",
+            "clientCancelled",
+            "clientRejected",
+            "serverApproved",
+            "serverCancelled"
+          ],
+          "readOnly": true
+        },
+        "requestDate": { "type": "string", "format": "date-time", "readOnly": true },
+        "actionDate": { "type": "string", "format": "date-time", "readOnly": true },
+        "expiryDate": { "type": "string", "format": "date-time", "readOnly": true },
+        "process": {
+          "oneOf": [
+            { "$ref": "#/$defs/transferProcess.read" },
+            { "$ref": "#/$defs/domainTransferProcess.read" }
+          ],
+          "readOnly": true
+        }
+      },
+      "required": ["@type", "trStatus", "requestDate", "actionDate"]
+    },
+    "expirationDeletionMessage.read": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "expirationDeletionMessage", "readOnly": true },
+        "objectType": { "type": "string", "readOnly": true },
+        "objectId": { "type": "string", "readOnly": true },
+        "deletionDate": { "type": "string", "format": "date-time", "readOnly": true }
+      },
+      "required": ["@type", "deletionDate"]
+    },
+    "autoRenewalMessage.read": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "autoRenewalMessage", "readOnly": true },
+        "objectType": { "type": "string", "readOnly": true },
+        "objectId": { "type": "string", "readOnly": true },
+        "renewalDate": { "type": "string", "format": "date-time", "readOnly": true },
+        "expiryDate": { "type": "string", "format": "date-time", "readOnly": true }
+      },
+      "required": ["@type", "renewalDate", "expiryDate"]
+    },
+    "serviceNoticeMessage.read": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "serviceNoticeMessage", "readOnly": true },
+        "objectType": { "type": "string", "readOnly": true },
+        "objectId": { "type": "string", "readOnly": true },
+        "message": { "type": "string", "readOnly": true }
+      },
+      "required": ["@type", "message"]
+    },
+    "discoveryVersion.read": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "discoveryVersion", "readOnly": true },
+        "version": { "type": "string", "readOnly": true },
+        "baseUrl": { "type": "string", "format": "uri", "readOnly": true }
+      },
+      "required": ["@type", "version", "baseUrl"]
+    },
+    "discoveryEnvironment.read": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "discoveryEnvironment", "readOnly": true },
+        "name": { "type": "string", "readOnly": true },
+        "status": { "type": "string", "readOnly": true }
+      },
+      "required": ["@type", "name", "status"]
+    },
+    "extension.read": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "extension", "readOnly": true },
+        "name": { "type": "string", "readOnly": true },
+        "id": { "type": "string", "readOnly": true },
+        "version": { "type": "string", "readOnly": true },
+        "url": { "type": "string", "format": "uri", "readOnly": true }
+      },
+      "required": ["@type", "name", "id", "version", "url"]
+    },
+    "discoveryIdnLgr.read": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "discoveryIdnLgr", "readOnly": true },
+        "tld": {
+          "type": "array",
+          "items": { "type": "string" },
+          "minItems": 1,
+          "readOnly": true
+        },
+        "name": { "type": "string", "readOnly": true },
+        "url": { "type": "string", "format": "uri", "readOnly": true },
+        "default": { "type": "boolean", "readOnly": true }
+      },
+      "required": ["@type", "tld", "name", "url", "default"]
+    },
+    "discoveryNotice.read": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "discoveryNotice", "readOnly": true },
+        "pubTime": { "type": "string", "format": "date-time", "readOnly": true },
+        "text": { "type": "string", "readOnly": true }
+      },
+      "required": ["@type", "pubTime", "text"]
+    },
+    "transferProcess.create": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "transferProcess" },
+        "transferDir": { "type": "string", "enum": ["pull", "push"], "writeOnly": true },
+        "gainingClientId": { "$ref": "#/$defs/clientIdentifier", "writeOnly": true }
+      },
+      "required": ["@type"],
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "transferDir": { "const": "push" }
+            },
+            "required": ["transferDir"]
+          },
+          "then": { "required": ["gainingClientId"] }
+        },
+        {
+          "if": {
+            "properties": {
+              "transferDir": { "const": "pull" }
+            },
+            "required": ["transferDir"]
+          },
+          "then": {
+            "not": { "required": ["gainingClientId"] }
+          }
+        }
+      ]
+    },
+    "transferProcess.read": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "transferProcess", "readOnly": true },
+        "processId": { "type": "string", "readOnly": true },
+        "transferDir": { "type": "string", "enum": ["pull", "push"], "readOnly": true },
+        "gainingClientId": { "$ref": "#/$defs/clientIdentifier", "readOnly": true },
+        "trStatus": {
+          "type": "string",
+          "enum": [
+            "pending",
+            "clientApproved",
+            "clientCancelled",
+            "clientRejected",
+            "serverApproved",
+            "serverCancelled"
+          ],
+          "readOnly": true
+        },
+        "reqClientId": { "$ref": "#/$defs/clientIdentifier", "readOnly": true },
+        "requestDate": { "type": "string", "format": "date-time", "readOnly": true },
+        "actClientId": { "$ref": "#/$defs/clientIdentifier", "readOnly": true },
+        "actionDate": { "type": "string", "format": "date-time", "readOnly": true }
+      },
+      "required": ["@type", "trStatus", "reqClientId", "requestDate", "actClientId", "actionDate"],
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "transferDir": { "const": "push" }
+            },
+            "required": ["transferDir"]
+          },
+          "then": { "required": ["gainingClientId"] }
+        },
+        {
+          "if": {
+            "properties": {
+              "transferDir": { "const": "pull" }
+            },
+            "required": ["transferDir"]
+          },
+          "then": {
+            "not": { "required": ["gainingClientId"] }
+          }
+        }
+      ]
+    },
+    "transferProcess.transferReject": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "transferProcess" },
+        "reason": { "type": "string" }
+      },
+      "required": ["@type"]
+    },
+    "transferProcess.reference": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "transferProcess" },
+        "processId": { "type": "string", "readOnly": true }
+      },
+      "required": ["@type", "processId"]
+    },
+    "restoreProcess.create": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "restoreProcess" },
+        "restoreReport": { "$ref": "#/$defs/restoreReport.create" }
+      },
+      "required": ["@type"]
+    },
+    "restoreProcess.read": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "restoreProcess", "readOnly": true },
+        "processId": { "type": "string", "readOnly": true },
+        "restoreStatus": {
+          "type": "string",
+          "enum": ["pendingRestore", "restored", "rgpPendingDelete"],
+          "readOnly": true
+        },
+        "requestDate": { "type": "string", "format": "date-time", "readOnly": true },
+        "reportDate": { "type": "string", "format": "date-time", "readOnly": true },
+        "reportDueDate": { "type": "string", "format": "date-time", "readOnly": true },
+        "restoreReport": { "$ref": "#/$defs/restoreReport.read" }
+      },
+      "required": ["@type", "restoreStatus"]
+    },
+    "restoreProcess.update": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "restoreProcess" },
+        "restoreReport": { "$ref": "#/$defs/restoreReport.create" }
+      },
+      "required": ["@type", "restoreReport"]
+    },
+    "restoreProcess.reference": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "restoreProcess" },
+        "processId": { "type": "string", "readOnly": true }
+      },
+      "required": ["@type", "processId"]
+    },
+    "renewProcess.create": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "renewProcess" },
+        "expiryDate": { "type": "string", "format": "date-time", "writeOnly": true },
+        "renewalPeriod": { "$ref": "#/$defs/period.create", "writeOnly": true }
+      },
+      "required": ["@type"]
+    },
+    "renewProcess.read": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "renewProcess", "readOnly": true },
+        "processId": { "type": "string", "readOnly": true },
+        "expiryDate": { "type": "string", "format": "date-time", "readOnly": true },
+        "renewalPeriod": { "$ref": "#/$defs/period.read", "readOnly": true }
+      },
+      "required": ["@type"]
+    },
+    "renewProcess.reference": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "renewProcess" },
+        "processId": { "type": "string", "readOnly": true }
+      },
+      "required": ["@type", "processId"]
+    },
+    "createProcess.create": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "createProcess" }
+      },
+      "required": ["@type"]
+    },
+    "createProcess.read": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "createProcess", "readOnly": true },
+        "processId": { "type": "string", "readOnly": true }
+      },
+      "required": ["@type"]
+    },
+    "createProcess.reference": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "createProcess" },
+        "processId": { "type": "string", "readOnly": true }
+      },
+      "required": ["@type", "processId"]
+    },
+    "domainCreateProcess.create": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "domainCreateProcess" },
+        "period": { "$ref": "#/$defs/period.create", "writeOnly": true }
+      },
+      "required": ["@type"]
+    },
+    "domainCreateProcess.read": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "domainCreateProcess", "readOnly": true },
+        "processId": { "type": "string", "readOnly": true },
+        "period": { "$ref": "#/$defs/period.read", "readOnly": true }
+      },
+      "required": ["@type"]
+    },
+    "domainCreateProcess.reference": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "domainCreateProcess" },
+        "processId": { "type": "string", "readOnly": true }
+      },
+      "required": ["@type", "processId"]
+    },
+    "domainTransferProcess.create": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "domainTransferProcess" },
+        "transferDir": { "type": "string", "enum": ["pull", "push"], "writeOnly": true },
+        "gainingClientId": { "$ref": "#/$defs/clientIdentifier", "writeOnly": true },
+        "transferPeriod": { "$ref": "#/$defs/period.create", "writeOnly": true }
+      },
+      "required": ["@type"],
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "transferDir": { "const": "push" }
+            },
+            "required": ["transferDir"]
+          },
+          "then": { "required": ["gainingClientId"] }
+        },
+        {
+          "if": {
+            "properties": {
+              "transferDir": { "const": "pull" }
+            },
+            "required": ["transferDir"]
+          },
+          "then": {
+            "not": { "required": ["gainingClientId"] }
+          }
+        }
+      ]
+    },
+    "domainTransferProcess.read": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "domainTransferProcess", "readOnly": true },
+        "processId": { "type": "string", "readOnly": true },
+        "transferDir": { "type": "string", "enum": ["pull", "push"], "readOnly": true },
+        "gainingClientId": { "$ref": "#/$defs/clientIdentifier", "readOnly": true },
+        "trStatus": {
+          "type": "string",
+          "enum": [
+            "pending",
+            "clientApproved",
+            "clientCancelled",
+            "clientRejected",
+            "serverApproved",
+            "serverCancelled"
+          ],
+          "readOnly": true
+        },
+        "reqClientId": { "$ref": "#/$defs/clientIdentifier", "readOnly": true },
+        "requestDate": { "type": "string", "format": "date-time", "readOnly": true },
+        "actClientId": { "$ref": "#/$defs/clientIdentifier", "readOnly": true },
+        "actionDate": { "type": "string", "format": "date-time", "readOnly": true },
+        "expiryDate": { "type": "string", "format": "date-time", "readOnly": true },
+        "transferPeriod": { "$ref": "#/$defs/period.read", "readOnly": true }
+      },
+      "required": ["@type", "trStatus", "reqClientId", "requestDate", "actClientId", "actionDate"],
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "transferDir": { "const": "push" }
+            },
+            "required": ["transferDir"]
+          },
+          "then": { "required": ["gainingClientId"] }
+        },
+        {
+          "if": {
+            "properties": {
+              "transferDir": { "const": "pull" }
+            },
+            "required": ["transferDir"]
+          },
+          "then": {
+            "not": { "required": ["gainingClientId"] }
+          }
+        }
+      ]
+    },
+    "domainTransferProcess.transferReject": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "domainTransferProcess" },
+        "reason": { "type": "string" }
+      },
+      "required": ["@type"]
+    },
+    "domainTransferProcess.reference": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "domainTransferProcess" },
+        "processId": { "type": "string", "readOnly": true }
+      },
+      "required": ["@type", "processId"]
+    },
+    "domainName.create": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "domainName" },
+        "name": { "type": "string", "format": "hostname", "writeOnly": true },
+        "uName": { "type": "string", "writeOnly": true },
+        "lgr": { "type": "string", "writeOnly": true },
+        "status": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/domainStatus.create" }
+        },
+        "registrant": { "$ref": "#/$defs/contact.reference" },
+        "contacts": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "label": { "type": "string" },
+              "object": { "$ref": "#/$defs/contact.reference" }
+            },
+            "required": ["label", "object"]
+          }
+        },
+        "nameservers": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/host.reference" }
+        },
+        "dns": { "$ref": "#/$defs/dnsData.create" },
+        "authInfo": { "$ref": "#/$defs/authInfo.create" },
+        "processes": {
+          "type": "object",
+          "properties": {
+            "@type": { "type": "string", "const": "processes" },
+            "createProcess": {
+              "type": "array",
+              "items": { "$ref": "#/$defs/domainCreateProcess.create" }
+            }
+          },
+          "required": ["@type"]
+        }
+      },
+      "required": ["@type", "name"]
+    },
+    "domainName.read": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "domainName", "readOnly": true },
+        "name": { "type": "string", "format": "hostname", "readOnly": true },
+        "uName": { "type": "string", "readOnly": true },
+        "lgr": { "type": "string", "readOnly": true },
+        "provMetadata": { "$ref": "#/$defs/provMetadata.read", "readOnly": true },
+        "status": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/domainStatus.read" },
+          "minItems": 1
+        },
+        "registrant": { "$ref": "#/$defs/contact.reference" },
+        "contacts": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "label": { "type": "string" },
+              "object": { "$ref": "#/$defs/contact.reference" }
+            },
+            "required": ["label", "object"]
+          }
+        },
+        "nameservers": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/host.reference" }
+        },
+        "dns": { "$ref": "#/$defs/dnsData.read" },
+        "subordinateHosts": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/host.reference" },
+          "readOnly": true
+        },
+        "expiryDate": { "type": "string", "format": "date-time", "readOnly": true },
+        "authInfo": { "$ref": "#/$defs/authInfo.read" },
+        "processes": { "$ref": "#/$defs/processes.read", "readOnly": true }
+      },
+      "required": ["@type", "name", "provMetadata", "status"]
+    },
+    "domainName.update": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "domainName" },
+        "status": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/domainStatus.create" }
+        },
+        "registrant": { "$ref": "#/$defs/contact.reference" },
+        "contacts": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "label": { "type": "string" },
+              "object": { "$ref": "#/$defs/contact.reference" }
+            },
+            "required": ["label", "object"]
+          }
+        },
+        "nameservers": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/host.reference" }
+        },
+        "dns": { "$ref": "#/$defs/dnsData.create" },
+        "authInfo": { "$ref": "#/$defs/authInfo.create" }
+      },
+      "required": ["@type"]
+    },
+    "domainName.reference": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "domainName" },
+        "name": { "type": "string", "format": "hostname" }
+      },
+      "required": ["@type", "name"]
+    },
+    "contact.create": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "contact" },
+        "id": { "$ref": "#/$defs/identifier", "writeOnly": true },
+        "status": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/contactStatus.create" }
+        },
+        "contactInfo": { "$ref": "#/$defs/Card" },
+        "authInfo": { "$ref": "#/$defs/authInfo.create" },
+        "disclose": { "$ref": "#/$defs/disclose.read" }
+      },
+      "required": ["@type", "id", "contactInfo"]
+    },
+    "contact.read": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "contact", "readOnly": true },
+        "id": { "$ref": "#/$defs/identifier", "readOnly": true },
+        "provMetadata": { "$ref": "#/$defs/provMetadata.read", "readOnly": true },
+        "status": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/contactStatus.read" },
+          "minItems": 1
+        },
+        "contactInfo": { "$ref": "#/$defs/Card" },
+        "authInfo": { "$ref": "#/$defs/authInfo.read" },
+        "disclose": { "$ref": "#/$defs/disclose.read" },
+        "processes": { "$ref": "#/$defs/processes.read", "readOnly": true }
+      },
+      "required": ["@type", "id", "provMetadata", "status", "contactInfo"]
+    },
+    "contact.update": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "contact" },
+        "status": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/contactStatus.create" }
+        },
+        "contactInfo": { "$ref": "#/$defs/Card" },
+        "authInfo": { "$ref": "#/$defs/authInfo.create" },
+        "disclose": { "$ref": "#/$defs/disclose.read" }
+      },
+      "required": ["@type", "contactInfo"]
+    },
+    "contact.reference": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "contact" },
+        "id": { "$ref": "#/$defs/identifier" }
+      },
+      "required": ["@type", "id"]
+    },
+    "host.create": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "host" },
+        "hostName": { "type": "string", "format": "hostname" },
+        "status": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/hostStatus.create" }
+        },
+        "dns": { "$ref": "#/$defs/dnsData.create" }
+      },
+      "required": ["@type", "hostName"]
+    },
+    "host.read": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "host", "readOnly": true },
+        "hostName": { "type": "string", "format": "hostname" },
+        "provMetadata": { "$ref": "#/$defs/provMetadata.read", "readOnly": true },
+        "status": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/hostStatus.read" },
+          "minItems": 1
+        },
+        "dns": { "$ref": "#/$defs/dnsData.read" },
+        "processes": { "$ref": "#/$defs/processes.read", "readOnly": true }
+      },
+      "required": ["@type", "hostName", "provMetadata", "status"]
+    },
+    "host.update": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "host" },
+        "hostName": { "type": "string", "format": "hostname" },
+        "status": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/hostStatus.create" }
+        },
+        "dns": { "$ref": "#/$defs/dnsData.create" }
+      },
+      "required": ["@type", "hostName"]
+    },
+    "host.reference": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "host" },
+        "hostName": { "type": "string", "format": "hostname" }
+      },
+      "required": ["@type", "hostName"]
+    },
+    "organisation.create": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "organisation" },
+        "id": { "$ref": "#/$defs/identifier", "writeOnly": true },
+        "status": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/organisationStatus.create" }
+        },
+        "roles": {
+          "type": "object",
+          "additionalProperties": { "$ref": "#/$defs/organisationRole.create" },
+          "minProperties": 1
+        },
+        "parent": { "$ref": "#/$defs/organisation.reference" },
+        "contactInfo": { "$ref": "#/$defs/Card" },
+        "contacts": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "label": { "type": "string" },
+              "object": { "$ref": "#/$defs/contact.reference" }
+            },
+            "required": ["label", "object"]
+          }
+        },
+        "users": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "label": { "type": "string" },
+              "object": { "$ref": "#/$defs/user.reference" }
+            },
+            "required": ["label", "object"]
+          }
+        }
+      },
+      "required": ["@type", "id", "roles"]
+    },
+    "organisation.read": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "organisation", "readOnly": true },
+        "id": { "$ref": "#/$defs/identifier", "readOnly": true },
+        "provMetadata": { "$ref": "#/$defs/provMetadata.read", "readOnly": true },
+        "status": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/organisationStatus.read" },
+          "minItems": 1
+        },
+        "roles": {
+          "type": "object",
+          "additionalProperties": { "$ref": "#/$defs/organisationRole.read" },
+          "minProperties": 1
+        },
+        "parent": { "$ref": "#/$defs/organisation.reference" },
+        "contactInfo": { "$ref": "#/$defs/Card" },
+        "contacts": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "label": { "type": "string" },
+              "object": { "$ref": "#/$defs/contact.reference" }
+            },
+            "required": ["label", "object"]
+          }
+        },
+        "users": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "label": { "type": "string" },
+              "object": { "$ref": "#/$defs/user.reference" }
+            },
+            "required": ["label", "object"]
+          }
+        },
+        "processes": { "$ref": "#/$defs/processes.read", "readOnly": true }
+      },
+      "required": ["@type", "id", "provMetadata", "status", "roles"]
+    },
+    "organisation.update": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "organisation" },
+        "status": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/organisationStatus.create" }
+        },
+        "roles": {
+          "type": "object",
+          "additionalProperties": { "$ref": "#/$defs/organisationRole.create" },
+          "minProperties": 1
+        },
+        "parent": { "$ref": "#/$defs/organisation.reference" },
+        "contactInfo": { "$ref": "#/$defs/Card" },
+        "contacts": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "label": { "type": "string" },
+              "object": { "$ref": "#/$defs/contact.reference" }
+            },
+            "required": ["label", "object"]
+          }
+        },
+        "users": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "label": { "type": "string" },
+              "object": { "$ref": "#/$defs/user.reference" }
+            },
+            "required": ["label", "object"]
+          }
+        }
+      },
+      "required": ["@type", "roles"]
+    },
+    "organisation.reference": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "organisation" },
+        "id": { "$ref": "#/$defs/identifier" }
+      },
+      "required": ["@type", "id"]
+    },
+    "message.create": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "message" },
+        "data": {
+          "oneOf": [
+            { "$ref": "#/$defs/reviewResponseMessage.read" },
+            { "$ref": "#/$defs/transferRequestMessage.read" },
+            { "$ref": "#/$defs/transferOutcomeMessage.read" },
+            { "$ref": "#/$defs/expirationDeletionMessage.read" },
+            { "$ref": "#/$defs/autoRenewalMessage.read" },
+            { "$ref": "#/$defs/serviceNoticeMessage.read" }
+          ],
+          "writeOnly": true
+        }
+      },
+      "required": ["@type", "data"]
+    },
+    "message.read": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "message", "readOnly": true },
+        "id": { "$ref": "#/$defs/identifier", "readOnly": true },
+        "creationDate": { "type": "string", "format": "date-time", "readOnly": true },
+        "status": { "type": "string", "enum": ["queued", "delivered", "removed"], "readOnly": true },
+        "data": {
+          "oneOf": [
+            { "$ref": "#/$defs/reviewResponseMessage.read" },
+            { "$ref": "#/$defs/transferRequestMessage.read" },
+            { "$ref": "#/$defs/transferOutcomeMessage.read" },
+            { "$ref": "#/$defs/expirationDeletionMessage.read" },
+            { "$ref": "#/$defs/autoRenewalMessage.read" },
+            { "$ref": "#/$defs/serviceNoticeMessage.read" }
+          ],
+          "readOnly": true
+        }
+      },
+      "required": ["@type", "id", "creationDate", "status", "data"]
+    },
+    "message.query": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/message.read" }
+    },
+    "message.reference": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "message" },
+        "id": { "$ref": "#/$defs/identifier", "readOnly": true }
+      },
+      "required": ["@type", "id"]
+    },
+    "user.create": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "user" },
+        "id": { "$ref": "#/$defs/identifier", "writeOnly": true },
+        "details": { "$ref": "#/$defs/Card" },
+        "description": { "type": "string" },
+        "status": { "$ref": "#/$defs/userStatus.create" }
+      },
+      "required": ["@type", "id", "details"]
+    },
+    "user.read": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "user", "readOnly": true },
+        "id": { "$ref": "#/$defs/identifier", "readOnly": true },
+        "details": { "$ref": "#/$defs/Card" },
+        "description": { "type": "string" },
+        "status": { "$ref": "#/$defs/userStatus.read" },
+        "organisation": { "$ref": "#/$defs/organisation.reference", "readOnly": true },
+        "processes": { "$ref": "#/$defs/processes.read", "readOnly": true }
+      },
+      "required": ["@type", "id", "details", "status", "organisation"]
+    },
+    "user.update": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "user" },
+        "details": { "$ref": "#/$defs/Card" },
+        "description": { "type": "string" },
+        "status": { "$ref": "#/$defs/userStatus.create" }
+      },
+      "required": ["@type", "details"]
+    },
+    "user.reference": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "user" },
+        "id": { "$ref": "#/$defs/identifier" }
+      },
+      "required": ["@type", "id"]
+    },
+    "discovery.read": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "discovery", "readOnly": true },
+        "versions": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/discoveryVersion.read" },
+          "minItems": 1,
+          "readOnly": true
+        },
+        "environment": { "$ref": "#/$defs/discoveryEnvironment.read", "readOnly": true },
+        "tlds": {
+          "type": "array",
+          "items": { "type": "string" },
+          "minItems": 1,
+          "readOnly": true
+        },
+        "extensions": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/extension.read" },
+          "readOnly": true
+        },
+        "profiles": {
+          "type": "array",
+          "items": { "type": "string" },
+          "readOnly": true
+        },
+        "objects": {
+          "type": "array",
+          "items": { "type": "string" },
+          "minItems": 1,
+          "readOnly": true
+        },
+        "datetime": { "type": "string", "format": "date-time", "readOnly": true },
+        "links": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "label": { "type": "string" },
+              "object": { "type": "string" }
+            },
+            "required": ["label", "object"]
+          },
+          "readOnly": true
+        },
+        "idnLgr": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/discoveryIdnLgr.read" },
+          "readOnly": true
+        },
+        "notices": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/discoveryNotice.read" },
+          "readOnly": true
+        }
+      },
+      "required": ["@type", "versions", "environment", "tlds", "objects", "datetime"]
+    },
+    "profile.read": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "profile", "readOnly": true },
+        "name": { "type": "string", "readOnly": true },
+        "description": { "type": "string", "readOnly": true },
+        "version": { "type": "string", "readOnly": true },
+        "rppVersion": { "type": "string", "readOnly": true },
+        "objects": {
+          "type": "array",
+          "items": { "type": "string" },
+          "minItems": 1,
+          "readOnly": true
+        },
+        "extensions": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/extension.read" },
+          "readOnly": true
+        },
+        "baseProfile": { "$ref": "#/$defs/profile.reference", "readOnly": true },
+        "defaultProfile": { "type": "boolean", "readOnly": true }
+      },
+      "required": [
+        "@type",
+        "name",
+        "description",
+        "version",
+        "rppVersion",
+        "objects",
+        "defaultProfile"
+      ]
+    },
+    "profile.reference": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "profile" },
+        "name": { "type": "string", "readOnly": true }
+      },
+      "required": ["@type", "name"]
+    }
+  }
+}
