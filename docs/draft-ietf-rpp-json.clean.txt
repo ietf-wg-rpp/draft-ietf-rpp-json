@@ -6364,8 +6364,6 @@ Table of Contents
       Association Rules.
    -  Removed rule numbering and replaced references to rule numbers
       with section references.
-   -  Added Undeclared Properties, Type Property, and Authorization
-      Information in Requests to JSON Schema Definition Rules.
 
 13.2.  Version draft-wullink-rpp-json-02 to draft-ietf-rpp-json-00
 

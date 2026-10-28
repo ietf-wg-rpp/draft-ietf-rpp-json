@@ -5515,7 +5515,6 @@ Registration procedure: Expert Review
 <li>Changed server handling of disallowed request data elements from ignore to reject in the Mutability Rules.</li>
 <li>Replaced the primary identifier with the Unique Identifier in Association Rules.</li>
 <li>Removed rule numbering and replaced references to rule numbers with section references.</li>
-<li>Added <xref target="undeclared-properties" format="title"></xref>, <xref target="type-property" format="title"></xref>, and <xref target="authorization-information-rules" format="title"></xref> to <xref target="json-schema-definition-rules" format="title"></xref>.</li>
 </ul>
 </section>
 

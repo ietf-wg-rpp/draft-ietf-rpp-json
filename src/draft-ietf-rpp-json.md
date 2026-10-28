@@ -5846,7 +5846,6 @@ TODO
 - Changed server handling of disallowed request data elements from ignore to reject in the Mutability Rules.
 - Replaced the primary identifier with the Unique Identifier in Association Rules.
 - Removed rule numbering and replaced references to rule numbers with section references.
-- Added (#undeclared-properties, use title), (#type-property, use title), and (#authorization-information-rules, use title) to (#json-schema-definition-rules, use title).
 
 ## Version draft-wullink-rpp-json-02 to draft-ietf-rpp-json-00
 
