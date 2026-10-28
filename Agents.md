@@ -282,10 +282,10 @@ section). The document header / TOML preamble precedes the first heading._
 | 1 | Security Considerations |  | 5804–5810 |
 | 1 | Acknowledgments |  | 5811–5814 |
 | 1 | Change History |  | 5815–5816 |
-| 2 | &nbsp;&nbsp;Version draft-ietf-rpp-json-00 to draft-ietf-rpp-json-01 |  | 5817–5854 |
-| 2 | &nbsp;&nbsp;Version draft-wullink-rpp-json-02 to draft-ietf-rpp-json-00 |  | 5855–5863 |
-| 2 | &nbsp;&nbsp;Version 01 to 02 |  | 5864–5867 |
-| 2 | &nbsp;&nbsp;Version 00 to 01 |  | 5868–5927 |
+| 2 | &nbsp;&nbsp;Version draft-ietf-rpp-json-00 to draft-ietf-rpp-json-01 |  | 5817–5830 |
+| 2 | &nbsp;&nbsp;Version draft-wullink-rpp-json-02 to draft-ietf-rpp-json-00 |  | 5831–5839 |
+| 2 | &nbsp;&nbsp;Version 01 to 02 |  | 5840–5843 |
+| 2 | &nbsp;&nbsp;Version 00 to 01 |  | 5844–5903 |
 <!-- END AUTO-INDEX -->
 
 ## Terminology — Defined Terms

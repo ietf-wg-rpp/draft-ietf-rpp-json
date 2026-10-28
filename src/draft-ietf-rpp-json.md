@@ -5824,33 +5824,9 @@ TODO
 - Added support for Internationalized Domain Names (IDN). (Issue #86)
 - Added "inheritance" section (Issue #88)
 - Added section describing the representation of undefined values. (Issue #97)
-- Replaced the generic Status Object with type-specific status objects in (#status-objects).
-- Added User Status Object to (#status-objects).
-- Aligned domain name, host, organisation, user, and profile examples with the updated JSON Schema definitions.
-- Added Disclose Object, Base Process Object, and Domain Create Process Object schemas.
-- Added Restore Process Object update request schema and Host Data Object update request schema.
-- Clarified Create Process Object description.
-- Aligned the Aggregation description with Rule 8 in Association Rules.
-- Removed the statement that Composition and Aggregation share the same JSON representation from Association Rules.
-- Added reference schemas for the Process Objects in Process Object Schemas and Domain Name Data Object.
-- Aligned the domain name and message examples with the Process Object schemas in Examples.
-- Added (#status-object-rules) to JSON Schema Composition Rules.
-- Added status create schemas to (#status-objects).
-- Aligned the Domain Name, Contact, Host, Organisation, and User create and update schemas with (#status-object-rules).
-- Aligned the user examples with the User Status Object.
-- Changed the Component Object `$defs` keys to `read` and `create` views in JSON Schema Composition Rules.
-- Clarified `create-only` for Component Objects in Mutability Rules.
-- Added Component Object create schemas to Component Objects Schemas.
-- Added the operation output view to the `$defs` key naming in JSON Schema Composition Rules.
-- Removed the Domain Transfer Process response schemas from Domain Name Data Object.
-- Removed the Renew Process alias schema from Domain Name Data Object and the Transfer Process alias schema from Contact Data Object.
-- Fixed the registrant identifier in the domain update request example in Examples.
-- Excluded abstract base objects from polymorphic references in Review Response Object and Message Data Object.
-- Added a Create Process Object example to Examples.
-- Added DNS Operational Controls Object usage to the host create examples in Examples.
-- Added an Expiration Deletion Message Object example to Examples.
-- Fixed invalid JSON in the Extension Mapping example in (#extension-framework).
-- Renamed `domainObject.create` to `domainName.create` in the examples in (#extension-framework).
+- Regenerated the JSON Schema definitions from the RPP Data Objects model, replacing the generic Status Object with type-specific objects in (#status-objects) and adding (#status-object-rules) and `read`/`create` views for Component Objects to JSON Schema Composition Rules.
+- Added the Disclose Object and Process Object (Base, Create, Restore) schemas, and removed redundant Process alias and Transfer response schemas.
+- Aligned all examples, including those in (#extension-framework), with the updated JSON Schema definitions.
 
 ## Version draft-wullink-rpp-json-02 to draft-ietf-rpp-json-00
 
