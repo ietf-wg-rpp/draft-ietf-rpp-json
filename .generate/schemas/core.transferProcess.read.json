@@ -1,0 +1,10 @@
+{
+  "$defs": {
+    "core.transferProcess.read": {
+      "anyOf": [
+        { "$ref": "#/$defs/transferProcess.read" },
+        { "$ref": "#/$defs/domainTransferProcess.read" }
+      ]
+    }
+  }
+}

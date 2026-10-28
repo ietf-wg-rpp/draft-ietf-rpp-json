@@ -1,0 +1,10 @@
+{
+  "$defs": {
+    "core.createProcess.reference": {
+      "anyOf": [
+        { "$ref": "#/$defs/createProcess.reference" },
+        { "$ref": "#/$defs/domainCreateProcess.reference" }
+      ]
+    }
+  }
+}

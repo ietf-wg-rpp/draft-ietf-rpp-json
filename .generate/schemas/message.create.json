@@ -6,17 +6,7 @@
       "type": "object",
       "properties": {
         "@type": { "type": "string", "const": "message" },
-        "data": {
-          "oneOf": [
-            { "$ref": "#/$defs/reviewResponseMessage.read" },
-            { "$ref": "#/$defs/transferRequestMessage.read" },
-            { "$ref": "#/$defs/transferOutcomeMessage.read" },
-            { "$ref": "#/$defs/expirationDeletionMessage.read" },
-            { "$ref": "#/$defs/autoRenewalMessage.read" },
-            { "$ref": "#/$defs/serviceNoticeMessage.read" }
-          ],
-          "writeOnly": true
-        }
+        "data": { "$dynamicRef": "#any.baseMessage.read", "writeOnly": true }
       },
       "required": ["@type", "data"]
     }

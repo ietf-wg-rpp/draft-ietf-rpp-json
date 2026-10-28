@@ -11,17 +11,7 @@
         "serverTransactionId": { "type": "string", "readOnly": true },
         "completionDate": { "type": "string", "format": "date-time", "readOnly": true },
         "message": { "type": "string", "readOnly": true },
-        "process": {
-          "oneOf": [
-            { "$ref": "#/$defs/transferProcess.read" },
-            { "$ref": "#/$defs/domainTransferProcess.read" },
-            { "$ref": "#/$defs/restoreProcess.read" },
-            { "$ref": "#/$defs/renewProcess.read" },
-            { "$ref": "#/$defs/createProcess.read" },
-            { "$ref": "#/$defs/domainCreateProcess.read" }
-          ],
-          "readOnly": true
-        }
+        "process": { "$dynamicRef": "#any.baseProcess.read", "readOnly": true }
       },
       "required": ["@type", "approved", "serverTransactionId", "completionDate", "message"]
     }

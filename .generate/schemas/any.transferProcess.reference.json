@@ -1,0 +1,8 @@
+{
+  "$defs": {
+    "any.transferProcess.reference": {
+      "$dynamicAnchor": "any.transferProcess.reference",
+      "$ref": "#/$defs/core.transferProcess.reference"
+    }
+  }
+}

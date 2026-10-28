@@ -9,17 +9,7 @@
         "id": { "$ref": "#/$defs/identifier", "readOnly": true },
         "creationDate": { "type": "string", "format": "date-time", "readOnly": true },
         "status": { "type": "string", "enum": ["queued", "delivered", "removed"], "readOnly": true },
-        "data": {
-          "oneOf": [
-            { "$ref": "#/$defs/reviewResponseMessage.read" },
-            { "$ref": "#/$defs/transferRequestMessage.read" },
-            { "$ref": "#/$defs/transferOutcomeMessage.read" },
-            { "$ref": "#/$defs/expirationDeletionMessage.read" },
-            { "$ref": "#/$defs/autoRenewalMessage.read" },
-            { "$ref": "#/$defs/serviceNoticeMessage.read" }
-          ],
-          "readOnly": true
-        }
+        "data": { "$dynamicRef": "#any.baseMessage.read", "readOnly": true }
       },
       "required": ["@type", "id", "creationDate", "status", "data"]
     }

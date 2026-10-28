@@ -1,0 +1,14 @@
+{
+  "$defs": {
+    "core.baseMessage.read": {
+      "anyOf": [
+        { "$ref": "#/$defs/reviewResponseMessage.read" },
+        { "$ref": "#/$defs/transferRequestMessage.read" },
+        { "$ref": "#/$defs/transferOutcomeMessage.read" },
+        { "$ref": "#/$defs/expirationDeletionMessage.read" },
+        { "$ref": "#/$defs/autoRenewalMessage.read" },
+        { "$ref": "#/$defs/serviceNoticeMessage.read" }
+      ]
+    }
+  }
+}

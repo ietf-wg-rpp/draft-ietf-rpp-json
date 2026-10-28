@@ -37,8 +37,11 @@ Generation decisions (precedence: draft rules > YAML content > draft schema shap
     the read view (Output Data Elements, or other Output Object elements) also
     gets "<id>.<view>.output". Derived objects use their own id.
   * Inheritance ("extends") is flattened (draft section "Inheritance").
-  * Polymorphism: a reference to a base object accepts every object extending
-    it, expressed as "oneOf" over the candidates (each fixed by its "@type").
+  * Polymorphism (draft section "Polymorphism", Rules 27.1-27.3): a data element
+    whose data type is an extensible base object (one that another object
+    extends) uses "$dynamicRef": "#any.<base>". For every such <base> the bundle
+    gets "core.<base>" (anyOf over the base object and all its descendants, in the
+    same view) and "any.<base>" ($dynamicAnchor plus $ref to "core.<base>").
     Abstract objects ("abstract: true") are never candidates.
   * Reference views (resources and processes) use the exported
     "unique_identifier"; objects without one get no reference view.
@@ -401,6 +404,7 @@ class Generator:
         self.common_used = set()
         self.placeholders = set()  # $defs keys whose content is not taken from the model
         self.external_used = {}
+        self.poly = {}  # <base> key -> (base Obj, assoc, view, is_ref) of a polymorphic data element
 
     # -- views -------------------------------------------------------------
 
@@ -493,6 +497,20 @@ class Generator:
                                       "an open object placeholder is generated (Rule 15)",
                           f"{profile}:{name}")
         defs.update(ordered)
+        for key, (o, assoc, view, is_ref) in self.poly.items():
+            members = []
+            cands = o.instantiable()
+            if not cands:
+                self.diag.add("yaml-issue", f"Abstract object '{o.id}' has no non-abstract descendant", f"core.{key}")
+            for d in cands:
+                name = self.ref_name(d, assoc, view, is_ref, f"core.{key}")
+                if name in defs:
+                    members.append({"$ref": f"#/$defs/{name}"})
+                else:
+                    self.diag.add("yaml-gap", f"Descendant '{d.id}' has no '{name}' definition; "
+                                              "left out of the core schema", f"core.{key}")
+            defs[f"core.{key}"] = {"anyOf": members}
+            defs[f"any.{key}"] = {"$dynamicAnchor": f"any.{key}", "$ref": f"#/$defs/core.{key}"}
         self.check_processes()
         self.defs = defs
         return {"$schema": SCHEMA_URI, "$defs": defs}
@@ -921,17 +939,21 @@ class Generator:
             self.diag.add("yaml-issue", f"Unknown data type '{name}'", ctx)
             return {}
         is_ref = norm_name(name)[1]
-        cands = o.instantiable()
-        if not cands:
-            self.diag.add("yaml-issue", f"Abstract object '{o.id}' has no non-abstract descendant", ctx)
-            cands = [o]
-        refs = [{"$ref": f"#/$defs/{self.ref_name(c, assoc, view, is_ref, ctx)}"} for c in cands]
-        if len(refs) == 1:
-            return refs[0]
-        self.diag.add("rule-gap", "Polymorphism (an object extending the referenced base object may be "
-                                  "used in its place) has no JSON rule; oneOf over all candidates applied",
-                      f"{ctx} -> {', '.join(c.id for c in cands)}")
-        return {"oneOf": refs}
+        key = self.ref_name(o, assoc, view, is_ref, ctx)
+        if o.children:  # extensible base object: Rule 27.3
+            if self.def_name(o, None) == key:
+                # single-schema base whose descendants have operation-specific schemas:
+                # <base> takes the operation suffix of the descendants' view (draft "Polymorphism")
+                sfx = {self.ref_name(d, assoc, view, is_ref, ctx)[len(d.id):] for d in o.descendants()}
+                sfx.discard("")
+                if len(sfx) == 1:
+                    key += sfx.pop()
+                elif sfx:
+                    self.diag.add("rule-gap", f"Descendants resolve to different views {sorted(sfx)}; "
+                                              "no operation suffix applied to <base>", f"{ctx} -> {o.id}")
+            self.poly.setdefault(key, (o, assoc, view, is_ref))
+            return {"$dynamicRef": f"#any.{key}"}
+        return {"$ref": f"#/$defs/{key}"}
 
     def ref_name(self, o, assoc, view, is_ref, ctx):
         if o.kind == "Component":
@@ -1051,16 +1073,16 @@ def split_doc(name, defn, kind):
     return {"$defs": {name: defn}}
 
 
-def iter_refs(node):
+def iter_refs(node, keyword="$ref"):
     if isinstance(node, dict):
         for k, v in node.items():
-            if k == "$ref" and isinstance(v, str):
+            if k == keyword and isinstance(v, str):
                 yield v
             else:
-                yield from iter_refs(v)
+                yield from iter_refs(v, keyword)
     elif isinstance(node, list):
         for v in node:
-            yield from iter_refs(v)
+            yield from iter_refs(v, keyword)
 
 
 def self_check(bundle):
@@ -1069,6 +1091,10 @@ def self_check(bundle):
     for ref in iter_refs(bundle):
         if ref.startswith("#/$defs/") and ref[len("#/$defs/"):] not in names:
             problems.append(f"unresolved $ref {ref}")
+    for ref in iter_refs(bundle, "$dynamicRef"):
+        target = bundle["$defs"].get(ref[1:]) if ref.startswith("#") else None
+        if not isinstance(target, dict) or target.get("$dynamicAnchor") != ref[1:]:
+            problems.append(f"$dynamicRef {ref} has no matching $dynamicAnchor")
     if HAS_JSONSCHEMA:
         try:
             Draft202012Validator.check_schema(bundle)
@@ -1226,6 +1252,10 @@ def map_draft_name(name, ddefs, gen_defs):
     that keys that differ from Rule 27 are still paired and can be reported."""
     if name in gen_defs:
         return name
+    if name.startswith(("core.", "any.")):  # polymorphic keys are derived exactly (Rules 27.1-27.2)
+        prefix, base = name.split(".", 1)
+        mapped = map_draft_name(base, ddefs, gen_defs)
+        return f"{prefix}.{mapped}" if mapped and f"{prefix}.{mapped}" in gen_defs else None
     lower = {g.lower(): g for g in gen_defs}
     if name.lower() in lower:
         return lower[name.lower()]
@@ -1262,8 +1292,12 @@ def shape(p, mapref):
             s[k] = p[k]
     if "$ref" in p:
         s["$ref"] = mapref(p["$ref"])
-    if "oneOf" in p:
-        s["oneOf"] = sorted(mapref(x.get("$ref", "?")) for x in p["oneOf"])
+    for k in ("$dynamicRef", "$dynamicAnchor"):
+        if k in p:
+            s[k] = p[k]
+    for k in ("oneOf", "anyOf"):
+        if k in p:
+            s[k] = sorted(mapref(x.get("$ref", "?")) for x in p[k])
     if "items" in p:
         s["items"] = shape(p["items"], mapref)
     if "additionalProperties" in p:

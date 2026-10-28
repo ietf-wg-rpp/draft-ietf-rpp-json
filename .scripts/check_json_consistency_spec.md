@@ -63,6 +63,26 @@ The sub-chapter determines what `@type` rules apply:
       - `$ref`: followed into the combined `$defs` (cycle-safe)
       - `items`: for an array schema, the `@type` of the item schema
 - All `$ref: #/$defs/<name>` pointers are checked against the combined `$defs` map — **error** if unresolved
+- Every `$dynamicRef` MUST have the form `#any.<base>` and resolve to a definition `any.<base>` whose `$dynamicAnchor` is `any.<base>` (draft Rule 27.3) — **error** otherwise; an `any.<base>` that no `$dynamicRef` uses — **warning**
+
+### Polymorphic definitions (draft section "Polymorphism", Rules 27.1–27.2)
+
+A definition whose name starts with `core.` or `any.` is a polymorphic definition. It is
+**exempt from the `@type` rule** only if it has exactly the required shape; otherwise each
+deviation is an **error**:
+
+- `core.<base>`: exactly `{"anyOf": [{"$ref": "#/$defs/<member>"}, ...]}` (no other keywords
+  on the definition or on the `anyOf` items). Every member resolves and has an `@type` const;
+  the members' `@type` values are unique; one member is the base object itself, i.e. its
+  `@type` equals `<base>` without the operation suffix (`core.baseProcess.read` → `baseProcess`).
+- `any.<base>`: exactly `{"$dynamicAnchor": "any.<base>", "$ref": "#/$defs/core.<base>"}`, and
+  `core.<base>` exists.
+
+Polymorphic definitions have no `@type` const, so they are not matched against examples and
+need no example coverage. The checker does not verify that `core.<base>` lists *every*
+descendant of the base object: the flat schemas carry no inheritance information. That check
+is done by `gen_json_schema.py --compare`, which builds the member lists from the `extends`
+attribute in the data objects YAML.
 - Schema must be a valid JSON Schema (draft 2020-12) — `check_schema()` is called
 - Cross-references are resolved by merging all schemas into one combined `$defs` map
 
