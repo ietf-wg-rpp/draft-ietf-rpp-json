@@ -141,11 +141,11 @@ The same domain name with the `nameservers` array omitted is equivalent:
 }
 ```
 
-## Cardinality Rules
+## Cardinality Rules {#cardinality-rules}
 
 The cardinality of each data element in the RPP data model MUST be represented as follows in JSON:
 
-Rule 1: A data element with cardinality `1` (exactly one) MUST be represented as a JSON property and MUST be present in the containing JSON object. The element MUST be listed under `required` in the corresponding JSON Schema.
+A data element with cardinality `1` (exactly one) MUST be represented as a JSON property and MUST be present in the containing JSON object. The element MUST be listed under `required` in the corresponding JSON Schema.
 
 ```json
 {
@@ -157,7 +157,7 @@ Rule 1: A data element with cardinality `1` (exactly one) MUST be represented as
 }
 ```
 
-Rule 2: A data element with cardinality `0-1` (zero or one) MUST be represented as an optional JSON property. The element MUST NOT be listed under `required` in the corresponding JSON Schema. When absent, the element MUST be omitted from the JSON object (not represented as `null`).
+A data element with cardinality `0-1` (zero or one) MUST be represented as an optional JSON property. The element MUST NOT be listed under `required` in the corresponding JSON Schema. When absent, the element MUST be omitted from the JSON object (not represented as `null`).
 
 ```json
 {
@@ -168,7 +168,7 @@ Rule 2: A data element with cardinality `0-1` (zero or one) MUST be represented 
 }
 ```
 
-Rule 3: A data element with cardinality `0+` (zero or more) MUST be represented as an optional JSON array. When no values are present, the property MUST be omitted or represented as an empty array.
+A data element with cardinality `0+` (zero or more) MUST be represented as an optional JSON array. When no values are present, the property MUST be omitted or represented as an empty array.
 
 ```json
 {
@@ -182,7 +182,7 @@ Rule 3: A data element with cardinality `0+` (zero or more) MUST be represented 
 }
 ```
 
-Rule 4: A data element with cardinality `1+` (one or more) MUST be represented as a required JSON array with `"minItems": 1` and the element MUST be listed under `required` in the corresponding JSON Schema.
+A data element with cardinality `1+` (one or more) MUST be represented as a required JSON array with `"minItems": 1` and the element MUST be listed under `required` in the corresponding JSON Schema.
 
 ```json
 {
@@ -206,9 +206,9 @@ Data elements in the RPP data model carry a mutability attribute: `create-only`,
 - Request content for an object being created contains its `create-only` and `read-write` data elements. For a Component Object or an Aggregation object creation can take place in create or update operation on the containing object, when a value is set or added.
 - Request content for an existing object being modified, i.e. when both the Reference and the Object of the Input are This Object, contains its `read-write` data elements.
 
-Input Data Elements and Parameters are not data elements of the object, have no mutability, and are not subject to Rules 5 to 7.
+Input Data Elements and Parameters are not data elements of the object, have no mutability, and are not subject to the following rules.
 
-Rule 5: Data elements with mutability `read-only` MUST be annotated with `"readOnly": true` in the JSON Schema and MUST NOT be part of any request view.
+Data elements with mutability `read-only` MUST be annotated with `"readOnly": true` in the JSON Schema and MUST NOT be part of any request view.
 
 ```json
 {
@@ -219,11 +219,11 @@ Rule 5: Data elements with mutability `read-only` MUST be annotated with `"readO
 }
 ```
 
-Rule 6: Data elements with mutability `create-only` MUST be annotated with `"writeOnly": true` in request schemas and MUST NOT be part of the `update` view.
+Data elements with mutability `create-only` MUST be annotated with `"writeOnly": true` in request schemas and MUST NOT be part of the `update` view.
 
-Rule 7: Data elements with mutability `read-write` have no additional annotation.
+Data elements with mutability `read-write` have no additional annotation.
 
-A server MUST reject a request whose content contains a data element that is not allowed in that request, such as a `read-only` data element or a `create-only` data element of an existing object. With the enrichment required by Rule 24, such a request fails JSON Schema validation.
+A server MUST reject a request whose content contains a data element that is not allowed in that request, such as a `read-only` data element or a `create-only` data element of an existing object. With the enrichment required by (#undeclared-properties, use title), such a request fails JSON Schema validation.
 
 ## Association Rules
 
@@ -236,9 +236,9 @@ Some associations between objects carry a string label that provides additional 
 
 ### Aggregation
 
-An `Aggregation[Type]` represents a relationship between two independent objects. The referenced object is identified by its Unique Identifier. When the cardinality allows more than one target, it MUST be represented as a JSON array. Each element of the array is a limited representation of the referenced object, as specified in Rule 8.
+An `Aggregation[Type]` represents a relationship between two independent objects. The referenced object is identified by its Unique Identifier. When the cardinality allows more than one target, it MUST be represented as a JSON array. Each element of the array is a limited representation of the referenced object, as specified below.
 
-Rule 8: `Aggregation[Type]` with cardinality `0+` or `1+` MUST be represented as a JSON array of embedded objects. Each object in the array MUST include the data elements of the referenced object type that are relevant to the context (at minimum the Unique Identifier). Other data elements of the referenced object type MAY be included as needed to provide additional context for the client, but are not required. The JSON Schema MUST allow for the presence of these additional fields.
+`Aggregation[Type]` with cardinality `0+` or `1+` MUST be represented as a JSON array of embedded objects. Each object in the array MUST include the data elements of the referenced object type that are relevant to the context (at minimum the Unique Identifier). Other data elements of the referenced object type MAY be included as needed to provide additional context for the client, but are not required. The JSON Schema MUST allow for the presence of these additional fields.
 
 Example: domain nameservers (Aggregation[Host Data Object]) in a read response, returning a limited object representation containing only the Unique Identifier `hostName`:
 
@@ -297,7 +297,7 @@ A `Type` represents a parent-child relationship where the child's lifecycle is b
 
 A `LabelledAggregation[Type]` is a relationship between two independent objects where each association carries a string label. Multiple associations with the same label are allowed.
 
-Rule 9: `LabelledAggregation[Type]` with cardinality `0+` MUST be represented as a JSON array of objects. Each object in the array MUST contain a `label` property (string) alongside the identifier of the referenced object. The object MUST include at least the Unique Identifier of the referenced object type. Other data elements of the referenced object type MAY be included as needed to provide additional context for the client, but are not required. The JSON Schema MUST allow for the presence of these additional fields.
+`LabelledAggregation[Type]` with cardinality `0+` MUST be represented as a JSON array of objects. Each object in the array MUST contain a `label` property (string) alongside the identifier of the referenced object. The object MUST include at least the Unique Identifier of the referenced object type. Other data elements of the referenced object type MAY be included as needed to provide additional context for the client, but are not required. The JSON Schema MUST allow for the presence of these additional fields.
 
 Example: domain contacts (LabelledAggregation[Contact Object]):
 
@@ -324,7 +324,7 @@ Example: domain contacts (LabelledAggregation[Contact Object]):
 
 A `DictionaryAggregation[Type]` is a relationship between two independent objects where each association carries a unique string label that serves as a dictionary key.
 
-Rule 10: `DictionaryAggregation[Type]` MUST be represented as a JSON object where each key is the unique label and the corresponding value is the referenced object, the object MUST include at least the Unique Identifier of the referenced object type. Other data elements of the referenced object type MAY be included as needed to provide additional context for the client, but are not required. The JSON Schema MUST allow for the presence of these additional fields.
+`DictionaryAggregation[Type]` MUST be represented as a JSON object where each key is the unique label and the corresponding value is the referenced object, the object MUST include at least the Unique Identifier of the referenced object type. Other data elements of the referenced object type MAY be included as needed to provide additional context for the client, but are not required. The JSON Schema MUST allow for the presence of these additional fields.
 
 Example: domain contacts keyed by unique role (DictionaryAggregation[Contact Object]):
 
@@ -345,7 +345,7 @@ Example: domain contacts keyed by unique role (DictionaryAggregation[Contact Obj
 
 A `LabelledComposition[Type]` is a parent-child relationship where each embedded child carries a string label. Multiple instances with the same label are allowed.
 
-Rule 11: `LabelledComposition[Type]` with cardinality `0+` MUST be represented as a JSON array of embedded objects. Each object in the array MUST contain a `label` property alongside the data elements of the composed type.
+`LabelledComposition[Type]` with cardinality `0+` MUST be represented as a JSON array of embedded objects. Each object in the array MUST contain a `label` property alongside the data elements of the composed type.
 
 Example: remarks (LabelledComposition[Remark Object]):
 
@@ -372,7 +372,7 @@ Example: remarks (LabelledComposition[Remark Object]):
 
 A `DictionaryComposition[Type]` is a parent-child relationship where each embedded child carries a unique string label used as a dictionary key.
 
-Rule 12: `DictionaryComposition[Type]` MUST be represented as a JSON object where each key is the unique label and the corresponding value is the fully embedded child object.
+`DictionaryComposition[Type]` MUST be represented as a JSON object where each key is the unique label and the corresponding value is the fully embedded child object.
 
 Example: remarks keyed by scope (DictionaryComposition[Remark Object]):
 
@@ -391,25 +391,25 @@ Example: remarks keyed by scope (DictionaryComposition[Remark Object]):
 
 ## Object Identifier Rules
 
-Rule 13: When a resource or component object is referenced by identifier (for example in an aggregation), the identifier MUST be represented as a JSON string using the value of the object's primary identifier data element.
+When a resource or component object is referenced by identifier (for example in an aggregation), the identifier MUST be represented as a JSON string using the value of the object's primary identifier data element.
 
-Rule 14: When a resource or component object is embedded (as in a composition), all data elements of the object MUST be represented as properties of a JSON object according to the rules of this section.
+When a resource or component object is embedded (as in a composition), all data elements of the object MUST be represented as properties of a JSON object according to the rules of this section.
 
 ## External Type Embedding Rules
 
 RPP data objects may include data elements whose types are defined by external specifications (e.g., JSContact in [@!RFC9553]). When embedding a value of an externally defined type into a JSON representation, the following rules apply, in order of preference:
 
-Rule 15: If the external type has a native JSON representation (i.e., the external specification defines how the type is represented using the JSON format), the value MUST be embedded as a valid JSON element using the native JSON representation defined by that specification.
+If the external type has a native JSON representation (i.e., the external specification defines how the type is represented using the JSON format), the value MUST be embedded as a valid JSON element using the native JSON representation defined by that specification.
 
-Rule 16: If the external type does not have a native JSON representation but has a native UTF-8 encoded text representation, the value MUST be embedded as a JSON `string` using the UTF-8 encoding.
+If the external type does not have a native JSON representation but has a native UTF-8 encoded text representation, the value MUST be embedded as a JSON `string` using the UTF-8 encoding.
 
-Rule 17: If the external type has neither a native JSON nor a native UTF-8 text representation, the binary representation of the value MUST be Base64-encoded ([@!RFC4648], Section 4) and embedded as a JSON `string`.
+If the external type has neither a native JSON nor a native UTF-8 text representation, the binary representation of the value MUST be Base64-encoded ([@!RFC4648], Section 4) and embedded as a JSON `string`.
 
 ## Process Data Embedding Rules
 
 As defined in [@!I-D.ietf-rpp-core], a uniform interface operation MAY require process data in addition to the object representation data. This section defines how such process data MUST be represented in JSON when transmitted together with the object representation in a single request body.
 
-Rule 18: Process data accompanying a uniform interface operation MUST be represented using the `processes` data element of the owning resource object (see Processes Object), following the Aggregation rules for the corresponding process type (for example `createProcess` for creation-specific inputs). Each embedded process object MUST be a valid JSON representation of the process object. This applies uniformly regardless of whether the resource object already exists.
+Process data accompanying a uniform interface operation MUST be represented using the `processes` data element of the owning resource object (see Processes Object), following the Aggregation rules for the corresponding process type (for example `createProcess` for creation-specific inputs). Each embedded process object MUST be a valid JSON representation of the process object. This applies uniformly regardless of whether the resource object already exists.
 
 Example: a domain create request body carrying a two-year registration period as process data embedded in a `createProcess` process object under `processes`:
 
@@ -437,13 +437,13 @@ Example: a domain create request body carrying a two-year registration period as
 }
 ```
 
-## JSON Schema Definition Rules
+## JSON Schema Definition Rules {#json-schema-definition-rules}
 
-Rule 20: Each RPP component object and resource object MUST have a corresponding JSON Schema definition. Object definitions MUST be placed in the `$defs` keyword of the JSON Schema document.
+Each RPP component object and resource object MUST have a corresponding JSON Schema definition. Object definitions MUST be placed in the `$defs` keyword of the JSON Schema document.
 
-Rule 21: Identifier fields MUST use `"type": "string"` in JSON Schema.
+Identifier fields MUST use `"type": "string"` in JSON Schema.
 
-Rule 22: Enumeration constraints on string fields MUST be expressed using the `"enum"` keyword in JSON Schema.
+Enumeration constraints on string fields MUST be expressed using the `"enum"` keyword in JSON Schema.
 
 Example (Transfer Status enum):
 
@@ -455,14 +455,18 @@ Example (Transfer Status enum):
 }
 ```
 
-Rule 23: Each JSON Schema definition for an RPP object MUST include a `"required"` array listing all data elements with cardinality `1` or `1+`.
+Each JSON Schema definition for an RPP object MUST include a `"required"` array listing all data elements with cardinality `1` or `1+`.
 
 
-Rule 24: JSON Schema definitions for extendible RPP objects MUST NOT use `"additionalProperties": false` or `"unevaluatedProperties": false`. However, before validation, schemas on every property level MUST be enriched with `"unevaluatedProperties": false` property to prevent the presence of undeclared properties in JSON instances. JSON Schemas for Object type MAY use `"additionalProperties": true` to allow for free key definition.
+### Undeclared Properties {#undeclared-properties}
+
+JSON Schema definitions for extendible RPP objects MUST NOT use `"additionalProperties": false` or `"unevaluatedProperties": false`. However, before validation, schemas on every property level MUST be enriched with `"unevaluatedProperties": false` property to prevent the presence of undeclared properties in JSON instances. JSON Schemas for Object type MAY use `"additionalProperties": true` to allow for free key definition.
 
 <!-- Implementation of this is a nightmare, because one as to take care to put unevaluatedProperties: false on top level of allOf/anyOf branches, but not in the branches themselves. See inject_unevaluated_properties() function in the verification script. -->
 
-Rule 25: Every RPP object representation MUST include a `"@type"` property whose value is the object's identifier as registered in the IANA RPP Data Object Registry. This property enables identification and allows clients and servers to unambiguously determine the type of an object. The `"@type"` property MUST be included in the JSON Schema `"properties"` object for each RPP object definition with a `"const"` constraint fixing the value to the object's registered identifier. The `"@type"` property MUST be listed in the `"required"` array of the corresponding JSON Schema definition.
+### Type Property {#type-property}
+
+Every RPP object representation MUST include a `"@type"` property whose value is the object's identifier as registered in the IANA RPP Data Object Registry. This property enables identification and allows clients and servers to unambiguously determine the type of an object. The `"@type"` property MUST be included in the JSON Schema `"properties"` object for each RPP object definition with a `"const"` constraint fixing the value to the object's registered identifier. The `"@type"` property MUST be listed in the `"required"` array of the corresponding JSON Schema definition.
 
 Example (Domain Name Data Object):
 
@@ -473,11 +477,13 @@ Example (Domain Name Data Object):
 }
 ```
 
-Rule 26: When a transfer request or other operation requires authorization information (e.g., EPP-style authinfo), the client MUST NOT include the `authInfo` object in the JSON request body. Instead, the client MUST convey the authorization information using the `RPP-Authorization` HTTP request header as defined in [@!I-D.ietf-rpp-core]. Servers MUST reject any request that includes an `authInfo` object in the JSON body with an appropriate error response.
+### Authorization Information in Requests {#authorization-information-rules}
+
+When a transfer request or other operation requires authorization information (e.g., EPP-style authinfo), the client MUST NOT include the `authInfo` object in the JSON request body. Instead, the client MUST convey the authorization information using the `RPP-Authorization` HTTP request header as defined in [@!I-D.ietf-rpp-core]. Servers MUST reject any request that includes an `authInfo` object in the JSON body with an appropriate error response.
 
 ## JSON Schema Composition Rules
 
-Rule 27: The JSON Schema definitions of all RPP objects MUST be located in a single shared `$defs` object at the top level of the RPP schema document. A schema that refers to another definition MUST use the `$ref` keyword with a JSON Pointer fragment to the definition in the shared `$defs` object.
+The JSON Schema definitions of all RPP objects MUST be located in a single shared `$defs` object at the top level of the RPP schema document. A schema that refers to another definition MUST use the `$ref` keyword with a JSON Pointer fragment to the definition in the shared `$defs` object.
 
 The key of a definition in the shared `$defs` object MUST be formed as follows, using the Identifiers of the data model unchanged:
 
@@ -535,13 +541,13 @@ Example (structure of the final RPP schema document):
 
 Each status object has a status values table whose "Set By" column identifies the entity that adds and removes each status value: `client`, `server`, or `client, server`. In this section, a client-settable status value is a value whose "Set By" column contains `client`.
 
-Rule 28: The `read` view of a status object lists all of its status values in the `"enum"` of `"label"`. Its `create` view lists only the client-settable status values in the `"enum"` of `"label"`.
+The `read` view of a status object lists all of its status values in the `"enum"` of `"label"`. Its `create` view lists only the client-settable status values in the `"enum"` of `"label"`.
 
-Rule 29: When a status object has no client-settable status value, the `create` and `update` views of the Data Object MUST NOT contain the status data element.
+When a status object has no client-settable status value, the `create` and `update` views of the Data Object MUST NOT contain the status data element.
 
-Rule 30: When the status values of a status object state that a client is not required to provide a status value when creating or updating the object, the status data element MUST NOT be listed under `"required"` and MUST NOT carry `"minItems"` in the `create` and `update` views, notwithstanding Rules 1, 4, and 23.
+When the status values of a status object state that a client is not required to provide a status value when creating or updating the object, the status data element MUST NOT be listed under `"required"` and MUST NOT carry `"minItems"` in the `create` and `update` views, notwithstanding (#cardinality-rules, use title) and (#json-schema-definition-rules, use title).
 
-Rule 31: When the status values of a status object state that a server MUST assign at least one status value to the object, the status data element MUST be listed under `"required"` in the `read` view, with `"minItems": 1` when it is an array.
+When the status values of a status object state that a server MUST assign at least one status value to the object, the status data element MUST be listed under `"required"` in the `read` view, with `"minItems": 1` when it is an array.
 
 ### Inheritance
 
@@ -4360,7 +4366,7 @@ Example domain renew response:
 
 ### Transfer Request
 
-Authorization information for the transfer MUST be conveyed using the `RPP-Authorization` HTTP header (see Rule 21), not in the JSON request body.
+Authorization information for the transfer MUST be conveyed using the `RPP-Authorization` HTTP header (see (#authorization-information-rules, use title)), not in the JSON request body.
 
 Example domain transfer request (pull transfer)
 
@@ -4785,7 +4791,7 @@ The contact delete operation takes the contact identifier as the resource identi
 
 ### Transfer Request
 
-Authorization information for the transfer MUST be conveyed using the `RPP-Authorization` HTTP header (see Rule 21), not in the JSON request body.
+Authorization information for the transfer MUST be conveyed using the `RPP-Authorization` HTTP header (see (#authorization-information-rules, use title)), not in the JSON request body.
 
 Example contact transfer request (pull transfer)
 
@@ -5839,6 +5845,8 @@ TODO
 - Generalised the Mutability Rules to derive request and response content from operation Input and Output.
 - Changed server handling of disallowed request data elements from ignore to reject in the Mutability Rules.
 - Replaced the primary identifier with the Unique Identifier in Association Rules.
+- Removed rule numbering and replaced references to rule numbers with section references.
+- Added (#undeclared-properties, use title), (#type-property, use title), and (#authorization-information-rules, use title) to (#json-schema-definition-rules, use title).
 
 ## Version draft-wullink-rpp-json-02 to draft-ietf-rpp-json-00
 

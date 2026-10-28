@@ -89,7 +89,10 @@ Table of Contents
      4.6.  Object Identifier Rules . . . . . . . . . . . . . . . . .  17
      4.7.  External Type Embedding Rules . . . . . . . . . . . . . .  17
      4.8.  Process Data Embedding Rules  . . . . . . . . . . . . . .  18
-     4.9.  JSON Schema Definition Rules  . . . . . . . . . . . . . .  19
+     4.9.  JSON Schema Definition Rules  . . . . . . . . . . . . . .  18
+       4.9.1.  Undeclared Properties . . . . . . . . . . . . . . . .  19
+       4.9.2.  Type Property . . . . . . . . . . . . . . . . . . . .  19
+       4.9.3.  Authorization Information in Requests . . . . . . . .  20
      4.10. JSON Schema Composition Rules . . . . . . . . . . . . . .  20
        4.10.1.  Status Objects . . . . . . . . . . . . . . . . . . .  21
        4.10.2.  Inheritance  . . . . . . . . . . . . . . . . . . . .  22
@@ -103,9 +106,6 @@ Table of Contents
        5.3.1.  Examples  . . . . . . . . . . . . . . . . . . . . . .  32
    6.  JSON Schema Definitions . . . . . . . . . . . . . . . . . . .  35
      6.1.  Common Data Types Schemas . . . . . . . . . . . . . . . .  35
-       6.1.1.  Identifier  . . . . . . . . . . . . . . . . . . . . .  35
-       6.1.2.  Client Identifier . . . . . . . . . . . . . . . . . .  35
-       6.1.3.  Phone Number  . . . . . . . . . . . . . . . . . . . .  36
 
 
 
@@ -114,6 +114,9 @@ Wullink & Kowalik        Expires 7 January 2027                 [Page 2]
 Internet-Draft                JSON for RPP                     July 2026
 
 
+       6.1.1.  Identifier  . . . . . . . . . . . . . . . . . . . . .  35
+       6.1.2.  Client Identifier . . . . . . . . . . . . . . . . . .  35
+       6.1.3.  Phone Number  . . . . . . . . . . . . . . . . . . . .  36
      6.2.  Component Objects Schemas . . . . . . . . . . . . . . . .  36
        6.2.1.  Period Object . . . . . . . . . . . . . . . . . . . .  36
        6.2.2.  Provisioning Metadata Object  . . . . . . . . . . . .  37
@@ -159,9 +162,6 @@ Internet-Draft                JSON for RPP                     July 2026
          6.3.4.5.  Reject  . . . . . . . . . . . . . . . . . . . . .  75
          6.3.4.6.  Reference . . . . . . . . . . . . . . . . . . . .  75
        6.3.5.  Restore Process Object  . . . . . . . . . . . . . . .  76
-     6.4.  Domain Name Data Object . . . . . . . . . . . . . . . . .  78
-       6.4.1.  Create  . . . . . . . . . . . . . . . . . . . . . . .  78
-       6.4.2.  Create Process  . . . . . . . . . . . . . . . . . . .  79
 
 
 
@@ -170,6 +170,9 @@ Wullink & Kowalik        Expires 7 January 2027                 [Page 3]
 Internet-Draft                JSON for RPP                     July 2026
 
 
+     6.4.  Domain Name Data Object . . . . . . . . . . . . . . . . .  78
+       6.4.1.  Create  . . . . . . . . . . . . . . . . . . . . . . .  78
+       6.4.2.  Create Process  . . . . . . . . . . . . . . . . . . .  79
        6.4.3.  Read  . . . . . . . . . . . . . . . . . . . . . . . .  81
        6.4.4.  Update  . . . . . . . . . . . . . . . . . . . . . . .  83
        6.4.5.  Transfer  . . . . . . . . . . . . . . . . . . . . . .  83
@@ -215,9 +218,6 @@ Internet-Draft                JSON for RPP                     July 2026
        8.1.3.  Read  . . . . . . . . . . . . . . . . . . . . . . . . 112
        8.1.4.  Update  . . . . . . . . . . . . . . . . . . . . . . . 114
        8.1.5.  Delete  . . . . . . . . . . . . . . . . . . . . . . . 115
-       8.1.6.  Renew . . . . . . . . . . . . . . . . . . . . . . . . 115
-       8.1.7.  Transfer Request  . . . . . . . . . . . . . . . . . . 116
-       8.1.8.  Transfer Query  . . . . . . . . . . . . . . . . . . . 117
 
 
 
@@ -226,6 +226,9 @@ Wullink & Kowalik        Expires 7 January 2027                 [Page 4]
 Internet-Draft                JSON for RPP                     July 2026
 
 
+       8.1.6.  Renew . . . . . . . . . . . . . . . . . . . . . . . . 115
+       8.1.7.  Transfer Request  . . . . . . . . . . . . . . . . . . 116
+       8.1.8.  Transfer Query  . . . . . . . . . . . . . . . . . . . 117
        8.1.9.  Transfer Approve  . . . . . . . . . . . . . . . . . . 117
        8.1.10. Transfer Cancel . . . . . . . . . . . . . . . . . . . 117
        8.1.11. Transfer Reject . . . . . . . . . . . . . . . . . . . 117
@@ -271,9 +274,6 @@ Internet-Draft                JSON for RPP                     July 2026
        8.8.1.  Read  . . . . . . . . . . . . . . . . . . . . . . . . 146
    9.  IANA Considerations . . . . . . . . . . . . . . . . . . . . . 147
      9.1.  RPP Media Type (application/rpp+json) . . . . . . . . . . 147
-     9.2.  RPP JSON Schema Extensions registry . . . . . . . . . . . 148
-   10. Internationalization Considerations . . . . . . . . . . . . . 149
-   11. Security Considerations . . . . . . . . . . . . . . . . . . . 150
 
 
 
@@ -282,6 +282,9 @@ Wullink & Kowalik        Expires 7 January 2027                 [Page 5]
 Internet-Draft                JSON for RPP                     July 2026
 
 
+     9.2.  RPP JSON Schema Extensions registry . . . . . . . . . . . 148
+   10. Internationalization Considerations . . . . . . . . . . . . . 149
+   11. Security Considerations . . . . . . . . . . . . . . . . . . . 150
    12. Acknowledgments . . . . . . . . . . . . . . . . . . . . . . . 150
    13. Change History  . . . . . . . . . . . . . . . . . . . . . . . 150
      13.1.  Version draft-ietf-rpp-json-00 to
@@ -327,9 +330,6 @@ Internet-Draft                JSON for RPP                     July 2026
    increasing availability of tools, software libraries, and a skilled
    workforce has led several registries to adopt JSON for data exchange
    within their API ecosystems.  Registries supporting JSON can offer a
-   unified API ecosystem that extends beyond domain name and IP address
-   provisioning, maintaining a consistent technology stack, data
-   formats, and developer experience.
 
 
 
@@ -337,6 +337,10 @@ Wullink & Kowalik        Expires 7 January 2027                 [Page 6]
 
 Internet-Draft                JSON for RPP                     July 2026
 
+
+   unified API ecosystem that extends beyond domain name and IP address
+   provisioning, maintaining a consistent technology stack, data
+   formats, and developer experience.
 
    JSON's syntax, known for its straightforwardness and minimal
    verbosity, significantly eases the tasks of writing, reading, and
@@ -382,10 +386,6 @@ Internet-Draft                JSON for RPP                     July 2026
    JSON Schema - A vocabulary that allows annotation and validation of
    JSON documents, as described in [I-D.ietf-jsonschema-json-schema].
 
-   EPP Compatibility Profile - A set of additional constraints defined
-   in [I-D.ietf-rpp-data-objects] that a server MUST adhere to when
-   supporting both RPP and EPP concurrently.
-
 
 
 
@@ -393,6 +393,10 @@ Wullink & Kowalik        Expires 7 January 2027                 [Page 7]
 
 Internet-Draft                JSON for RPP                     July 2026
 
+
+   EPP Compatibility Profile - A set of additional constraints defined
+   in [I-D.ietf-rpp-data-objects] that a server MUST adhere to when
+   supporting both RPP and EPP concurrently.
 
 3.  Conventions Used in This Document
 
@@ -426,10 +430,6 @@ Internet-Draft                JSON for RPP                     July 2026
 4.1.  Primitive Type Mappings
 
    RPP primitive types MUST be represented in JSON as follows:
-
-
-
-
 
 
 
@@ -533,10 +533,10 @@ Internet-Draft                JSON for RPP                     July 2026
    The cardinality of each data element in the RPP data model MUST be
    represented as follows in JSON:
 
-   Rule 1: A data element with cardinality 1 (exactly one) MUST be
-   represented as a JSON property and MUST be present in the containing
-   JSON object.  The element MUST be listed under required in the
-   corresponding JSON Schema.
+   A data element with cardinality 1 (exactly one) MUST be represented
+   as a JSON property and MUST be present in the containing JSON object.
+   The element MUST be listed under required in the corresponding JSON
+   Schema.
 
    {
      "type": "object",
@@ -546,11 +546,11 @@ Internet-Draft                JSON for RPP                     July 2026
      "required": ["name"]
    }
 
-   Rule 2: A data element with cardinality 0-1 (zero or one) MUST be
-   represented as an optional JSON property.  The element MUST NOT be
-   listed under required in the corresponding JSON Schema.  When absent,
-   the element MUST be omitted from the JSON object (not represented as
-   null).
+   A data element with cardinality 0-1 (zero or one) MUST be represented
+   as an optional JSON property.  The element MUST NOT be listed under
+   required in the corresponding JSON Schema.  When absent, the element
+   MUST be omitted from the JSON object (not represented as null).
+
 
 
 
@@ -569,9 +569,9 @@ Internet-Draft                JSON for RPP                     July 2026
      }
    }
 
-   Rule 3: A data element with cardinality 0+ (zero or more) MUST be
-   represented as an optional JSON array.  When no values are present,
-   the property MUST be omitted or represented as an empty array.
+   A data element with cardinality 0+ (zero or more) MUST be represented
+   as an optional JSON array.  When no values are present, the property
+   MUST be omitted or represented as an empty array.
 
    {
      "type": "object",
@@ -583,10 +583,9 @@ Internet-Draft                JSON for RPP                     July 2026
      }
    }
 
-   Rule 4: A data element with cardinality 1+ (one or more) MUST be
-   represented as a required JSON array with "minItems": 1 and the
-   element MUST be listed under required in the corresponding JSON
-   Schema.
+   A data element with cardinality 1+ (one or more) MUST be represented
+   as a required JSON array with "minItems": 1 and the element MUST be
+   listed under required in the corresponding JSON Schema.
 
    {
      "type": "object",
@@ -607,9 +606,10 @@ Internet-Draft                JSON for RPP                     July 2026
    representation contains follows from the Input and Output of the
    operation:
 
-
-
-
+   -  Response content contains data elements of every mutability.  A
+      data element is left out only when it is not present on the
+      object, when its Visibility is onDemand and the client did not
+      request it, or when authorisation or server policy withholds it.
 
 
 
@@ -618,10 +618,6 @@ Wullink & Kowalik        Expires 7 January 2027                [Page 11]
 Internet-Draft                JSON for RPP                     July 2026
 
 
-   -  Response content contains data elements of every mutability.  A
-      data element is left out only when it is not present on the
-      object, when its Visibility is onDemand and the client did not
-      request it, or when authorisation or server policy withholds it.
    -  Request content for an object being created contains its create-
       only and read-write data elements.  For a Component Object or an
       Aggregation object creation can take place in create or update
@@ -631,10 +627,11 @@ Internet-Draft                JSON for RPP                     July 2026
       contains its read-write data elements.
 
    Input Data Elements and Parameters are not data elements of the
-   object, have no mutability, and are not subject to Rules 5 to 7.
+   object, have no mutability, and are not subject to the following
+   rules.
 
-   Rule 5: Data elements with mutability read-only MUST be annotated
-   with "readOnly": true in the JSON Schema and MUST NOT be part of any
+   Data elements with mutability read-only MUST be annotated with
+   "readOnly": true in the JSON Schema and MUST NOT be part of any
    request view.
 
    {
@@ -644,18 +641,18 @@ Internet-Draft                JSON for RPP                     July 2026
      }
    }
 
-   Rule 6: Data elements with mutability create-only MUST be annotated
-   with "writeOnly": true in request schemas and MUST NOT be part of the
+   Data elements with mutability create-only MUST be annotated with
+   "writeOnly": true in request schemas and MUST NOT be part of the
    update view.
 
-   Rule 7: Data elements with mutability read-write have no additional
+   Data elements with mutability read-write have no additional
    annotation.
 
    A server MUST reject a request whose content contains a data element
    that is not allowed in that request, such as a read-only data element
    or a create-only data element of an existing object.  With the
-   enrichment required by Rule 24, such a request fails JSON Schema
-   validation.
+   enrichment required by Undeclared Properties, such a request fails
+   JSON Schema validation.
 
 4.5.  Association Rules
 
@@ -665,6 +662,9 @@ Internet-Draft                JSON for RPP                     July 2026
    objects, where one object references another.  A Composition
    represents a parent-child relationship where the child object is
    embedded within the parent object and cannot exist independently.
+
+
+
 
 
 
@@ -694,17 +694,17 @@ Internet-Draft                JSON for RPP                     July 2026
    independent objects.  The referenced object is identified by its
    Unique Identifier.  When the cardinality allows more than one target,
    it MUST be represented as a JSON array.  Each element of the array is
-   a limited representation of the referenced object, as specified in
-   Rule 8.
+   a limited representation of the referenced object, as specified
+   below.
 
-   Rule 8: Aggregation[Type] with cardinality 0+ or 1+ MUST be
-   represented as a JSON array of embedded objects.  Each object in the
-   array MUST include the data elements of the referenced object type
-   that are relevant to the context (at minimum the Unique Identifier).
-   Other data elements of the referenced object type MAY be included as
-   needed to provide additional context for the client, but are not
-   required.  The JSON Schema MUST allow for the presence of these
-   additional fields.
+   Aggregation[Type] with cardinality 0+ or 1+ MUST be represented as a
+   JSON array of embedded objects.  Each object in the array MUST
+   include the data elements of the referenced object type that are
+   relevant to the context (at minimum the Unique Identifier).  Other
+   data elements of the referenced object type MAY be included as needed
+   to provide additional context for the client, but are not required.
+   The JSON Schema MUST allow for the presence of these additional
+   fields.
 
    Example: domain nameservers (Aggregation[Host Data Object]) in a read
    response, returning a limited object representation containing only
@@ -786,14 +786,14 @@ Wullink & Kowalik        Expires 7 January 2027                [Page 14]
 Internet-Draft                JSON for RPP                     July 2026
 
 
-   Rule 9: LabelledAggregation[Type] with cardinality 0+ MUST be
-   represented as a JSON array of objects.  Each object in the array
-   MUST contain a label property (string) alongside the identifier of
-   the referenced object.  The object MUST include at least the Unique
-   Identifier of the referenced object type.  Other data elements of the
-   referenced object type MAY be included as needed to provide
-   additional context for the client, but are not required.  The JSON
-   Schema MUST allow for the presence of these additional fields.
+   LabelledAggregation[Type] with cardinality 0+ MUST be represented as
+   a JSON array of objects.  Each object in the array MUST contain a
+   label property (string) alongside the identifier of the referenced
+   object.  The object MUST include at least the Unique Identifier of
+   the referenced object type.  Other data elements of the referenced
+   object type MAY be included as needed to provide additional context
+   for the client, but are not required.  The JSON Schema MUST allow for
+   the presence of these additional fields.
 
    Example: domain contacts (LabelledAggregation[Contact Object]):
 
@@ -820,9 +820,9 @@ Internet-Draft                JSON for RPP                     July 2026
    independent objects where each association carries a unique string
    label that serves as a dictionary key.
 
-   Rule 10: DictionaryAggregation[Type] MUST be represented as a JSON
-   object where each key is the unique label and the corresponding value
-   is the referenced object, the object MUST include at least the Unique
+   DictionaryAggregation[Type] MUST be represented as a JSON object
+   where each key is the unique label and the corresponding value is the
+   referenced object, the object MUST include at least the Unique
    Identifier of the referenced object type.  Other data elements of the
    referenced object type MAY be included as needed to provide
    additional context for the client, but are not required.  The JSON
@@ -859,10 +859,10 @@ Internet-Draft                JSON for RPP                     July 2026
    embedded child carries a string label.  Multiple instances with the
    same label are allowed.
 
-   Rule 11: LabelledComposition[Type] with cardinality 0+ MUST be
-   represented as a JSON array of embedded objects.  Each object in the
-   array MUST contain a label property alongside the data elements of
-   the composed type.
+   LabelledComposition[Type] with cardinality 0+ MUST be represented as
+   a JSON array of embedded objects.  Each object in the array MUST
+   contain a label property alongside the data elements of the composed
+   type.
 
    Example: remarks (LabelledComposition[Remark Object]):
 
@@ -898,9 +898,9 @@ Wullink & Kowalik        Expires 7 January 2027                [Page 16]
 Internet-Draft                JSON for RPP                     July 2026
 
 
-   Rule 12: DictionaryComposition[Type] MUST be represented as a JSON
-   object where each key is the unique label and the corresponding value
-   is the fully embedded child object.
+   DictionaryComposition[Type] MUST be represented as a JSON object
+   where each key is the unique label and the corresponding value is the
+   fully embedded child object.
 
    Example: remarks keyed by scope (DictionaryComposition[Remark
    Object]):
@@ -918,12 +918,12 @@ Internet-Draft                JSON for RPP                     July 2026
 
 4.6.  Object Identifier Rules
 
-   Rule 13: When a resource or component object is referenced by
-   identifier (for example in an aggregation), the identifier MUST be
-   represented as a JSON string using the value of the object's primary
-   identifier data element.
+   When a resource or component object is referenced by identifier (for
+   example in an aggregation), the identifier MUST be represented as a
+   JSON string using the value of the object's primary identifier data
+   element.
 
-   Rule 14: When a resource or component object is embedded (as in a
+   When a resource or component object is embedded (as in a
    composition), all data elements of the object MUST be represented as
    properties of a JSON object according to the rules of this section.
 
@@ -934,18 +934,18 @@ Internet-Draft                JSON for RPP                     July 2026
    embedding a value of an externally defined type into a JSON
    representation, the following rules apply, in order of preference:
 
-   Rule 15: If the external type has a native JSON representation (i.e.,
-   the external specification defines how the type is represented using
-   the JSON format), the value MUST be embedded as a valid JSON element
+   If the external type has a native JSON representation (i.e., the
+   external specification defines how the type is represented using the
+   JSON format), the value MUST be embedded as a valid JSON element
    using the native JSON representation defined by that specification.
 
-   Rule 16: If the external type does not have a native JSON
-   representation but has a native UTF-8 encoded text representation,
-   the value MUST be embedded as a JSON string using the UTF-8 encoding.
+   If the external type does not have a native JSON representation but
+   has a native UTF-8 encoded text representation, the value MUST be
+   embedded as a JSON string using the UTF-8 encoding.
 
-
-
-
+   If the external type has neither a native JSON nor a native UTF-8
+   text representation, the binary representation of the value MUST be
+   Base64-encoded ([RFC4648], Section 4) and embedded as a JSON string.
 
 
 
@@ -953,11 +953,6 @@ Wullink & Kowalik        Expires 7 January 2027                [Page 17]
 
 Internet-Draft                JSON for RPP                     July 2026
 
-
-   Rule 17: If the external type has neither a native JSON nor a native
-   UTF-8 text representation, the binary representation of the value
-   MUST be Base64-encoded ([RFC4648], Section 4) and embedded as a JSON
-   string.
 
 4.8.  Process Data Embedding Rules
 
@@ -967,12 +962,12 @@ Internet-Draft                JSON for RPP                     July 2026
    JSON when transmitted together with the object representation in a
    single request body.
 
-   Rule 18: Process data accompanying a uniform interface operation MUST
-   be represented using the processes data element of the owning
-   resource object (see Processes Object), following the Aggregation
-   rules for the corresponding process type (for example createProcess
-   for creation-specific inputs).  Each embedded process object MUST be
-   a valid JSON representation of the process object.  This applies
+   Process data accompanying a uniform interface operation MUST be
+   represented using the processes data element of the owning resource
+   object (see Processes Object), following the Aggregation rules for
+   the corresponding process type (for example createProcess for
+   creation-specific inputs).  Each embedded process object MUST be a
+   valid JSON representation of the process object.  This applies
    uniformly regardless of whether the resource object already exists.
 
    Example: a domain create request body carrying a two-year
@@ -1001,6 +996,11 @@ Internet-Draft                JSON for RPP                     July 2026
        }
    }
 
+4.9.  JSON Schema Definition Rules
+
+   Each RPP component object and resource object MUST have a
+   corresponding JSON Schema definition.  Object definitions MUST be
+   placed in the $defs keyword of the JSON Schema document.
 
 
 
@@ -1010,16 +1010,10 @@ Wullink & Kowalik        Expires 7 January 2027                [Page 18]
 Internet-Draft                JSON for RPP                     July 2026
 
 
-4.9.  JSON Schema Definition Rules
+   Identifier fields MUST use "type": "string" in JSON Schema.
 
-   Rule 20: Each RPP component object and resource object MUST have a
-   corresponding JSON Schema definition.  Object definitions MUST be
-   placed in the $defs keyword of the JSON Schema document.
-
-   Rule 21: Identifier fields MUST use "type": "string" in JSON Schema.
-
-   Rule 22: Enumeration constraints on string fields MUST be expressed
-   using the "enum" keyword in JSON Schema.
+   Enumeration constraints on string fields MUST be expressed using the
+   "enum" keyword in JSON Schema.
 
    Example (Transfer Status enum):
 
@@ -1029,26 +1023,30 @@ Internet-Draft                JSON for RPP                     July 2026
                 "clientRejected", "serverApproved", "serverCancelled"]
    }
 
-   Rule 23: Each JSON Schema definition for an RPP object MUST include a
+   Each JSON Schema definition for an RPP object MUST include a
    "required" array listing all data elements with cardinality 1 or 1+.
 
-   Rule 24: JSON Schema definitions for extendible RPP objects MUST NOT
-   use "additionalProperties": false or "unevaluatedProperties": false.
+4.9.1.  Undeclared Properties
+
+   JSON Schema definitions for extendible RPP objects MUST NOT use
+   "additionalProperties": false or "unevaluatedProperties": false.
    However, before validation, schemas on every property level MUST be
    enriched with "unevaluatedProperties": false property to prevent the
    presence of undeclared properties in JSON instances.  JSON Schemas
    for Object type MAY use "additionalProperties": true to allow for
    free key definition.
 
-   Rule 25: Every RPP object representation MUST include a "@type"
-   property whose value is the object's identifier as registered in the
-   IANA RPP Data Object Registry.  This property enables identification
-   and allows clients and servers to unambiguously determine the type of
-   an object.  The "@type" property MUST be included in the JSON Schema
-   "properties" object for each RPP object definition with a "const"
-   constraint fixing the value to the object's registered identifier.
-   The "@type" property MUST be listed in the "required" array of the
-   corresponding JSON Schema definition.
+4.9.2.  Type Property
+
+   Every RPP object representation MUST include a "@type" property whose
+   value is the object's identifier as registered in the IANA RPP Data
+   Object Registry.  This property enables identification and allows
+   clients and servers to unambiguously determine the type of an object.
+   The "@type" property MUST be included in the JSON Schema "properties"
+   object for each RPP object definition with a "const" constraint
+   fixing the value to the object's registered identifier.  The "@type"
+   property MUST be listed in the "required" array of the corresponding
+   JSON Schema definition.
 
    Example (Domain Name Data Object):
 
@@ -1061,26 +1059,30 @@ Internet-Draft                JSON for RPP                     July 2026
 
 
 
+
+
 Wullink & Kowalik        Expires 7 January 2027                [Page 19]
 
 Internet-Draft                JSON for RPP                     July 2026
 
 
-   Rule 26: When a transfer request or other operation requires
-   authorization information (e.g., EPP-style authinfo), the client MUST
-   NOT include the authInfo object in the JSON request body.  Instead,
-   the client MUST convey the authorization information using the RPP-
-   Authorization HTTP request header as defined in [I-D.ietf-rpp-core].
-   Servers MUST reject any request that includes an authInfo object in
-   the JSON body with an appropriate error response.
+4.9.3.  Authorization Information in Requests
+
+   When a transfer request or other operation requires authorization
+   information (e.g., EPP-style authinfo), the client MUST NOT include
+   the authInfo object in the JSON request body.  Instead, the client
+   MUST convey the authorization information using the RPP-Authorization
+   HTTP request header as defined in [I-D.ietf-rpp-core].  Servers MUST
+   reject any request that includes an authInfo object in the JSON body
+   with an appropriate error response.
 
 4.10.  JSON Schema Composition Rules
 
-   Rule 27: The JSON Schema definitions of all RPP objects MUST be
-   located in a single shared $defs object at the top level of the RPP
-   schema document.  A schema that refers to another definition MUST use
-   the $ref keyword with a JSON Pointer fragment to the definition in
-   the shared $defs object.
+   The JSON Schema definitions of all RPP objects MUST be located in a
+   single shared $defs object at the top level of the RPP schema
+   document.  A schema that refers to another definition MUST use the
+   $ref keyword with a JSON Pointer fragment to the definition in the
+   shared $defs object.
 
    The key of a definition in the shared $defs object MUST be formed as
    follows, using the Identifiers of the data model unchanged:
@@ -1112,8 +1114,6 @@ Internet-Draft                JSON for RPP                     July 2026
    A view that holds request content MUST reference the create view of
    an embedded Component Object.  A view that holds response content
    MUST reference the read view of an embedded Component Object.
-
-
 
 
 
@@ -1178,24 +1178,24 @@ Wullink & Kowalik        Expires 7 January 2027                [Page 21]
 Internet-Draft                JSON for RPP                     July 2026
 
 
-   Rule 28: The read view of a status object lists all of its status
-   values in the "enum" of "label".  Its create view lists only the
-   client-settable status values in the "enum" of "label".
+   The read view of a status object lists all of its status values in
+   the "enum" of "label".  Its create view lists only the client-
+   settable status values in the "enum" of "label".
 
-   Rule 29: When a status object has no client-settable status value,
-   the create and update views of the Data Object MUST NOT contain the
-   status data element.
+   When a status object has no client-settable status value, the create
+   and update views of the Data Object MUST NOT contain the status data
+   element.
 
-   Rule 30: When the status values of a status object state that a
-   client is not required to provide a status value when creating or
-   updating the object, the status data element MUST NOT be listed under
-   "required" and MUST NOT carry "minItems" in the create and update
-   views, notwithstanding Rules 1, 4, and 23.
+   When the status values of a status object state that a client is not
+   required to provide a status value when creating or updating the
+   object, the status data element MUST NOT be listed under "required"
+   and MUST NOT carry "minItems" in the create and update views,
+   notwithstanding Cardinality Rules and JSON Schema Definition Rules.
 
-   Rule 31: When the status values of a status object state that a
-   server MUST assign at least one status value to the object, the
-   status data element MUST be listed under "required" in the read view,
-   with "minItems": 1 when it is an array.
+   When the status values of a status object state that a server MUST
+   assign at least one status value to the object, the status data
+   element MUST be listed under "required" in the read view, with
+   "minItems": 1 when it is an array.
 
 4.10.2.  Inheritance
 
@@ -6462,8 +6462,8 @@ Internet-Draft                JSON for RPP                     July 2026
 8.1.7.  Transfer Request
 
    Authorization information for the transfer MUST be conveyed using the
-   RPP-Authorization HTTP header (see Rule 21), not in the JSON request
-   body.
+   RPP-Authorization HTTP header (see Authorization Information in
+   Requests), not in the JSON request body.
 
    Example domain transfer request (pull transfer)
 
@@ -7010,8 +7010,8 @@ Internet-Draft                JSON for RPP                     July 2026
 8.2.5.  Transfer Request
 
    Authorization information for the transfer MUST be conveyed using the
-   RPP-Authorization HTTP header (see Rule 21), not in the JSON request
-   body.
+   RPP-Authorization HTTP header (see Authorization Information in
+   Requests), not in the JSON request body.
 
    Example contact transfer request (pull transfer)
 
@@ -8413,6 +8413,10 @@ Internet-Draft                JSON for RPP                     July 2026
       ignore to reject in the Mutability Rules.
    -  Replaced the primary identifier with the Unique Identifier in
       Association Rules.
+   -  Removed rule numbering and replaced references to rule numbers
+      with section references.
+   -  Added Undeclared Properties, Type Property, and Authorization
+      Information in Requests to JSON Schema Definition Rules.
 
 13.2.  Version draft-wullink-rpp-json-02 to draft-ietf-rpp-json-00
 
@@ -8445,10 +8449,6 @@ Internet-Draft                JSON for RPP                     July 2026
 14.  References
 
 14.1.  Normative References
-
-
-
-
 
 
 
