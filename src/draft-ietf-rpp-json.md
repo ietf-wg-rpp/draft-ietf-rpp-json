@@ -232,17 +232,15 @@ A Aggregation represents a relationship between two independent objects, where o
 
 ### Labelled associations
 
-Some associations between objects carry a string label that provides additional context for the relationship. The label is not an identifier of the target object, but rather a descriptor of the association itself. Labelled associations can occur in both aggregations and compositions. When representing labelled associations in JSON, the property `label` MUST be included alongside the reference to the target object. A property with the name `object` MUST be used to contain the reference to the target object, which can be either limited representation containing at minimum the primary object identifier for aggregations or an embedded object for compositions.
-
-<!-- TODO: update text to clarify what data objects attribute must be used for unique object identifier in aggregation examples -->
+Some associations between objects carry a string label that provides additional context for the relationship. The label is not an identifier of the target object, but rather a descriptor of the association itself. Labelled associations can occur in both aggregations and compositions. When representing labelled associations in JSON, the property `label` MUST be included alongside the reference to the target object. A property with the name `object` MUST be used to contain the reference to the target object, which can be either limited representation containing at minimum the Unique Identifier of the target object for aggregations or an embedded object for compositions.
 
 ### Aggregation
 
-An `Aggregation[Type]` represents a relationship between two independent objects. When the cardinality allows more than one target, it MUST be represented as a JSON array. Each element of the array is a limited representation of the referenced object, as specified in Rule 8.
+An `Aggregation[Type]` represents a relationship between two independent objects. The referenced object is identified by its Unique Identifier. When the cardinality allows more than one target, it MUST be represented as a JSON array. Each element of the array is a limited representation of the referenced object, as specified in Rule 8.
 
-Rule 8: `Aggregation[Type]` with cardinality `0+` or `1+` MUST be represented as a JSON array of embedded objects. Each object in the array MUST include the data elements of the referenced object type that are relevant to the context (at minimum the primary identifier field). Other data elements of the referenced object type MAY be included as needed to provide additional context for the client, but are not required. The JSON Schema MUST allow for the presence of these additional fields.
+Rule 8: `Aggregation[Type]` with cardinality `0+` or `1+` MUST be represented as a JSON array of embedded objects. Each object in the array MUST include the data elements of the referenced object type that are relevant to the context (at minimum the Unique Identifier). Other data elements of the referenced object type MAY be included as needed to provide additional context for the client, but are not required. The JSON Schema MUST allow for the presence of these additional fields.
 
-Example: domain nameservers (Aggregation[Host Data Object]) in a read response, returning a limited object representation containing only the primary identifier field `hostName`:
+Example: domain nameservers (Aggregation[Host Data Object]) in a read response, returning a limited object representation containing only the Unique Identifier `hostName`:
 
 ```json
 {
@@ -299,7 +297,7 @@ A `Type` represents a parent-child relationship where the child's lifecycle is b
 
 A `LabelledAggregation[Type]` is a relationship between two independent objects where each association carries a string label. Multiple associations with the same label are allowed.
 
-Rule 9: `LabelledAggregation[Type]` with cardinality `0+` MUST be represented as a JSON array of objects. Each object in the array MUST contain a `label` property (string) alongside the identifier of the referenced object. The object MUST include at least the primary identifier field of the referenced object type. Other data elements of the referenced object type MAY be included as needed to provide additional context for the client, but are not required. The JSON Schema MUST allow for the presence of these additional fields.
+Rule 9: `LabelledAggregation[Type]` with cardinality `0+` MUST be represented as a JSON array of objects. Each object in the array MUST contain a `label` property (string) alongside the identifier of the referenced object. The object MUST include at least the Unique Identifier of the referenced object type. Other data elements of the referenced object type MAY be included as needed to provide additional context for the client, but are not required. The JSON Schema MUST allow for the presence of these additional fields.
 
 Example: domain contacts (LabelledAggregation[Contact Object]):
 
@@ -326,7 +324,7 @@ Example: domain contacts (LabelledAggregation[Contact Object]):
 
 A `DictionaryAggregation[Type]` is a relationship between two independent objects where each association carries a unique string label that serves as a dictionary key.
 
-Rule 10: `DictionaryAggregation[Type]` MUST be represented as a JSON object where each key is the unique label and the corresponding value is the referenced object, the object MUST include at least the primary identifier field of the referenced object type. Other data elements of the referenced object type MAY be included as needed to provide additional context for the client, but are not required. The JSON Schema MUST allow for the presence of these additional fields.
+Rule 10: `DictionaryAggregation[Type]` MUST be represented as a JSON object where each key is the unique label and the corresponding value is the referenced object, the object MUST include at least the Unique Identifier of the referenced object type. Other data elements of the referenced object type MAY be included as needed to provide additional context for the client, but are not required. The JSON Schema MUST allow for the presence of these additional fields.
 
 Example: domain contacts keyed by unique role (DictionaryAggregation[Contact Object]):
 
@@ -5840,6 +5838,7 @@ TODO
 - Removed repeated references to the RPP data model document that Terminology covers.
 - Generalised the Mutability Rules to derive request and response content from operation Input and Output.
 - Changed server handling of disallowed request data elements from ignore to reject in the Mutability Rules.
+- Replaced the primary identifier with the Unique Identifier in Association Rules.
 
 ## Version draft-wullink-rpp-json-02 to draft-ietf-rpp-json-00
 
