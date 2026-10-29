@@ -1,0 +1,13 @@
+{
+  "$defs": {
+    "hostAvailability.read": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "hostAvailability", "readOnly": true },
+        "available": { "type": "boolean", "readOnly": true },
+        "reason": { "type": "string", "readOnly": true }
+      },
+      "required": ["@type", "available"]
+    }
+  }
+}

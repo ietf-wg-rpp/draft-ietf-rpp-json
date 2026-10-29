@@ -29,7 +29,7 @@
 - Aggregation with cardinality 1 or 0-1: Rule 8 only covers 0+ and 1+
   (domainName.registrant, organisation.parent, user.organisation, profile.baseProfile)
 - Operation parameters have no JSON representation rule; not included in any schema
-  (domainName.read.hostsFilter, message.query.type)
+  (domainName.availability.uName, domainName.availability.lgr, domainName.read.hostsFilter, message.query.type)
 - DictionaryComposition with cardinality 1+: Rules 10/12 do not define how cardinality maps to a JSON object; minProperties 1 applied
   (organisation.roles)
 - An Output Object with cardinality '0+' has no JSON rule; array of read representations applied following the draft
