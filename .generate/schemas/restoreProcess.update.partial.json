@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$ref": "#/$defs/restoreProcess.update.partial",
+  "$defs": {
+    "restoreProcess.update.partial": {
+      "type": "array",
+      "items": {
+        "oneOf": [
+          {
+            "type": "object",
+            "properties": {
+              "op": { "type": "string", "enum": ["add", "replace"] },
+              "path": { "type": "string", "const": "/restoreReport" },
+              "value": { "$ref": "#/$defs/restoreReport.create" }
+            },
+            "required": ["op", "path", "value"],
+            "additionalProperties": false
+          }
+        ]
+      },
+      "minItems": 1
+    }
+  }
+}

@@ -1,0 +1,62 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$ref": "#/$defs/user.update.partial",
+  "$defs": {
+    "user.update.partial": {
+      "type": "array",
+      "items": {
+        "oneOf": [
+          {
+            "type": "object",
+            "properties": {
+              "op": { "type": "string", "enum": ["add", "replace"] },
+              "path": { "type": "string", "const": "/details" },
+              "value": { "$ref": "#/$defs/Card" }
+            },
+            "required": ["op", "path", "value"],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "op": { "type": "string", "enum": ["add", "replace"] },
+              "path": { "type": "string", "const": "/description" },
+              "value": { "type": "string" }
+            },
+            "required": ["op", "path", "value"],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "op": { "type": "string", "const": "remove" },
+              "path": { "type": "string", "const": "/description" }
+            },
+            "required": ["op", "path"],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "op": { "type": "string", "enum": ["add", "replace"] },
+              "path": { "type": "string", "const": "/status" },
+              "value": { "$ref": "#/$defs/userStatus.create" }
+            },
+            "required": ["op", "path", "value"],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "op": { "type": "string", "const": "remove" },
+              "path": { "type": "string", "const": "/status" }
+            },
+            "required": ["op", "path"],
+            "additionalProperties": false
+          }
+        ]
+      },
+      "minItems": 1
+    }
+  }
+}

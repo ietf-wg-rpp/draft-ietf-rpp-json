@@ -10,7 +10,7 @@ Usage:
     python3 gen_json_schema.py MODEL.yaml [-o OUT.json] [--split DIR]
                                [--compare DRAFT.md] [--compare-out FILE]
                                [--replace DRAFT.md] [--replace-out FILE]
-                               [--diagnostics FILE] [--expanded] [-q]
+                               [--diagnostics FILE] [--partial] [--expanded] [-q]
 
   MODEL.yaml        object model export (e.g. .work/draft-ietf-rpp-data-objects.yaml)
   -o OUT.json       write the bundled schema (all $defs) to OUT.json (default: stdout)
@@ -23,7 +23,10 @@ Usage:
                     counterparts (Rule 27 keys) and print the generated schemas left unused
   --replace-out F   write the updated draft to F instead of DRAFT
   --diagnostics F   write generator diagnostics (rule gaps, YAML gaps, heuristics) to F
-  -q                do not print diagnostics to stderr
+  --partial         also generate a partial update schema "<id>.update.partial" for
+                    every update view; with --compare, the partial update examples of
+                    the draft are validated against them
+  -q               do not print diagnostics to stderr
 
 Generation decisions (precedence: draft rules > YAML content > draft schema shape):
 
@@ -64,6 +67,11 @@ Generation decisions (precedence: draft rules > YAML content > draft schema shap
     attributes are used: cardinality, mutability, data type, "restrictions"
     (enum, minimum/maximum, pattern, minLength/maxLength, propertyNames) and
     "conditions" (if/then). Common Data Types come from "common_data_types".
+  * With --partial, every "<id>.update" view also gets "<id>.update.partial": the
+    partial update request of draft section "Update Rules > Partial", an array of
+    patch operations with one alternative per top-level path and operation. The
+    path is fixed by "const" (a "pattern" for dictionary entries), and "value"
+    holds the schema of the property, or of one array element / dictionary entry.
 """
 
 import argparse
@@ -119,6 +127,7 @@ EXTERNAL_RE = re.compile(r"^External:([^:]+):(.+)$")
 
 STANDARD_VIEWS = ("create", "read", "update", "query")
 OUTPUT_SUFFIX = ".output"  # response view of an operation whose output differs from "read"
+PARTIAL_SUFFIX = ".partial"  # partial update (JSON Patch) request of an update view
 REQUEST_VIEWS = ("create", "update")
 RESPONSE_VIEWS = ("read", "query", "reference")
 WRITABLE = ("create-only", "read-write")
@@ -1080,6 +1089,159 @@ def self_check(bundle):
 
 
 # ---------------------------------------------------------------------------
+# Partial update (draft section "Update Rules > Partial")
+# ---------------------------------------------------------------------------
+
+def match_names(s, defs, seen=frozenset()):
+    """Property names usable in a "match" for array elements of schema s.
+
+    None when the elements are not objects ("match" is not allowed for arrays of
+    primitive types); [] when they are objects whose properties are unknown."""
+    ref = s.get("$ref", "")
+    if ref.startswith("#/$defs/"):
+        name = ref[len("#/$defs/"):]
+        return None if name in seen or name not in defs else match_names(defs[name], defs, seen | {name})
+    branches = s.get("oneOf") or s.get("anyOf")
+    if branches:
+        names = [match_names(b, defs, seen) for b in branches]
+        if any(n is None for n in names):
+            return None
+        return sorted({k for n in names for k in n})
+    if s.get("type") != "object":
+        return None
+    return list(s.get("properties") or {})
+
+
+def patch_op(ops, path, value=None, match=None):
+    """One patch operation: an "op" from ops on one path, with optional value and match."""
+    props = {"op": {"type": "string", "const": ops[0]} if len(ops) == 1 else {"type": "string", "enum": ops},
+             "path": {"type": "string", **path}}
+    required = ["op", "path"]
+    if match is not None:
+        props["match"] = match
+        required.append("match")
+    if value is not None:
+        props["value"] = json.loads(json.dumps(value))
+        required.append("value")
+    return {"type": "object", "properties": props, "required": required, "additionalProperties": False}
+
+
+def partial_update_schema(update, defs):
+    """Partial update request for an update view, following "Update Rules > Partial".
+
+    One alternative per top-level path and operation (Processing Steps 4 and 5):
+    - single value or object: "add"/"replace" with the property schema as value,
+      "remove" when the property is not required;
+    - array: "add" appends one element, "replace" without "match" takes the whole
+      array, "remove" without "match" when not required; for arrays of objects also
+      "replace" (one element) and "remove" with a "match" naming element properties;
+    - dictionary: as a single value, plus "add"/"replace"/"remove" of one entry."""
+    alts = []
+    required = set(update.get("required") or [])
+    for k, s in (update.get("properties") or {}).items():
+        if k == "@type":
+            continue
+        ptr = "/" + k.replace("~", "~0").replace("/", "~1")
+        path = {"const": ptr}
+        optional = k not in required
+        if s.get("type") == "array":
+            item = s.get("items") or {}
+            alts.append(patch_op(["add"], path, item))
+            alts.append(patch_op(["replace"], path, s))
+            if optional:
+                alts.append(patch_op(["remove"], path))
+            names = match_names(item, defs)
+            if names is not None:
+                match = {"type": "object", "minProperties": 1}
+                if names:
+                    match["propertyNames"] = {"enum": names}
+                alts.append(patch_op(["replace"], path, item, match))
+                alts.append(patch_op(["remove"], path, match=match))
+            continue
+        alts.append(patch_op(["add", "replace"], path, s))
+        if optional:
+            alts.append(patch_op(["remove"], path))
+        if s.get("type") == "object" and isinstance(s.get("additionalProperties"), dict) \
+                and not s.get("properties"):
+            entry = {"pattern": "^" + re.escape(ptr) + "/[^/]+$"}
+            alts.append(patch_op(["add", "replace"], entry, s["additionalProperties"]))
+            alts.append(patch_op(["remove"], entry))
+    return {"type": "array", "items": {"oneOf": alts}, "minItems": 1}
+
+
+def add_partial_schemas(bundle):
+    """Insert "<id>.update.partial" after every "<id>.update"; returns the new names."""
+    defs, added = {}, []
+    for name, d in bundle["$defs"].items():
+        defs[name] = d
+        if name.endswith(".update"):
+            defs[name + PARTIAL_SUFFIX] = partial_update_schema(d, bundle["$defs"])
+            added.append(name + PARTIAL_SUFFIX)
+    bundle["$defs"] = defs
+    return added
+
+
+def partial_examples(md_path):
+    """(line, base @type, patch) of the partial update examples in "Update Rules > Schema > Examples".
+
+    The first typed object is the document the examples apply to; each array that
+    follows is a partial update request for it. Blocks in HTML comments are skipped."""
+    lines = Path(md_path).read_text(encoding="utf-8").splitlines()
+    heads, in_comment, base, out = [], False, None, []
+    i = 0
+    while i < len(lines):
+        line = lines[i]
+        if "<!--" in line:
+            in_comment = True
+        if in_comment:
+            in_comment = "-->" not in line
+        elif line.startswith("```"):
+            j = i + 1
+            while j < len(lines) and not lines[j].startswith("```"):
+                j += 1
+            if line.strip() == "```json" and heads[:1] == ["Update Rules"] and heads[-1:] == ["Examples"]:
+                try:
+                    block = json.loads("\n".join(lines[i + 1:j]))
+                except json.JSONDecodeError:
+                    block = None
+                if isinstance(block, dict) and base is None:
+                    base = block.get("@type")
+                elif isinstance(block, list):
+                    out.append((i + 2, base, block))
+            i = j
+        else:
+            m = re.match(r"^(#+)\s+(.*?)\s*(\{#.*\})?\s*$", line)
+            if m:
+                heads = heads[:len(m.group(1)) - 1] + [m.group(2)]
+        i += 1
+    return out
+
+
+def check_partial_examples(bundle, md_path):
+    """Validate the draft's partial update examples against the generated partial schemas."""
+    out = ["## Partial update examples (Update Rules > Schema > Examples)", ""]
+    examples = partial_examples(md_path)
+    if not HAS_JSONSCHEMA:
+        return out + ["- jsonschema not installed: validation skipped", ""]
+    for line, typ, patch in examples:
+        name = f"{typ}.update{PARTIAL_SUFFIX}"
+        if name not in bundle["$defs"]:
+            out.append(f"- line {line}: no generated `{name}`")
+            continue
+        v = Draft202012Validator({"$schema": SCHEMA_URI, "$ref": f"#/$defs/{name}", "$defs": bundle["$defs"]})
+        errors = sorted(v.iter_errors(patch), key=lambda e: list(e.absolute_path))
+        if not errors:
+            out.append(f"- line {line}: OK against `{name}`")
+        for e in errors:
+            loc = "/".join(str(p) for p in e.absolute_path) or "(root)"
+            out.append(f"- line {line}: INVALID against `{name}` at `{loc}`: {e.message[:200]}")
+    if not examples:
+        out.append("(no partial update examples found)")
+    out.append("")
+    return out
+
+
+# ---------------------------------------------------------------------------
 # Comparison with the draft
 # ---------------------------------------------------------------------------
 
@@ -1389,6 +1551,8 @@ def main():
     ap.add_argument("-q", "--quiet", action="store_true", help="do not print diagnostics to stderr")
     ap.add_argument("--expanded", action="store_true",
                     help="one JSON value per line instead of the draft's compact style")
+    ap.add_argument("--partial", action="store_true",
+                    help="also generate a partial update schema \"<id>.update.partial\" per update view")
     args = ap.parse_args()
 
     data = yaml.safe_load(Path(args.model).read_text(encoding="utf-8"))
@@ -1396,6 +1560,7 @@ def main():
     model = Model(data, diag)
     gen = Generator(model, diag)
     bundle = gen.build()
+    partial = add_partial_schemas(bundle) if args.partial else []
 
     if args.replace_out and not args.replace:
         ap.error("--replace-out requires --replace")
@@ -1407,6 +1572,7 @@ def main():
         sys.stdout.write(text)
 
     kinds = {gen.def_name(o, v): o.kind for o in model.objs.values() for v in gen.views_for(o)}
+    kinds.update({n: kinds[n[:-len(PARTIAL_SUFFIX)]] for n in partial})
     if args.split:
         outdir = Path(args.split)
         outdir.mkdir(parents=True, exist_ok=True)
@@ -1426,6 +1592,8 @@ def main():
 
     if args.compare:
         cmp_text = compare(bundle, args.compare)
+        if partial:
+            cmp_text += "\n" + "\n".join(check_partial_examples(bundle, args.compare)) + "\n"
         if args.compare_out:
             Path(args.compare_out).write_text(cmp_text, encoding="utf-8")
         else:
