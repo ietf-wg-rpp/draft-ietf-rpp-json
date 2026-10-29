@@ -778,6 +778,24 @@
       },
       "required": ["@type", "restoreReport"]
     },
+    "restoreProcess.update.partial": {
+      "type": "array",
+      "items": {
+        "oneOf": [
+          {
+            "type": "object",
+            "properties": {
+              "op": { "type": "string", "enum": ["add", "replace"] },
+              "path": { "type": "string", "const": "/restoreReport" },
+              "value": { "$ref": "#/$defs/restoreReport.create" }
+            },
+            "required": ["op", "path", "value"],
+            "additionalProperties": false
+          }
+        ]
+      },
+      "minItems": 1
+    },
     "restoreProcess.reference": {
       "type": "object",
       "properties": {
@@ -1072,6 +1090,275 @@
       },
       "required": ["@type"]
     },
+    "domainName.update.partial": {
+      "type": "array",
+      "items": {
+        "oneOf": [
+          {
+            "type": "object",
+            "properties": {
+              "op": { "type": "string", "const": "add" },
+              "path": { "type": "string", "const": "/status" },
+              "value": { "$ref": "#/$defs/domainStatus.create" }
+            },
+            "required": ["op", "path", "value"],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "op": { "type": "string", "const": "replace" },
+              "path": { "type": "string", "const": "/status" },
+              "value": {
+                "type": "array",
+                "items": { "$ref": "#/$defs/domainStatus.create" }
+              }
+            },
+            "required": ["op", "path", "value"],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "op": { "type": "string", "const": "remove" },
+              "path": { "type": "string", "const": "/status" }
+            },
+            "required": ["op", "path"],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "op": { "type": "string", "const": "replace" },
+              "path": { "type": "string", "const": "/status" },
+              "match": {
+                "type": "object",
+                "minProperties": 1,
+                "propertyNames": { "enum": ["@type", "label", "reason", "due"] }
+              },
+              "value": { "$ref": "#/$defs/domainStatus.create" }
+            },
+            "required": ["op", "path", "match", "value"],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "op": { "type": "string", "const": "remove" },
+              "path": { "type": "string", "const": "/status" },
+              "match": {
+                "type": "object",
+                "minProperties": 1,
+                "propertyNames": { "enum": ["@type", "label", "reason", "due"] }
+              }
+            },
+            "required": ["op", "path", "match"],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "op": { "type": "string", "enum": ["add", "replace"] },
+              "path": { "type": "string", "const": "/registrant" },
+              "value": { "$ref": "#/$defs/contact.reference" }
+            },
+            "required": ["op", "path", "value"],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "op": { "type": "string", "const": "remove" },
+              "path": { "type": "string", "const": "/registrant" }
+            },
+            "required": ["op", "path"],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "op": { "type": "string", "const": "add" },
+              "path": { "type": "string", "const": "/contacts" },
+              "value": {
+                "type": "object",
+                "properties": {
+                  "label": { "type": "string" },
+                  "object": { "$ref": "#/$defs/contact.reference" }
+                },
+                "required": ["label", "object"]
+              }
+            },
+            "required": ["op", "path", "value"],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "op": { "type": "string", "const": "replace" },
+              "path": { "type": "string", "const": "/contacts" },
+              "value": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "label": { "type": "string" },
+                    "object": { "$ref": "#/$defs/contact.reference" }
+                  },
+                  "required": ["label", "object"]
+                }
+              }
+            },
+            "required": ["op", "path", "value"],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "op": { "type": "string", "const": "remove" },
+              "path": { "type": "string", "const": "/contacts" }
+            },
+            "required": ["op", "path"],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "op": { "type": "string", "const": "replace" },
+              "path": { "type": "string", "const": "/contacts" },
+              "match": {
+                "type": "object",
+                "minProperties": 1,
+                "propertyNames": { "enum": ["label", "object"] }
+              },
+              "value": {
+                "type": "object",
+                "properties": {
+                  "label": { "type": "string" },
+                  "object": { "$ref": "#/$defs/contact.reference" }
+                },
+                "required": ["label", "object"]
+              }
+            },
+            "required": ["op", "path", "match", "value"],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "op": { "type": "string", "const": "remove" },
+              "path": { "type": "string", "const": "/contacts" },
+              "match": {
+                "type": "object",
+                "minProperties": 1,
+                "propertyNames": { "enum": ["label", "object"] }
+              }
+            },
+            "required": ["op", "path", "match"],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "op": { "type": "string", "const": "add" },
+              "path": { "type": "string", "const": "/nameservers" },
+              "value": { "$ref": "#/$defs/host.reference" }
+            },
+            "required": ["op", "path", "value"],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "op": { "type": "string", "const": "replace" },
+              "path": { "type": "string", "const": "/nameservers" },
+              "value": {
+                "type": "array",
+                "items": { "$ref": "#/$defs/host.reference" }
+              }
+            },
+            "required": ["op", "path", "value"],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "op": { "type": "string", "const": "remove" },
+              "path": { "type": "string", "const": "/nameservers" }
+            },
+            "required": ["op", "path"],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "op": { "type": "string", "const": "replace" },
+              "path": { "type": "string", "const": "/nameservers" },
+              "match": {
+                "type": "object",
+                "minProperties": 1,
+                "propertyNames": { "enum": ["@type", "hostName"] }
+              },
+              "value": { "$ref": "#/$defs/host.reference" }
+            },
+            "required": ["op", "path", "match", "value"],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "op": { "type": "string", "const": "remove" },
+              "path": { "type": "string", "const": "/nameservers" },
+              "match": {
+                "type": "object",
+                "minProperties": 1,
+                "propertyNames": { "enum": ["@type", "hostName"] }
+              }
+            },
+            "required": ["op", "path", "match"],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "op": { "type": "string", "enum": ["add", "replace"] },
+              "path": { "type": "string", "const": "/dns" },
+              "value": { "$ref": "#/$defs/dnsData.create" }
+            },
+            "required": ["op", "path", "value"],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "op": { "type": "string", "const": "remove" },
+              "path": { "type": "string", "const": "/dns" }
+            },
+            "required": ["op", "path"],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "op": { "type": "string", "enum": ["add", "replace"] },
+              "path": { "type": "string", "const": "/authInfo" },
+              "value": { "$ref": "#/$defs/authInfo.create" }
+            },
+            "required": ["op", "path", "value"],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "op": { "type": "string", "const": "remove" },
+              "path": { "type": "string", "const": "/authInfo" }
+            },
+            "required": ["op", "path"],
+            "additionalProperties": false
+          }
+        ]
+      },
+      "minItems": 1
+    },
     "domainName.reference": {
       "type": "object",
       "properties": {
@@ -1127,6 +1414,123 @@
       },
       "required": ["@type", "contactInfo"]
     },
+    "contact.update.partial": {
+      "type": "array",
+      "items": {
+        "oneOf": [
+          {
+            "type": "object",
+            "properties": {
+              "op": { "type": "string", "const": "add" },
+              "path": { "type": "string", "const": "/status" },
+              "value": { "$ref": "#/$defs/contactStatus.create" }
+            },
+            "required": ["op", "path", "value"],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "op": { "type": "string", "const": "replace" },
+              "path": { "type": "string", "const": "/status" },
+              "value": {
+                "type": "array",
+                "items": { "$ref": "#/$defs/contactStatus.create" }
+              }
+            },
+            "required": ["op", "path", "value"],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "op": { "type": "string", "const": "remove" },
+              "path": { "type": "string", "const": "/status" }
+            },
+            "required": ["op", "path"],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "op": { "type": "string", "const": "replace" },
+              "path": { "type": "string", "const": "/status" },
+              "match": {
+                "type": "object",
+                "minProperties": 1,
+                "propertyNames": { "enum": ["@type", "label", "reason"] }
+              },
+              "value": { "$ref": "#/$defs/contactStatus.create" }
+            },
+            "required": ["op", "path", "match", "value"],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "op": { "type": "string", "const": "remove" },
+              "path": { "type": "string", "const": "/status" },
+              "match": {
+                "type": "object",
+                "minProperties": 1,
+                "propertyNames": { "enum": ["@type", "label", "reason"] }
+              }
+            },
+            "required": ["op", "path", "match"],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "op": { "type": "string", "enum": ["add", "replace"] },
+              "path": { "type": "string", "const": "/contactInfo" },
+              "value": { "$ref": "#/$defs/Card" }
+            },
+            "required": ["op", "path", "value"],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "op": { "type": "string", "enum": ["add", "replace"] },
+              "path": { "type": "string", "const": "/authInfo" },
+              "value": { "$ref": "#/$defs/authInfo.create" }
+            },
+            "required": ["op", "path", "value"],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "op": { "type": "string", "const": "remove" },
+              "path": { "type": "string", "const": "/authInfo" }
+            },
+            "required": ["op", "path"],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "op": { "type": "string", "enum": ["add", "replace"] },
+              "path": { "type": "string", "const": "/disclose" },
+              "value": { "$ref": "#/$defs/disclose.read" }
+            },
+            "required": ["op", "path", "value"],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "op": { "type": "string", "const": "remove" },
+              "path": { "type": "string", "const": "/disclose" }
+            },
+            "required": ["op", "path"],
+            "additionalProperties": false
+          }
+        ]
+      },
+      "minItems": 1
+    },
     "contact.reference": {
       "type": "object",
       "properties": {
@@ -1176,6 +1580,104 @@
         "dns": { "$ref": "#/$defs/dnsData.create" }
       },
       "required": ["@type", "hostName"]
+    },
+    "host.update.partial": {
+      "type": "array",
+      "items": {
+        "oneOf": [
+          {
+            "type": "object",
+            "properties": {
+              "op": { "type": "string", "enum": ["add", "replace"] },
+              "path": { "type": "string", "const": "/hostName" },
+              "value": { "type": "string", "format": "hostname" }
+            },
+            "required": ["op", "path", "value"],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "op": { "type": "string", "const": "add" },
+              "path": { "type": "string", "const": "/status" },
+              "value": { "$ref": "#/$defs/hostStatus.create" }
+            },
+            "required": ["op", "path", "value"],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "op": { "type": "string", "const": "replace" },
+              "path": { "type": "string", "const": "/status" },
+              "value": {
+                "type": "array",
+                "items": { "$ref": "#/$defs/hostStatus.create" }
+              }
+            },
+            "required": ["op", "path", "value"],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "op": { "type": "string", "const": "remove" },
+              "path": { "type": "string", "const": "/status" }
+            },
+            "required": ["op", "path"],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "op": { "type": "string", "const": "replace" },
+              "path": { "type": "string", "const": "/status" },
+              "match": {
+                "type": "object",
+                "minProperties": 1,
+                "propertyNames": { "enum": ["@type", "label", "reason"] }
+              },
+              "value": { "$ref": "#/$defs/hostStatus.create" }
+            },
+            "required": ["op", "path", "match", "value"],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "op": { "type": "string", "const": "remove" },
+              "path": { "type": "string", "const": "/status" },
+              "match": {
+                "type": "object",
+                "minProperties": 1,
+                "propertyNames": { "enum": ["@type", "label", "reason"] }
+              }
+            },
+            "required": ["op", "path", "match"],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "op": { "type": "string", "enum": ["add", "replace"] },
+              "path": { "type": "string", "const": "/dns" },
+              "value": { "$ref": "#/$defs/dnsData.create" }
+            },
+            "required": ["op", "path", "value"],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "op": { "type": "string", "const": "remove" },
+              "path": { "type": "string", "const": "/dns" }
+            },
+            "required": ["op", "path"],
+            "additionalProperties": false
+          }
+        ]
+      },
+      "minItems": 1
     },
     "host.reference": {
       "type": "object",
@@ -1310,6 +1812,310 @@
       },
       "required": ["@type", "roles"]
     },
+    "organisation.update.partial": {
+      "type": "array",
+      "items": {
+        "oneOf": [
+          {
+            "type": "object",
+            "properties": {
+              "op": { "type": "string", "const": "add" },
+              "path": { "type": "string", "const": "/status" },
+              "value": { "$ref": "#/$defs/organisationStatus.create" }
+            },
+            "required": ["op", "path", "value"],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "op": { "type": "string", "const": "replace" },
+              "path": { "type": "string", "const": "/status" },
+              "value": {
+                "type": "array",
+                "items": { "$ref": "#/$defs/organisationStatus.create" }
+              }
+            },
+            "required": ["op", "path", "value"],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "op": { "type": "string", "const": "remove" },
+              "path": { "type": "string", "const": "/status" }
+            },
+            "required": ["op", "path"],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "op": { "type": "string", "const": "replace" },
+              "path": { "type": "string", "const": "/status" },
+              "match": {
+                "type": "object",
+                "minProperties": 1,
+                "propertyNames": { "enum": ["@type", "label", "reason"] }
+              },
+              "value": { "$ref": "#/$defs/organisationStatus.create" }
+            },
+            "required": ["op", "path", "match", "value"],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "op": { "type": "string", "const": "remove" },
+              "path": { "type": "string", "const": "/status" },
+              "match": {
+                "type": "object",
+                "minProperties": 1,
+                "propertyNames": { "enum": ["@type", "label", "reason"] }
+              }
+            },
+            "required": ["op", "path", "match"],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "op": { "type": "string", "enum": ["add", "replace"] },
+              "path": { "type": "string", "const": "/roles" },
+              "value": {
+                "type": "object",
+                "additionalProperties": { "$ref": "#/$defs/organisationRole.create" },
+                "minProperties": 1
+              }
+            },
+            "required": ["op", "path", "value"],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "op": { "type": "string", "enum": ["add", "replace"] },
+              "path": { "type": "string", "pattern": "^/roles/[^/]+$" },
+              "value": { "$ref": "#/$defs/organisationRole.create" }
+            },
+            "required": ["op", "path", "value"],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "op": { "type": "string", "const": "remove" },
+              "path": { "type": "string", "pattern": "^/roles/[^/]+$" }
+            },
+            "required": ["op", "path"],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "op": { "type": "string", "enum": ["add", "replace"] },
+              "path": { "type": "string", "const": "/parent" },
+              "value": { "$ref": "#/$defs/organisation.reference" }
+            },
+            "required": ["op", "path", "value"],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "op": { "type": "string", "const": "remove" },
+              "path": { "type": "string", "const": "/parent" }
+            },
+            "required": ["op", "path"],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "op": { "type": "string", "enum": ["add", "replace"] },
+              "path": { "type": "string", "const": "/contactInfo" },
+              "value": { "$ref": "#/$defs/Card" }
+            },
+            "required": ["op", "path", "value"],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "op": { "type": "string", "const": "remove" },
+              "path": { "type": "string", "const": "/contactInfo" }
+            },
+            "required": ["op", "path"],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "op": { "type": "string", "const": "add" },
+              "path": { "type": "string", "const": "/contacts" },
+              "value": {
+                "type": "object",
+                "properties": {
+                  "label": { "type": "string" },
+                  "object": { "$ref": "#/$defs/contact.reference" }
+                },
+                "required": ["label", "object"]
+              }
+            },
+            "required": ["op", "path", "value"],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "op": { "type": "string", "const": "replace" },
+              "path": { "type": "string", "const": "/contacts" },
+              "value": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "label": { "type": "string" },
+                    "object": { "$ref": "#/$defs/contact.reference" }
+                  },
+                  "required": ["label", "object"]
+                }
+              }
+            },
+            "required": ["op", "path", "value"],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "op": { "type": "string", "const": "remove" },
+              "path": { "type": "string", "const": "/contacts" }
+            },
+            "required": ["op", "path"],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "op": { "type": "string", "const": "replace" },
+              "path": { "type": "string", "const": "/contacts" },
+              "match": {
+                "type": "object",
+                "minProperties": 1,
+                "propertyNames": { "enum": ["label", "object"] }
+              },
+              "value": {
+                "type": "object",
+                "properties": {
+                  "label": { "type": "string" },
+                  "object": { "$ref": "#/$defs/contact.reference" }
+                },
+                "required": ["label", "object"]
+              }
+            },
+            "required": ["op", "path", "match", "value"],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "op": { "type": "string", "const": "remove" },
+              "path": { "type": "string", "const": "/contacts" },
+              "match": {
+                "type": "object",
+                "minProperties": 1,
+                "propertyNames": { "enum": ["label", "object"] }
+              }
+            },
+            "required": ["op", "path", "match"],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "op": { "type": "string", "const": "add" },
+              "path": { "type": "string", "const": "/users" },
+              "value": {
+                "type": "object",
+                "properties": {
+                  "label": { "type": "string" },
+                  "object": { "$ref": "#/$defs/user.reference" }
+                },
+                "required": ["label", "object"]
+              }
+            },
+            "required": ["op", "path", "value"],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "op": { "type": "string", "const": "replace" },
+              "path": { "type": "string", "const": "/users" },
+              "value": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "label": { "type": "string" },
+                    "object": { "$ref": "#/$defs/user.reference" }
+                  },
+                  "required": ["label", "object"]
+                }
+              }
+            },
+            "required": ["op", "path", "value"],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "op": { "type": "string", "const": "remove" },
+              "path": { "type": "string", "const": "/users" }
+            },
+            "required": ["op", "path"],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "op": { "type": "string", "const": "replace" },
+              "path": { "type": "string", "const": "/users" },
+              "match": {
+                "type": "object",
+                "minProperties": 1,
+                "propertyNames": { "enum": ["label", "object"] }
+              },
+              "value": {
+                "type": "object",
+                "properties": {
+                  "label": { "type": "string" },
+                  "object": { "$ref": "#/$defs/user.reference" }
+                },
+                "required": ["label", "object"]
+              }
+            },
+            "required": ["op", "path", "match", "value"],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "op": { "type": "string", "const": "remove" },
+              "path": { "type": "string", "const": "/users" },
+              "match": {
+                "type": "object",
+                "minProperties": 1,
+                "propertyNames": { "enum": ["label", "object"] }
+              }
+            },
+            "required": ["op", "path", "match"],
+            "additionalProperties": false
+          }
+        ]
+      },
+      "minItems": 1
+    },
     "organisation.reference": {
       "type": "object",
       "properties": {
@@ -1402,6 +2208,62 @@
         "status": { "$ref": "#/$defs/userStatus.create" }
       },
       "required": ["@type", "details"]
+    },
+    "user.update.partial": {
+      "type": "array",
+      "items": {
+        "oneOf": [
+          {
+            "type": "object",
+            "properties": {
+              "op": { "type": "string", "enum": ["add", "replace"] },
+              "path": { "type": "string", "const": "/details" },
+              "value": { "$ref": "#/$defs/Card" }
+            },
+            "required": ["op", "path", "value"],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "op": { "type": "string", "enum": ["add", "replace"] },
+              "path": { "type": "string", "const": "/description" },
+              "value": { "type": "string" }
+            },
+            "required": ["op", "path", "value"],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "op": { "type": "string", "const": "remove" },
+              "path": { "type": "string", "const": "/description" }
+            },
+            "required": ["op", "path"],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "op": { "type": "string", "enum": ["add", "replace"] },
+              "path": { "type": "string", "const": "/status" },
+              "value": { "$ref": "#/$defs/userStatus.create" }
+            },
+            "required": ["op", "path", "value"],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "op": { "type": "string", "const": "remove" },
+              "path": { "type": "string", "const": "/status" }
+            },
+            "required": ["op", "path"],
+            "additionalProperties": false
+          }
+        ]
+      },
+      "minItems": 1
     },
     "user.reference": {
       "type": "object",

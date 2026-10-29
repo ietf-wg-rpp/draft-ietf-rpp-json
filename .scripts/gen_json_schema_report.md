@@ -3,7 +3,7 @@
 Inputs:
 
 - object model `.work/draft-ietf-rpp-data-objects.yaml` (export with `unique_identifier`, `owner`, `supported_processes`, `direct_access`, `visibility`, structured subsection `tables`, structured operation `input`/`output` items (one `Reference` per Input, no per-item `elements`), `common_data_types`, element `restrictions` including the status `client_values`/`server_only_values` partition, object `conditions`, the status object flags `at_least_one_status_by_server` and `status_not_required_for_client_request`, and the object attribute `abstract`)
-- draft `src/draft-ietf-rpp-json.md` (branch `feature/generate-schemas`, commit `29ee5a8`)
+- draft `src/draft-ietf-rpp-json.md` (branch `work-ietf-rpp-json-01`, commit `688af85`)
 - source text `.work/draft-ietf-rpp-data-objects.clean.txt`, checked where the YAML is silent
 
 Generator: `.scripts/gen_json_schema.py`.
@@ -11,7 +11,7 @@ Generator: `.scripts/gen_json_schema.py`.
 ```
 .scripts/.venv/bin/python .scripts/gen_json_schema.py .work/draft-ietf-rpp-data-objects.yaml \
     -o schema.json --split schemas/ --diagnostics diag.md \
-    --compare src/draft-ietf-rpp-json.md --compare-out compare.md
+    --compare src/draft-ietf-rpp-json.md --compare-out compare.md [--partial]
 ```
 
 `--replace src/draft-ietf-rpp-json.md [--replace-out FILE]` puts the generated schemas into the draft's schema blocks (see `.scripts/CLAUDE.md`). Against the current draft it replaces 92 of 94 blocks, and the result is byte-identical to the draft: every replaced block already holds the generated schema. It leaves 2 untouched: `identifier` and `Card` (placeholders). Every generated schema has a place in the draft.
@@ -33,6 +33,7 @@ Generation precedence: **the draft's written rules, then the YAML content, then 
 - Common Data Types are built from `common_data_types`: `base_type` plus `restrictions`, under the draft's keys (`identifier`, `clientIdentifier`, `phoneNumber`).
 - A bare object name as a data type is treated as `Composition[Type]` (data-objects §8.2).
 - Inheritance is flattened. Polymorphism is applied: a reference to a base object is a `oneOf` over the base object and all its descendants, each fixed by its `@type` (M8). Objects exported with `abstract: true` (`baseProcess`, `baseMessage`) are left out of the `oneOf`. Their own `read` views are still generated, because the draft has a schema block for each, but nothing references them.
+- `--partial` (M27) adds `<id>.update.partial` after each of the 6 `<id>.update` views (100 `$defs` in total). Each is the *Update Rules > Schema* shape, narrowed per object: one `oneOf` alternative per top-level path and operation, the path fixed by `const` (a `pattern` for one dictionary entry), and `value` tied to the property schema (single value, whole array) or to one element or entry. With `--compare`, the 4 partial update examples in *Update Rules > Schema > Examples* validate against `domainName.update.partial`.
 - Output is compact like the draft's schema blocks (flat objects and arrays on one line); `--expanded` gives one value per line.
 
 ---
@@ -69,6 +70,7 @@ Without these rules, the schemas can't be reproduced the way the draft writes th
 | M24 | open | **The Processes Object is shared by all Data Objects.** No rule restricts it to the processes a Data Object supports (`supported_processes` plus owned processes). For example, `contact.read.processes` accepts `renewProcess`, `restoreProcess` and `createProcess`. | `processes` | one shared `processes` component; reported as a diagnostic |
 | M25 | open | **No rule for cross-element conditions** (data-objects prose such as "`gainingClientId` is required for push transfers"). The draft now uses the generated `if`/`then` pairs, but no rule defines them. | `transferProcess.*`, `domainTransferProcess.*` | `if`/`then` per exported condition (`allOf` when more than one), in every view that holds all elements the condition names |
 | M26 | resolved | **No rule for status objects in requests.** Rule 22 gives one `enum` per status object, and Rules 1, 4 and 23 make `status` (`1+`, read-write) required in create and update requests. Data-objects, however, lets a client set only the values whose *Set By* column contains `client`, lets the server always assign at least one value (`ok`, `active`), and lets a client omit the status when creating or updating the object. No rule says which values a request schema accepts, whether `status` is required in requests, or what happens when a status object has no client-settable value. | all `*.create`/`*.update` with `status`. Resolved: the draft now has Rules 28–31 (*Status Objects* under JSON Schema Composition Rules; Rule 27 gives every Component Object a `read` view and, when it has a writable element, a `create` view used in all request content), which follow the generator choice. | `<id>.create` with the client values in requests; `status` optional in requests when the client may omit it; left out of requests when no value is client-settable; required in read views when the server always assigns one |
+| M27 | open | **No per-object partial update schema.** *Update Rules > Schema* defines one generic schema with a free `path`, an unconstrained `value` and any object as `match`. The rules for which paths, values and `match` keys are valid for an object exist only as prose (*Processing Steps*). Nothing says whether a `path` may point below a top-level property (`/dns/...`), or how a dictionary entry is addressed. | `partialUpdate` | with `--partial`: `<id>.update.partial` over the update view's properties, top-level paths only; non-array: `add`/`replace` with the property schema, `remove` unless required; array: `add` one element, `replace` the whole array, `remove` unless required, and for arrays of objects `replace`/`remove` with a `match` limited to the element's property names; dictionary: as non-array, plus `add`/`replace`/`remove` of `/<prop>/<key>` |
 
 ### Rule conflicts
 

@@ -1,0 +1,104 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$ref": "#/$defs/host.update.partial",
+  "$defs": {
+    "host.update.partial": {
+      "type": "array",
+      "items": {
+        "oneOf": [
+          {
+            "type": "object",
+            "properties": {
+              "op": { "type": "string", "enum": ["add", "replace"] },
+              "path": { "type": "string", "const": "/hostName" },
+              "value": { "type": "string", "format": "hostname" }
+            },
+            "required": ["op", "path", "value"],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "op": { "type": "string", "const": "add" },
+              "path": { "type": "string", "const": "/status" },
+              "value": { "$ref": "#/$defs/hostStatus.create" }
+            },
+            "required": ["op", "path", "value"],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "op": { "type": "string", "const": "replace" },
+              "path": { "type": "string", "const": "/status" },
+              "value": {
+                "type": "array",
+                "items": { "$ref": "#/$defs/hostStatus.create" }
+              }
+            },
+            "required": ["op", "path", "value"],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "op": { "type": "string", "const": "remove" },
+              "path": { "type": "string", "const": "/status" }
+            },
+            "required": ["op", "path"],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "op": { "type": "string", "const": "replace" },
+              "path": { "type": "string", "const": "/status" },
+              "match": {
+                "type": "object",
+                "minProperties": 1,
+                "propertyNames": { "enum": ["@type", "label", "reason"] }
+              },
+              "value": { "$ref": "#/$defs/hostStatus.create" }
+            },
+            "required": ["op", "path", "match", "value"],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "op": { "type": "string", "const": "remove" },
+              "path": { "type": "string", "const": "/status" },
+              "match": {
+                "type": "object",
+                "minProperties": 1,
+                "propertyNames": { "enum": ["@type", "label", "reason"] }
+              }
+            },
+            "required": ["op", "path", "match"],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "op": { "type": "string", "enum": ["add", "replace"] },
+              "path": { "type": "string", "const": "/dns" },
+              "value": { "$ref": "#/$defs/dnsData.create" }
+            },
+            "required": ["op", "path", "value"],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "op": { "type": "string", "const": "remove" },
+              "path": { "type": "string", "const": "/dns" }
+            },
+            "required": ["op", "path"],
+            "additionalProperties": false
+          }
+        ]
+      },
+      "minItems": 1
+    }
+  }
+}
