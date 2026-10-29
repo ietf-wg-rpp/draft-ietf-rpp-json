@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$ref": "#/$defs/restoreProcess.reference",
+  "$defs": {
+    "restoreProcess.reference": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "restoreProcess" },
+        "processId": { "type": "string", "readOnly": true }
+      },
+      "required": ["@type", "processId"]
+    }
+  }
+}

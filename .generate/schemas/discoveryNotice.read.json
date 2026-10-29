@@ -1,0 +1,13 @@
+{
+  "$defs": {
+    "discoveryNotice.read": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "discoveryNotice", "readOnly": true },
+        "pubTime": { "type": "string", "format": "date-time", "readOnly": true },
+        "text": { "type": "string", "readOnly": true }
+      },
+      "required": ["@type", "pubTime", "text"]
+    }
+  }
+}

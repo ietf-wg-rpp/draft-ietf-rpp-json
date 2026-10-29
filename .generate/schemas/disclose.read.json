@@ -1,0 +1,11 @@
+{
+  "$defs": {
+    "disclose.read": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "disclose", "readOnly": true }
+      },
+      "required": ["@type"]
+    }
+  }
+}

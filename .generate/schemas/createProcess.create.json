@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$ref": "#/$defs/createProcess.create",
+  "$defs": {
+    "createProcess.create": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "createProcess" }
+      },
+      "required": ["@type"]
+    }
+  }
+}

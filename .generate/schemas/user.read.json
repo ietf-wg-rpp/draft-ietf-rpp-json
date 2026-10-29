@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$ref": "#/$defs/user.read",
+  "$defs": {
+    "user.read": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "user", "readOnly": true },
+        "id": { "$ref": "#/$defs/identifier", "readOnly": true },
+        "details": { "$ref": "#/$defs/Card" },
+        "description": { "type": "string" },
+        "status": { "$ref": "#/$defs/userStatus.read" },
+        "organisation": { "$ref": "#/$defs/organisation.reference", "readOnly": true },
+        "processes": { "$ref": "#/$defs/processes.read", "readOnly": true }
+      },
+      "required": ["@type", "id", "details", "status", "organisation"]
+    }
+  }
+}

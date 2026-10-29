@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$ref": "#/$defs/domainName.update",
+  "$defs": {
+    "domainName.update": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "domainName" },
+        "status": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/domainStatus.create" }
+        },
+        "registrant": { "$ref": "#/$defs/contact.reference" },
+        "contacts": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "label": { "type": "string" },
+              "object": { "$ref": "#/$defs/contact.reference" }
+            },
+            "required": ["label", "object"]
+          }
+        },
+        "nameservers": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/host.reference" }
+        },
+        "dns": { "$ref": "#/$defs/dnsData.create" },
+        "authInfo": { "$ref": "#/$defs/authInfo.create" }
+      },
+      "required": ["@type"]
+    }
+  }
+}

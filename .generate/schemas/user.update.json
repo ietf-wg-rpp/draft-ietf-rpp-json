@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$ref": "#/$defs/user.update",
+  "$defs": {
+    "user.update": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "user" },
+        "details": { "$ref": "#/$defs/Card" },
+        "description": { "type": "string" },
+        "status": { "$ref": "#/$defs/userStatus.create" }
+      },
+      "required": ["@type", "details"]
+    }
+  }
+}

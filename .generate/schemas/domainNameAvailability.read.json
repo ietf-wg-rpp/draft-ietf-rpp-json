@@ -1,0 +1,13 @@
+{
+  "$defs": {
+    "domainNameAvailability.read": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "domainNameAvailability", "readOnly": true },
+        "available": { "type": "boolean", "readOnly": true },
+        "reason": { "type": "string", "readOnly": true }
+      },
+      "required": ["@type", "available"]
+    }
+  }
+}

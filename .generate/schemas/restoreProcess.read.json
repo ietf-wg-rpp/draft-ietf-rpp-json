@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$ref": "#/$defs/restoreProcess.read",
+  "$defs": {
+    "restoreProcess.read": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "restoreProcess", "readOnly": true },
+        "processId": { "type": "string", "readOnly": true },
+        "restoreStatus": {
+          "type": "string",
+          "enum": ["pendingRestore", "restored", "rgpPendingDelete"],
+          "readOnly": true
+        },
+        "requestDate": { "type": "string", "format": "date-time", "readOnly": true },
+        "reportDate": { "type": "string", "format": "date-time", "readOnly": true },
+        "reportDueDate": { "type": "string", "format": "date-time", "readOnly": true },
+        "restoreReport": { "$ref": "#/$defs/restoreReport.read" }
+      },
+      "required": ["@type", "restoreStatus"]
+    }
+  }
+}

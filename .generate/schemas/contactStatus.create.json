@@ -1,0 +1,17 @@
+{
+  "$defs": {
+    "contactStatus.create": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "contactStatus" },
+        "label": {
+          "type": "string",
+          "enum": ["clientDeleteProhibited", "clientTransferProhibited", "clientUpdateProhibited"],
+          "writeOnly": true
+        },
+        "reason": { "type": "string", "writeOnly": true }
+      },
+      "required": ["@type", "label"]
+    }
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$ref": "#/$defs/contact.update",
+  "$defs": {
+    "contact.update": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "contact" },
+        "status": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/contactStatus.create" }
+        },
+        "contactInfo": { "$ref": "#/$defs/Card" },
+        "authInfo": { "$ref": "#/$defs/authInfo.create" },
+        "disclose": { "$ref": "#/$defs/disclose.read" }
+      },
+      "required": ["@type", "contactInfo"]
+    }
+  }
+}

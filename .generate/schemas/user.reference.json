@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$ref": "#/$defs/user.reference",
+  "$defs": {
+    "user.reference": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "user" },
+        "id": { "$ref": "#/$defs/identifier" }
+      },
+      "required": ["@type", "id"]
+    }
+  }
+}
