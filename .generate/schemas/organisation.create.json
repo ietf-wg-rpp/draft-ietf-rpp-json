@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$ref": "#/$defs/organisation.create",
+  "$defs": {
+    "organisation.create": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "organisation" },
+        "id": { "$ref": "#/$defs/identifier", "writeOnly": true },
+        "status": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/organisationStatus.create" }
+        },
+        "roles": {
+          "type": "object",
+          "additionalProperties": { "$ref": "#/$defs/organisationRole.create" },
+          "minProperties": 1
+        },
+        "parent": { "$ref": "#/$defs/organisation.reference" },
+        "contactInfo": { "$ref": "#/$defs/Card" },
+        "contacts": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "label": { "type": "string" },
+              "object": { "$ref": "#/$defs/contact.reference" }
+            },
+            "required": ["label", "object"]
+          }
+        },
+        "users": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "label": { "type": "string" },
+              "object": { "$ref": "#/$defs/user.reference" }
+            },
+            "required": ["label", "object"]
+          }
+        }
+      },
+      "required": ["@type", "id", "roles"]
+    }
+  }
+}

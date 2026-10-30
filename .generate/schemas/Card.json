@@ -1,0 +1,8 @@
+{
+  "$defs": {
+    "Card": {
+      "type": "object",
+      "$comment": "External type from RPP-JSContact-Profile: definition not available in the object model export"
+    }
+  }
+}

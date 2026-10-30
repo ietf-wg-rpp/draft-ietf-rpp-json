@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$ref": "#/$defs/contact.reference",
+  "$defs": {
+    "contact.reference": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "contact" },
+        "id": { "$ref": "#/$defs/identifier" }
+      },
+      "required": ["@type", "id"]
+    }
+  }
+}

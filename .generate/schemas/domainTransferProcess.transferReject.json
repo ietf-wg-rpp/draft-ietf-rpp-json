@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$ref": "#/$defs/domainTransferProcess.transferReject",
+  "$defs": {
+    "domainTransferProcess.transferReject": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "domainTransferProcess" },
+        "reason": { "type": "string" }
+      },
+      "required": ["@type"]
+    }
+  }
+}

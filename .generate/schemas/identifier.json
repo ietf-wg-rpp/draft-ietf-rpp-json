@@ -1,0 +1,5 @@
+{
+  "$defs": {
+    "identifier": { "type": "string" }
+  }
+}

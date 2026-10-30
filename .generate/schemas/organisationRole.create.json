@@ -1,0 +1,16 @@
+{
+  "$defs": {
+    "organisationRole.create": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "organisationRole" },
+        "roleId": { "type": "string" },
+        "status": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/organisationRoleStatus.create" }
+        }
+      },
+      "required": ["@type"]
+    }
+  }
+}

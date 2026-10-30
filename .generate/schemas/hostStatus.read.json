@@ -1,0 +1,28 @@
+{
+  "$defs": {
+    "hostStatus.read": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "hostStatus", "readOnly": true },
+        "label": {
+          "type": "string",
+          "enum": [
+            "clientDeleteProhibited",
+            "serverDeleteProhibited",
+            "clientUpdateProhibited",
+            "serverUpdateProhibited",
+            "linked",
+            "ok",
+            "pendingCreate",
+            "pendingDelete",
+            "pendingTransfer",
+            "pendingUpdate"
+          ],
+          "readOnly": true
+        },
+        "reason": { "type": "string", "readOnly": true }
+      },
+      "required": ["@type", "label"]
+    }
+  }
+}

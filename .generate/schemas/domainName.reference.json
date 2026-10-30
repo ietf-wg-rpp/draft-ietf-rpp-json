@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$ref": "#/$defs/domainName.reference",
+  "$defs": {
+    "domainName.reference": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "domainName" },
+        "name": { "type": "string", "format": "hostname" }
+      },
+      "required": ["@type", "name"]
+    }
+  }
+}
