@@ -14,7 +14,7 @@ Generator: `.scripts/gen_json_schema.py`.
     --compare src/draft-ietf-rpp-json.md --compare-out compare.md
 ```
 
-`--replace src/draft-ietf-rpp-json.md [--replace-out FILE]` puts the generated schemas into the draft's schema blocks (see `.scripts/CLAUDE.md`). Against the current draft it replaces 92 of 94 blocks, and the result is byte-identical to the draft: every replaced block already holds the generated schema. It leaves 2 untouched: `identifier` and `Card` (placeholders). Every generated schema has a place in the draft.
+`--replace src/draft-ietf-rpp-json.md [--replace-out FILE]` puts the generated schemas into the draft's schema blocks (see `.scripts/Agents.md`). Against the current draft it replaces 92 of 94 blocks, and the result is byte-identical to the draft: every replaced block already holds the generated schema. It leaves 2 untouched: `identifier` and `Card` (placeholders). Every generated schema has a place in the draft.
 
 The generator produces 94 `$defs`. The bundle passes 2020-12 meta-schema validation, and every `$ref` in it resolves. `--compare` reports differences only for `identifier` (the draft's `pattern` and `maxLength`) and `Card` (placeholder); it also notes `allOf` in the transfer process `create`/`read` views, which is the generated `if`/`then` list, not inheritance. The consistency checker passes on the draft (one warning: no example for `disclose`).
 

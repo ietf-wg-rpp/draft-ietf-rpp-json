@@ -9,6 +9,22 @@ folder only when the user explicitly asks (see the root `Agents.md`).
   `.scripts/requirements.txt`. `generate_schemas.sh` creates it when missing.
 - Run every script with `.scripts/.venv/bin/python` from the repository root.
 
+## Document index — `update-index.sh` (repository root)
+
+Writes the Document Index of the draft to `.agent-index.md` at the repository
+root. The file is git-ignored and is overwritten on every run; never edit it by
+hand or commit it.
+
+- Run: `./update-index.sh [path/to/draft.md]` from the repository root. Without
+  an argument it uses the last `src/draft-*.md`.
+- Scans the mmark source for ATX headings (`#`..`######`). Headings inside fenced
+  code blocks are skipped. If the source has an odd number of fence lines, it warns
+  and falls back to fence-unaware detection.
+- Columns: `Level | Title | Anchor | Lines`. `Anchor` is a trailing `{#anchor}`;
+  `Lines` runs from the heading to the line before the next heading.
+- Rerun it after every edit to the draft (root `Agents.md`, Edit Workflow → Step 3),
+  and whenever `.agent-index.md` is missing or stale.
+
 ## JSON consistency checker — `check_json_consistency.py`
 
 Checks the JSON Schema definitions and worked examples in the draft against each

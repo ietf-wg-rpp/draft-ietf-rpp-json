@@ -22,3 +22,5 @@ build/*
 examples/
 .venv
 *.pyc
+# Generated document index for agents (./update-index.sh)
+.agent-index.md
