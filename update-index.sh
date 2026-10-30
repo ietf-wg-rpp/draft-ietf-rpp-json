@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
-# update-index.sh — regenerate the Document Index table in CLAUDE.md.
+# update-index.sh — regenerate the Document Index table in Agents.md.
 #
 # Scans the mmark source draft for ATX headings (`#`..`######`) and rewrites the
-# table between the AUTO-INDEX markers in CLAUDE.md, in place.
+# table between the AUTO-INDEX markers in Agents.md, in place.
 #
 # Usage: ./update-index.sh [path/to/draft.md]
 set -euo pipefail
 
-CLAUDE_MD="Agents.md"
+Agents.md="Agents.md"
 BEGIN='<!-- BEGIN AUTO-INDEX -->'
 END='<!-- END AUTO-INDEX -->'
 
@@ -69,13 +69,13 @@ TABLE=$(awk -v track="$TRACK_FENCES" '
   END { flush(NR) }
 ' "$SRC")
 
-# --- splice into CLAUDE.md between the markers --------------------------------
+# --- splice into Agents.md between the markers --------------------------------
 HEADER='| Level | Title | Anchor | Lines |
 |-------|-------|--------|-------|'
 {
-  sed "/$BEGIN/q" "$CLAUDE_MD"
+  sed "/$BEGIN/q" "$Agents.md"
   printf '%s\n%s\n' "$HEADER" "$TABLE"
-  sed -n "/$END/,\$p" "$CLAUDE_MD"
-} > "$CLAUDE_MD.tmp" && mv "$CLAUDE_MD.tmp" "$CLAUDE_MD"
+  sed -n "/$END/,\$p" "$Agents.md"
+} > "$Agents.md.tmp" && mv "$Agents.md.tmp" "$Agents.md"
 
-echo "Updated Document Index in $CLAUDE_MD from $SRC"
+echo "Updated Document Index in $Agents.md from $SRC"

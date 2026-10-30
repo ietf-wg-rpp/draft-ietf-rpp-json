@@ -121,7 +121,7 @@
 #
 #   Each element entry:
 #     identifier, name, cardinality, mutability, data_type: as defined in
-#       the "Data Element Definitions" convention (CLAUDE.md)
+#       the "Data Element Definitions" convention (Agents.md)
 #     description:  the element's "* Description:" bullet (a single string)
 #     constraints:  the element's "* Constraints:" bullet as a LIST of
 #                   strings, one per top-level constraint. A single inline

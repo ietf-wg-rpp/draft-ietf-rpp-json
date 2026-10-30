@@ -50,7 +50,7 @@ and compiled to XML (xml2rfc v3), HTML, PDF, and TXT.
 
 ## Tooling
 
-The scripts in `.scripts/` are documented in `.scripts/CLAUDE.md`. Read it before
+The scripts in `.scripts/` are documented in `.scripts/Agents.md`. Read it before
 running or changing them. It also holds the standing rule to keep
 `.scripts/gen_json_schema_report.md` up to date.
 
@@ -534,3 +534,95 @@ The draft maintains a `# Change History` section with one subsection per revisio
 ("Version 01 to 02", "Version 00 to 01"). Add an entry there whenever you make a
 substantive edit, summarising what changed. This is standard IETF practice and
 helps reviewers track revisions across submissions.
+
+## Pre-Release Review
+
+Run this process **only when the user asks for a final pre-release review**
+(e.g. before submitting a new revision to the datatracker). It is a whole-document
+pass, so it is the one case where every section is read — still in
+`offset`/`limit` chunks guided by the Document Index, never in a single read.
+
+The review itself is **read-only**: collect findings first, then present them
+grouped by the four checks below, each with line number, current text, and the
+proposed fix. Apply nothing until the user approves (Edit Workflow, Steps 1–2).
+Repeated mechanical fixes (e.g. the same spelling change in many places) MUST be
+applied with a verified throwaway script, per the bulk-edit rule above. Run
+`./update-index.sh` after applying.
+
+### Check 1 — Header Metadata
+
+In the TOML title block:
+
+- `date` MUST be today's date (`YYYY-MM-DD`).
+- `[seriesInfo] value` MUST be the exact name of the revision being released
+  (`draft-ietf-rpp-core-NN`) with no suffixes or annotations such as
+  `(editorial)`, `-wip`, or `draft`/`tmp` markers.
+- The revision number in `value` MUST match the newest Change History
+  subsection heading ("Version ietf-rpp-core-(NN-1) to ietf-rpp-core-NN").
+- Sanity-check `title`, `abbrev`, `workgroup`, and the `[[author]]` tables for
+  stale or placeholder values.
+
+### Check 2 — Change History Consolidation
+
+Review **only the subsection for the revision being released**. Look for entries
+that:
+
+- describe the same change made in several iterations (e.g. "Added X", later
+  "Fixed X", later "Renamed X") — merge them into one entry describing the net
+  result;
+- touch the same area/section and can be expressed as one entry;
+- describe a change that was later reverted within the same revision — propose
+  removing both;
+- are duplicates or near-duplicates.
+
+Merged entries MUST still follow "Writing Change History Entries" (terse, one
+logical change, cross-reference the section, no rationale). Propose each merge as
+"entries A + B → new entry"; never silently drop an entry. Do not touch older
+revisions' subsections.
+
+### Check 3 — Full Spell Check and UK/US Consistency
+
+Spell-check the entire document (prose, headings, table cells, figure captions,
+and Change History). Spelling policy:
+
+- **Prose is UK English** (e.g. "behaviour", "authorisation", "organisation",
+  "recognise", "licence" (noun), "summarise", "centre").
+- **Protocol elements and literals stay US English, exactly as defined** — never
+  "correct" them: HTTP header names (`RPP-Authorization`, `Authorization`), JSON
+  keys, media types, URNs, enum/status values, query parameters, registry names,
+  and anything inside backticks or fenced code blocks.
+- **Titles and quoted text of external documents** (RFC titles, reference
+  entries, terms quoted from other specifications such as RFC 9110 or the EPP
+  RFCs) keep their original spelling.
+- When prose refers to a concept that is also a literal (e.g. "the authorisation
+  header `RPP-Authorization`"), the prose word is UK and the literal is US.
+
+Report typos, UK/US inconsistencies, and inconsistent hyphenation/capitalisation
+of recurring terms (e.g. "sub-resource" vs "subresource", "RPP Server" vs
+"RPP server"). A tool such as `aspell --lang=en_GB` or `hunspell -d en_GB` can be
+used to generate candidates if available, but every candidate MUST be checked
+against the literal/quotation exceptions above before it is proposed.
+
+### Check 4 — Whole-Document Consistency Scan
+
+Scan the full document for obvious inconsistencies, including:
+
+- defined terms used inconsistently or with synonyms (see Terminology table);
+  acronyms not expanded on first use;
+- header names, JSON keys, media types, URNs, result codes, and HTTP status codes
+  that differ between prose, tables, and examples;
+- endpoint paths in examples that do not follow the HTTP Mapping Rules or the
+  Derived Endpoint Reference;
+- broken or dangling `(#anchor)` cross-references and citations without a
+  matching reference; normative/informative classification that looks wrong;
+- result codes used in the body but missing from the RPP Result Codes table or
+  the IANA registry section (and vice versa);
+- example hosts/domains not using reserved `.example` names; inconsistent
+  `RPP-Cltrid`/`RPP-Svtrid` or other header values within a single example
+  exchange;
+- leftover `TODO`, `TBD` (other than IANA placeholders), editor notes, or
+  commented-out text;
+- BCP 14 keywords in the Abstract, IANA Considerations, examples, or appendices.
+
+Report findings only; do not restructure or rewrite prose beyond the minimal fix
+for each finding.
