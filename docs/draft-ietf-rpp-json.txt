@@ -10,7 +10,7 @@ Expires: 6 May 2027                                                DENIC
 
 
               JSON for RESTful Provisioning Protocol (RPP)
-                         draft-ietf-rpp-json-01
+                   draft-ietf-rpp-json-02 (editorial)
 
 Abstract
 
@@ -293,14 +293,16 @@ Internet-Draft                JSON for RPP                 November 2026
    11. Security Considerations . . . . . . . . . . . . . . . . . . . 152
    12. Acknowledgments . . . . . . . . . . . . . . . . . . . . . . . 152
    13. Change History  . . . . . . . . . . . . . . . . . . . . . . . 152
-     13.1.  Version draft-ietf-rpp-json-00 to
+     13.1.  Version draft-ietf-rpp-json-01 to
+            draft-ietf-rpp-json-02 . . . . . . . . . . . . . . . . . 152
+     13.2.  Version draft-ietf-rpp-json-00 to
             draft-ietf-rpp-json-01 . . . . . . . . . . . . . . . . . 152
-     13.2.  Version draft-wullink-rpp-json-02 to
+     13.3.  Version draft-wullink-rpp-json-02 to
             draft-ietf-rpp-json-00 . . . . . . . . . . . . . . . . . 153
-     13.3.  Version 01 to 02 . . . . . . . . . . . . . . . . . . . . 153
-     13.4.  Version 00 to 01 . . . . . . . . . . . . . . . . . . . . 153
+     13.4.  Version 01 to 02 . . . . . . . . . . . . . . . . . . . . 153
+     13.5.  Version 00 to 01 . . . . . . . . . . . . . . . . . . . . 153
    14. References  . . . . . . . . . . . . . . . . . . . . . . . . . 153
-     14.1.  Normative References . . . . . . . . . . . . . . . . . . 153
+     14.1.  Normative References . . . . . . . . . . . . . . . . . . 154
      14.2.  Informative References . . . . . . . . . . . . . . . . . 156
    Authors' Addresses  . . . . . . . . . . . . . . . . . . . . . . . 156
 
@@ -324,8 +326,6 @@ Internet-Draft                JSON for RPP                 November 2026
    representation ensures that the protocol's semantic foundation
    remains stable while enabling the adoption of JSON across diverse
    deployment environments.
-
-
 
 
 
@@ -8483,7 +8483,9 @@ Internet-Draft                JSON for RPP                 November 2026
 
 13.  Change History
 
-13.1.  Version draft-ietf-rpp-json-00 to draft-ietf-rpp-json-01
+13.1.  Version draft-ietf-rpp-json-01 to draft-ietf-rpp-json-02
+
+13.2.  Version draft-ietf-rpp-json-00 to draft-ietf-rpp-json-01
 
    -  Added section "JSON Schema Composition Rules", including
       Section 4.10.1 and read/create views for Component Objects.
@@ -8504,8 +8506,6 @@ Internet-Draft                JSON for RPP                 November 2026
    -  Rewrote the partial update processing in Section 5.2.2, added
       replacement of a whole array, and added flow figures.  (Issue #91,
       #77)
-   -  Aligned the JSContact constraints with the RPP JSContact profile.
-      (Issue #76)
 
 
 
@@ -8514,6 +8514,8 @@ Wullink & Kowalik          Expires 6 May 2027                 [Page 152]
 Internet-Draft                JSON for RPP                 November 2026
 
 
+   -  Aligned the JSContact constraints with the RPP JSContact profile.
+      (Issue #76)
    -  Made the JSON Schema definitions normative.  (Issue #75)
    -  Added the Disclose Object and Process Object (Base, Create,
       Restore) schemas, and removed redundant Process alias and Transfer
@@ -8531,7 +8533,7 @@ Internet-Draft                JSON for RPP                 November 2026
    -  Editorial: Updated the Abstract and Introduction to cover all
       defined Data Objects.
 
-13.2.  Version draft-wullink-rpp-json-02 to draft-ietf-rpp-json-00
+13.3.  Version draft-wullink-rpp-json-02 to draft-ietf-rpp-json-00
 
    -  Added "Update Rules" section, describing update requests (Issue
       #54)
@@ -8545,11 +8547,11 @@ Internet-Draft                JSON for RPP                 November 2026
       interface operations (especially create).  (Issue #60)
    -  Added JSContact as External Type Embedding (Issue #43).
 
-13.3.  Version 01 to 02
+13.4.  Version 01 to 02
 
    -  Adjust rule 19 and all schemas to match it.
 
-13.4.  Version 00 to 01
+13.5.  Version 00 to 01
 
    -  Updated all examples and schemas to be based on RPP Data Object
       and no longer on EPP XML schemas.  (Issue #15)
@@ -8561,14 +8563,14 @@ Internet-Draft                JSON for RPP                 November 2026
 
 14.  References
 
-14.1.  Normative References
-
 
 
 Wullink & Kowalik          Expires 6 May 2027                 [Page 153]
 
 Internet-Draft                JSON for RPP                 November 2026
 
+
+14.1.  Normative References
 
    [I-D.ietf-jsonschema-json-schema]
               Dusseault, L. M., Wright, A., and H. H. Andrews, "JSON
@@ -8616,8 +8618,6 @@ Internet-Draft                JSON for RPP                 November 2026
    [RFC3339]  Klyne, G. and C. Newman, "Date and Time on the Internet:
               Timestamps", RFC 3339, DOI 10.17487/RFC3339, July 2002,
               <https://www.rfc-editor.org/info/rfc3339>.
-
-
 
 
 
