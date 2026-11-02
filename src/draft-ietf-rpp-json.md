@@ -5986,7 +5986,7 @@ TODO
 - Made the JSON Schema definitions normative. (Issue #75)
 - Added the Disclose Object and Process Object (Base, Create, Restore) schemas, and removed redundant Process alias and Transfer response schemas.
 - Aligned all examples, including those in (#extension-framework), with the updated JSON Schema definitions.
-- Generalised the Mutability Rules to derive request and response content from operation Input and Output, and changed handling of disallowed request data elements from ignore to reject.
+- Generalised the Mutability Rules to derive request and response content from operation Input and Output, and changed handling of disallowed request data elements from ignore to reject. (Issue #112 M2)
 - Replaced the primary identifier with the Unique Identifier in Association Rules.
 - Editorial: Removed rule numbering and replaced references to rule numbers with section references.
 - Editorial: Updated the Abstract and Introduction to cover all defined Data Objects.

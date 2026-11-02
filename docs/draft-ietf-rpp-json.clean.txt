@@ -6510,7 +6510,8 @@ Table of Contents
       updated JSON Schema definitions.
    -  Generalised the Mutability Rules to derive request and response
       content from operation Input and Output, and changed handling of
-      disallowed request data elements from ignore to reject.
+      disallowed request data elements from ignore to reject.  (Issue
+      #112 M2)
    -  Replaced the primary identifier with the Unique Identifier in
       Association Rules.
    -  Editorial: Removed rule numbering and replaced references to rule

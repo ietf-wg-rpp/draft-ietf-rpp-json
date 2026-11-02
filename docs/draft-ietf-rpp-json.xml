@@ -1,21 +1,26 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- name="GENERATOR" content="github.com/mmarkdown/mmark Mmark Markdown Processor - mmark.miek.nl" -->
-<rfc version="3" ipr="trust200902" docName="draft-ietf-rpp-json-00" submissionType="IETF" category="std" xml:lang="en" xmlns:xi="http://www.w3.org/2001/XInclude" indexInclude="true" tocDepth="4">
+<rfc version="3" ipr="trust200902" docName="draft-ietf-rpp-json-01" submissionType="IETF" category="std" xml:lang="en" xmlns:xi="http://www.w3.org/2001/XInclude" indexInclude="true" tocDepth="4">
 
 <front>
-<title abbrev="JSON for RPP">JSON for RESTful Provisioning Protocol (RPP)</title><seriesInfo value="draft-ietf-rpp-json-00" stream="IETF" status="standard" name="Internet-Draft"></seriesInfo>
+<title abbrev="JSON for RPP">JSON for RESTful Provisioning Protocol (RPP)</title><seriesInfo value="draft-ietf-rpp-json-01" stream="IETF" status="standard" name="Internet-Draft"></seriesInfo>
 <author initials="M." surname="Wullink" fullname="Maarten Wullink"><organization>SIDN Labs</organization><address><postal><street></street>
 </postal><email>maarten.wullink@sidn.nl</email>
 <uri>https://sidn.nl/</uri>
 </address></author><author initials="P." surname="Kowalik" fullname="Pawel Kowalik"><organization>DENIC</organization><address><postal><street></street>
 </postal><email>pawel.kowalik@denic.de</email>
 <uri>https://denic.de/</uri>
-</address></author><date year="2026" month="July" day="6"></date>
-<area>Internet</area>
-<workgroup>Network Working Group</workgroup>
+</address></author><date year="2026" month="November" day="2"></date>
+<area>Applications and Real-Time</area>
+<workgroup>RESTful Provisioning Protocol</workgroup>
+<keyword>RPP</keyword>
+<keyword>JSON</keyword>
+<keyword>JSON Schema</keyword>
+<keyword>provisioning</keyword>
+<keyword>registry</keyword>
 
 <abstract>
-<t>This document defines the rules for representing the RESTful Provisioning Protocol (RPP) data objects using the JavaScript Object Notation (JSON) Data Interchange Format <xref target="RFC8259"></xref>. It specifies how RPP primitive types, common data types, component objects, resource objects, and associations are mapped to JSON and JSON Schema, and provides normative JSON Schema definitions and worked examples for domain name, contact, and host data objects.</t>
+<t>This document defines the rules for representing the RESTful Provisioning Protocol (RPP) data objects using the JavaScript Object Notation (JSON) Data Interchange Format. It specifies how RPP primitive types, common data types, Component Objects, Data Objects, and associations are mapped to JSON and JSON Schema, and provides normative JSON Schema definitions and examples for the RPP Data Objects, the representation of update requests, and an extension framework.</t>
 </abstract>
 
 </front>
@@ -23,7 +28,7 @@
 <middle>
 
 <section anchor="introduction"><name>Introduction</name>
-<t>The RESTful Provisioning Protocol (RPP) defines a set of data objects for managing foundational registry resources including domain names, contacts, and hosts. The data model is defined in <xref target="I-D.ietf-rpp-data-objects"></xref> independently of any particular representation format. This document defines the JSON <xref target="RFC8259"></xref> representation of those data objects.</t>
+<t>The RESTful Provisioning Protocol (RPP) defines a set of data objects for managing registry resources, such as domain names, contacts, hosts, organisations, and users. The data model is defined in <xref target="I-D.ietf-rpp-data-objects"></xref> independently of any particular representation format. This document defines the JSON <xref target="RFC8259"></xref> representation of those data objects.</t>
 <t>JSON has emerged as the de facto standard data format for modern RESTful APIs. Its widespread adoption across tools, libraries, and developer communities makes it well suited as the primary representation format for RPP. This document provides the normative rules and JSON Schema definitions required for implementations to produce and consume RPP messages in JSON.</t>
 <t>The separation between the abstract data model and its concrete JSON representation ensures that the protocol's semantic foundation remains stable while enabling the adoption of JSON across diverse deployment environments.</t>
 
@@ -31,14 +36,14 @@
 <t>The RESTful Provisioning Protocol (RPP) introduces a new provisioning mechanism that aligns more closely with modern cloud infrastructure, enhancing the scalability of server deployments. While RESTful protocols do not mandate a specific media type for resource description, the widespread adoption of JSON in web services has established it as the de facto standard for modern APIs. The increasing availability of tools, software libraries, and a skilled workforce has led several registries to adopt JSON for data exchange within their API ecosystems. Registries supporting JSON can offer a unified API ecosystem that extends beyond domain name and IP address provisioning, maintaining a consistent technology stack, data formats, and developer experience.</t>
 <t>JSON's syntax, known for its straightforwardness and minimal verbosity, significantly eases the tasks of writing, reading, and maintaining code. This simplicity is especially advantageous for the rapid comprehension and integration of provisioning APIs.</t>
 <t>The lightweight nature of JSON can result in faster processing and data transfers, a critical aspect in high-volume transaction environments such as domain registration. Enhanced API response times can lead to more efficient domain lookups, registrations, and updates. JSON parsing is typically fast and well-supported by standard libraries, contributing to improved system performance amid frequent interactions between RPP clients and servers.</t>
-<t>However, the absence of a standardized JSON format for domain provisioning has led to the emergence of TLD-specific implementations that lack interoperability, increasing the development effort required for integration. Similarly, at the registrar level, the absence of standards has resulted in numerous incompatible API implementations provided to clients and resellers. Standardizing a JSON format for domain provisioning within the RPP framework could mitigate these challenges, reducing fragmentation and simplifying integration efforts across the domain registration industry.</t>
+<t>However, the absence of a standardised JSON format for domain provisioning has led to the emergence of TLD-specific implementations that lack interoperability, increasing the development effort required for integration. Similarly, at the registrar level, the absence of standards has resulted in numerous incompatible API implementations provided to clients and resellers. Standardising a JSON format for domain provisioning within the RPP framework could mitigate these challenges, reducing fragmentation and simplifying integration efforts across the domain registration industry.</t>
 </section>
 </section>
 
 <section anchor="terminology"><name>Terminology</name>
 <t>In this document, the following terminology is used.</t>
 <t>Terms of the RPP data model, such as Data Object, Component Object, Process Object, Common Data Type, data element, cardinality, mutability, Identifier, Unique Identifier, Input Data Element, Parameter, Visibility, Direct Access, Input, Output, Reference, Owner Data Object, and This Object, are used as defined in <xref target="I-D.ietf-rpp-data-objects"></xref>.</t>
-<t>RPP Data Objects - The abstract data model definitions for domain name, contact, and host resources, as specified in <xref target="I-D.ietf-rpp-data-objects"></xref>.</t>
+<t>RPP Data Objects - The abstract data model definitions of the objects provisioned and exchanged with RPP, as specified in <xref target="I-D.ietf-rpp-data-objects"></xref>.</t>
 <t>RESTful Provisioning Protocol - A RESTful protocol for provisioning heterogeneous database objects.</t>
 <t>JSON Schema - A vocabulary that allows annotation and validation of JSON documents, as described in <xref target="I-D.ietf-jsonschema-json-schema"></xref>.</t>
 <t>EPP Compatibility Profile - A set of additional constraints defined in <xref target="I-D.ietf-rpp-data-objects"></xref> that a server MUST adhere to when supporting both RPP and EPP concurrently.</t>
@@ -222,10 +227,10 @@ document are to be interpreted as described in <xref target="RFC2119"></xref>.</
 
 <section anchor="association-rules"><name>Association Rules</name>
 <t>The RPP data model defines several association types between objects, the following rules specify their JSON representations.
-A Aggregation represents a relationship between two independent objects, where one object references another. A Composition represents a parent-child relationship where the child object is embedded within the parent object and cannot exist independently.</t>
+An Aggregation represents a relationship between two independent objects, where one object references another. A Composition represents a parent-child relationship where the child object is embedded within the parent object and cannot exist independently.</t>
 
-<section anchor="labelled-associations"><name>Labelled associations</name>
-<t>Some associations between objects carry a string label that provides additional context for the relationship. The label is not an identifier of the target object, but rather a descriptor of the association itself. Labelled associations can occur in both aggregations and compositions. When representing labelled associations in JSON, the property <tt>label</tt> MUST be included alongside the reference to the target object. A property with the name <tt>object</tt> MUST be used to contain the reference to the target object, which can be either limited representation containing at minimum the Unique Identifier of the target object for aggregations or an embedded object for compositions.</t>
+<section anchor="labelled-associations"><name>Labelled Associations</name>
+<t>Some associations between objects carry a string label that provides additional context for the relationship. The label is not an identifier of the target object, but rather a descriptor of the association itself. Labelled associations can occur in both aggregations and compositions. When representing labelled associations in JSON, the property <tt>label</tt> MUST be included alongside the reference to the target object. A property with the name <tt>object</tt> MUST be used to contain the reference to the target object, which can be either a limited representation containing at minimum the Unique Identifier of the target object for aggregations or an embedded object for compositions.</t>
 </section>
 
 <section anchor="aggregation"><name>Aggregation</name>
@@ -438,8 +443,8 @@ A Aggregation represents a relationship between two independent objects, where o
 ]]></sourcecode>
 </section>
 
-<section anchor="authorization-information-rules"><name>Authorization Information in Requests</name>
-<t>When a transfer request or other operation requires authorization information (e.g., EPP-style authinfo), the client MUST NOT include the <tt>authInfo</tt> object in the JSON request body. Instead, the client MUST convey the authorization information using the <tt>RPP-Authorization</tt> HTTP request header as defined in <xref target="I-D.ietf-rpp-core"></xref>. Servers MUST reject any request that includes an <tt>authInfo</tt> object in the JSON body with an appropriate error response.</t>
+<section anchor="authorization-information-rules"><name>Authorisation Information in Requests</name>
+<t>When a transfer request or other operation requires authorisation information (e.g., EPP-style authinfo), the client MUST NOT include the <tt>authInfo</tt> object in the JSON request body. Instead, the client MUST convey the authorisation information using the <tt>RPP-Authorization</tt> HTTP request header as defined in <xref target="I-D.ietf-rpp-core"></xref>. Servers MUST reject any request that includes an <tt>authInfo</tt> object in the JSON body with an appropriate error response.</t>
 </section>
 </section>
 
@@ -502,7 +507,7 @@ A Aggregation represents a relationship between two independent objects, where o
 </section>
 
 <section anchor="inheritance"><name>Inheritance</name>
-<t>RPP Data Objects and Component Objects MAY inherit the data elements and operations of another object. The JSON schema for an object must include all the inherited data elements and constraints from its base object, using a flat structure where all properties are defined at the top level of the schema, rather than nested under an <tt>&quot;allOf&quot;</tt> or <tt>&quot;anyOf&quot;</tt> construct.</t>
+<t>RPP Data Objects and Component Objects MAY inherit the data elements and operations of another object. The JSON Schema for an object must include all the inherited data elements and constraints from its base object, using a flat structure where all properties are defined at the top level of the schema, rather than nested under an <tt>&quot;allOf&quot;</tt> or <tt>&quot;anyOf&quot;</tt> construct.</t>
 <t>Example: a Shape Object with the data elements <tt>name</tt> (cardinality <tt>1</tt>) and <tt>colour</tt> (cardinality <tt>0-1</tt>), and a Circle Object that extends it with the additional data element <tt>radius</tt> (cardinality <tt>1</tt>).</t>
 <t>JSON Schema of the base Shape Object:</t>
 
@@ -564,7 +569,7 @@ A Aggregation represents a relationship between two independent objects, where o
 <section anchor="partial"><name>Partial</name>
 <t>A partial update operation allows clients to update specific properties of a resource object, while leaving other properties unchanged.
 A partial update MUST use JSON Patch <xref target="RFC6902"></xref>, extended with a <tt>match</tt> property for matching array elements. The <tt>match</tt> property is not part of <xref target="RFC6902"></xref>; it is introduced and defined in this document (see <xref target="partial-matching"></xref>).</t>
-<t>The request body of a partial update is a JSON array of patch operations, see <xref target="partial-schema"></xref>. Each patch operation consists of an <tt>op</tt> (the operation), a <tt>path</tt> (a JSON Pointer to the property the operation targets), a <tt>value</tt> (the new value, for <tt>add</tt> and <tt>replace</tt>), and optionally a <tt>match</tt> (to select array elements). When the <tt>path</tt> points to an existing primitive type property, the <tt>add</tt> operations has the same semantics as <tt>replace</tt> and will overwrite the existing value.</t>
+<t>The request body of a partial update is a JSON array of patch operations, see <xref target="partial-schema"></xref>. Each patch operation consists of an <tt>op</tt> (the operation), a <tt>path</tt> (a JSON Pointer to the property the operation targets), a <tt>value</tt> (the new value, for <tt>add</tt> and <tt>replace</tt>), and optionally a <tt>match</tt> (to select array elements). When the <tt>path</tt> points to an existing primitive type property, the <tt>add</tt> operation has the same semantics as <tt>replace</tt> and will overwrite the existing value.</t>
 
 <section anchor="partial-matching"><name>Matching</name>
 <t>The <tt>match</tt> property is used to identify elements in an array of objects. It is a JSON object that contains key-value pairs corresponding to the properties of the array elements. The server uses the <tt>match</tt> property to locate the elements in the array that should be removed or replaced. The <tt>match</tt> property MUST NOT be used when the <tt>path</tt> does not point to an array, and MUST NOT be used for an array of primitive types. An array of primitive types is changed by replacing the array as a whole, or by adding a value without <tt>match</tt>.</t>
@@ -934,7 +939,7 @@ A partial update MUST use JSON Patch <xref target="RFC6902"></xref>, extended wi
   }
 ]
 ]]></sourcecode>
-<t>Example of a partial update request for adding a additional tech contact to a domain name:</t>
+<t>Example of a partial update request for adding an additional tech contact to a domain name:</t>
 
 <sourcecode type="json"><![CDATA[[
   {
@@ -971,7 +976,7 @@ A partial update MUST use JSON Patch <xref target="RFC6902"></xref>, extended wi
 <t>This section provides normative JSON Schema definitions for RPP component objects and resource objects. All schemas use JSON Schema draft 2020-12 <xref target="I-D.ietf-jsonschema-json-schema"></xref>.</t>
 
 <section anchor="common-data-types-schemas"><name>Common Data Types Schemas</name>
-<t>This section defines shared data types that are based on the primitive data types above and are re-used across multiple data object definitions.</t>
+<t>This section defines shared data types that are based on the primitive data types above and are reused across multiple data object definitions.</t>
 
 <section anchor="identifier"><name>Identifier</name>
 <t>Identifiers are character strings with a specified minimum length, a specified maximum length, and a specified format outlined in <xref target="RFC5730" sectionFormat="of" section="2.8"></xref>. Identifiers for certain object types MAY have additional constraints imposed either by server policy, object-specific specifications, or both.</t>
@@ -1062,7 +1067,7 @@ A partial update MUST use JSON Patch <xref target="RFC6902"></xref>, extended wi
 <ul spacing="compact">
 <li><tt>upClientId</tt> and <tt>upDate</tt> MUST NOT be present if the object has never been modified.</li>
 <li><tt>trDate</tt> MUST NOT be present if the object has never been transferred.</li>
-<li>In EPP Compatibility Profile, <tt>repositoryId</tt> MUST be provided.</li>
+<li>In the EPP Compatibility Profile, <tt>repositoryId</tt> MUST be provided.</li>
 </ul>
 <t>Read schema:</t>
 
@@ -1449,12 +1454,12 @@ A partial update MUST use JSON Patch <xref target="RFC6902"></xref>, extended wi
 
 <ul spacing="compact">
 <li><tt>name</tt> MUST be a syntactically valid DNS host name in zone file string representation. Both absolute FQDNs (with trailing dot) and relative host names are allowed, as well as the <tt>@</tt> symbol representing the domain name itself.</li>
-<li><tt>type</tt> MUST be a valid string representation of a DNS resource record type as defined in <xref target="RFC1035"></xref>. Values MUST be converted to lower case. Allowed values MAY be further constrained by server policy.</li>
-<li>In EPP Compatibility Profile (<xref target="RFC5732"></xref>), the following record types MUST be supported: <tt>ns</tt>, <tt>a</tt>, and <tt>aaaa</tt>. With DNSSEC Extension <xref target="RFC5910"></xref>, <tt>ds</tt> and <tt>dnskey</tt> MUST additionally be supported.</li>
+<li><tt>type</tt> MUST be a valid string representation of a DNS resource record type as defined in <xref target="RFC1035"></xref>. Values MUST be converted to lowercase. Allowed values MAY be further constrained by server policy.</li>
+<li>In the EPP Compatibility Profile (<xref target="RFC5732"></xref>), the following record types MUST be supported: <tt>ns</tt>, <tt>a</tt>, and <tt>aaaa</tt>. With DNSSEC Extension <xref target="RFC5910"></xref>, <tt>ds</tt> and <tt>dnskey</tt> MUST additionally be supported.</li>
 <li><tt>class</tt>, if present, MUST be chosen from Section 3.2.4 (CLASS values) of <xref target="RFC1035"></xref>. A client SHOULD omit this element; the server MUST assume <tt>IN</tt> as the default.</li>
 <li>The fields within <tt>rdata</tt> MUST match the expected structure for the given record type (see RDATA structures below).</li>
 </ul>
-<t>RDATA structures required in EPP Compatibility Profile:</t>
+<t>RDATA structures required in the EPP Compatibility Profile:</t>
 
 <ul spacing="compact">
 <li>NS records (<xref target="RFC1035"></xref>, Section 3.3.11): <tt>nsdname</tt></li>
@@ -1559,7 +1564,7 @@ A partial update MUST use JSON Patch <xref target="RFC6902"></xref>, extended wi
 <t>The following constraints cannot be expressed in JSON Schema and MUST be enforced by implementations:</t>
 
 <ul spacing="compact">
-<li>In EPP Compatibility Profile with DNSSEC Extension <xref target="RFC5910"></xref>, records of type <tt>ds</tt> and <tt>dnskey</tt> MUST be supported in addition to <tt>ns</tt>, <tt>a</tt>, and <tt>aaaa</tt>. A server MUST support either <tt>ds</tt> or <tt>dnskey</tt> or both. If provided with only <tt>dnskey</tt>, a server MUST calculate the DS record.</li>
+<li>In the EPP Compatibility Profile with DNSSEC Extension <xref target="RFC5910"></xref>, records of type <tt>ds</tt> and <tt>dnskey</tt> MUST be supported in addition to <tt>ns</tt>, <tt>a</tt>, and <tt>aaaa</tt>. A server MUST support either <tt>ds</tt> or <tt>dnskey</tt> or both. If provided with only <tt>dnskey</tt>, a server MUST calculate the DS record.</li>
 </ul>
 <t>Read schema:</t>
 
@@ -1601,12 +1606,12 @@ A partial update MUST use JSON Patch <xref target="RFC6902"></xref>, extended wi
 ]]></sourcecode>
 </section>
 
-<section anchor="authorization-information-object"><name>Authorization Information Object</name>
+<section anchor="authorisation-information-object"><name>Authorisation Information Object</name>
 <t>The following constraints cannot be expressed in JSON Schema and MUST be enforced by implementations:</t>
 
 <ul spacing="compact">
-<li><tt>method</tt> MUST be one of the values registered in the IANA RPP Authorization Method Registry as defined in <xref target="I-D.ietf-rpp-core"></xref>. In EPP Compatibility Profile, this value MUST be &quot;authinfo&quot; for standard password-based authorization.</li>
-<li>The Authorization Information Object is immutable. When authorization information changes, a new instance MUST be created rather than modifying the existing one. The value of <tt>authdata</tt> MAY be omitted from read responses, depending on the method and server policy.</li>
+<li><tt>method</tt> MUST be one of the values registered in the IANA RPP Authorization Method Registry as defined in <xref target="I-D.ietf-rpp-core"></xref>. In the EPP Compatibility Profile, this value MUST be &quot;authinfo&quot; for standard password-based authorisation.</li>
+<li>The Authorisation Information Object is immutable. When authorisation information changes, a new instance MUST be created rather than modifying the existing one. The value of <tt>authdata</tt> MAY be omitted from read responses, depending on the method and server policy.</li>
 </ul>
 <t>Read schema:</t>
 
@@ -1771,8 +1776,8 @@ A partial update MUST use JSON Patch <xref target="RFC6902"></xref>, extended wi
 <ul spacing="compact">
 <li>At least one and at most two <tt>statements</tt> MUST be provided.</li>
 <li><tt>restoreTime</tt> MAY be omitted when the restore report is submitted inline within the restore request in a single-step process.</li>
-<li>In EPP Compatibility Profile, <tt>restoreTime</tt> MUST be present as defined in <xref target="RFC3915"></xref>.</li>
-<li>In EPP Compatibility Profile, exactly two <tt>statements</tt> MUST be present as defined in <xref target="RFC3915"></xref>.</li>
+<li>In the EPP Compatibility Profile, <tt>restoreTime</tt> MUST be present as defined in <xref target="RFC3915"></xref>.</li>
+<li>In the EPP Compatibility Profile, exactly two <tt>statements</tt> MUST be present as defined in <xref target="RFC3915"></xref>.</li>
 </ul>
 <t>Read schema:</t>
 
@@ -2043,6 +2048,91 @@ A partial update MUST use JSON Patch <xref target="RFC6902"></xref>, extended wi
   }
 }
 ]]></sourcecode>
+</section>
+
+<section anchor="availability-objects"><name>Availability</name>
+<t>The Availability Objects are the output of the Availability operation. The Base Availability Object is extended by Data Object specific Availability Objects in order to allow independent extensibility.</t>
+
+<section anchor="base-availability-object"><name>Base Availability Object</name>
+<t>The following constraints cannot be expressed in JSON Schema and MUST be enforced by implementations:</t>
+
+<ul spacing="compact">
+<li><tt>reason</tt> MUST only be present when <tt>available</tt> is <tt>false</tt>.</li>
+</ul>
+<t>Read schema:</t>
+
+<sourcecode type="json"><![CDATA[{
+  "$defs": {
+    "baseAvailability.read": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "baseAvailability", "readOnly": true },
+        "available": { "type": "boolean", "readOnly": true },
+        "reason": { "type": "string", "readOnly": true }
+      },
+      "required": ["@type", "available"]
+    }
+  }
+}
+]]></sourcecode>
+</section>
+
+<section anchor="domain-name-availability-object"><name>Domain Name Availability Object</name>
+<t>Read schema:</t>
+
+<sourcecode type="json"><![CDATA[{
+  "$defs": {
+    "domainNameAvailability.read": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "domainNameAvailability", "readOnly": true },
+        "available": { "type": "boolean", "readOnly": true },
+        "reason": { "type": "string", "readOnly": true }
+      },
+      "required": ["@type", "available"]
+    }
+  }
+}
+]]></sourcecode>
+</section>
+
+<section anchor="contact-availability-object"><name>Contact Availability Object</name>
+<t>Read schema:</t>
+
+<sourcecode type="json"><![CDATA[{
+  "$defs": {
+    "contactAvailability.read": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "contactAvailability", "readOnly": true },
+        "available": { "type": "boolean", "readOnly": true },
+        "reason": { "type": "string", "readOnly": true }
+      },
+      "required": ["@type", "available"]
+    }
+  }
+}
+]]></sourcecode>
+</section>
+
+<section anchor="host-availability-object"><name>Host Availability Object</name>
+<t>Read schema:</t>
+
+<sourcecode type="json"><![CDATA[{
+  "$defs": {
+    "hostAvailability.read": {
+      "type": "object",
+      "properties": {
+        "@type": { "type": "string", "const": "hostAvailability", "readOnly": true },
+        "available": { "type": "boolean", "readOnly": true },
+        "reason": { "type": "string", "readOnly": true }
+      },
+      "required": ["@type", "available"]
+    }
+  }
+}
+]]></sourcecode>
+</section>
 </section>
 
 <section anchor="messages"><name>Messages</name>
@@ -2633,10 +2723,14 @@ A partial update MUST use JSON Patch <xref target="RFC6902"></xref>, extended wi
 
 <ul spacing="compact">
 <li><tt>name</tt> MUST be a fully qualified domain name conforming to the syntax described in <xref target="RFC1035"></xref>. Servers MAY restrict allowable domain names to a specific namespace for which they are authoritative. The implicit trailing dot MUST NOT be included.</li>
-<li><tt>name</tt> MUST use the ASCII Compatible Encoding (ACE) A-label form when the domain name is internationalized, as defined in <xref target="RFC5890"></xref>.</li>
-<li><tt>uName</tt>, when present, MUST be normalized to Unicode Normalization Form C (NFC) as defined in <xref target="UNICODE.NFC"></xref>, and MUST convert to the exact value of <tt>name</tt> using the procedure described in <xref target="RFC5891" sectionFormat="bare" section="Section 4.4"></xref>.</li>
+<li><tt>name</tt> MUST use the ASCII Compatible Encoding (ACE) A-label form when the domain name is internationalised, as defined in <xref target="RFC5890"></xref>.</li>
+<li><tt>uName</tt>, when present, MUST be normalised to Unicode Normalization Form C (NFC) as defined in <xref target="UNICODE.NFC"></xref>, and MUST convert to the exact value of <tt>name</tt> using the procedure described in <xref target="RFC5891" sectionFormat="bare" section="Section 4.4"></xref>.</li>
 <li><tt>lgr</tt>, when present, MUST identify a valid Label Generation Ruleset (LGR) registered in the <xref target="IDN-Tables"></xref> registry, and MUST be present whenever <tt>uName</tt> is present.</li>
 </ul>
+
+<section anchor="availability"><name>Availability</name>
+<t>The response of the Availability operation is the Domain Name Availability Object, see <xref target="domain-name-availability-object"></xref>.</t>
+</section>
 
 <section anchor="create-1"><name>Create</name>
 <t>Create request schema (create-only and read-write properties):</t>
@@ -3012,11 +3106,15 @@ A partial update MUST use JSON Patch <xref target="RFC6902"></xref>, extended wi
 <t>The following constraints cannot be expressed in JSON Schema and MUST be enforced by implementations:</t>
 
 <ul spacing="compact">
-<li><tt>card.name.full</tt> MUST be provided in EPP Compatibility Profile.</li>
-<li><tt>card.addresses.addr</tt> MUST be provided in EPP Compatibility Profile, containing at least <tt>countryCode</tt> and a <tt>&quot;locality&quot;</tt> kind component.</li>
-<li><tt>card.emails.email.address</tt> MUST be provided in EPP Compatibility Profile.</li>
+<li><tt>card.name.full</tt> MUST be provided in the EPP Compatibility Profile.</li>
+<li><tt>card.addresses.addr</tt> MUST be provided in the EPP Compatibility Profile, containing at least <tt>countryCode</tt> and a <tt>&quot;locality&quot;</tt> kind component.</li>
+<li><tt>card.emails.email.address</tt> MUST be provided in the EPP Compatibility Profile.</li>
 <li><tt>card.addresses[*].countryCode</tt> MUST be a valid two-character ISO 3166-1 <xref target="ISO3166-1"></xref> alpha-2 code when present.</li>
 </ul>
+</section>
+
+<section anchor="availability-1"><name>Availability</name>
+<t>The response of the Availability operation is the Contact Availability Object, see <xref target="contact-availability-object"></xref>.</t>
 </section>
 
 <section anchor="create-2"><name>Create</name>
@@ -3130,6 +3228,10 @@ A partial update MUST use JSON Patch <xref target="RFC6902"></xref>, extended wi
 <li><tt>hostName</tt> MUST be a syntactically valid fully qualified host name.</li>
 <li>If the host name is subordinate to a domain for which the server is authoritative, the superordinate domain MUST already exist in the server.</li>
 </ul>
+
+<section anchor="availability-2"><name>Availability</name>
+<t>The response of the Availability operation is the Host Availability Object, see <xref target="host-availability-object"></xref>.</t>
+</section>
 
 <section anchor="create-3"><name>Create</name>
 <t>Create request schema (create-only and read-write properties):</t>
@@ -3426,7 +3528,7 @@ A partial update MUST use JSON Patch <xref target="RFC6902"></xref>, extended wi
 <t>The following constraints cannot be expressed in JSON Schema and MUST be enforced by implementations:</t>
 
 <ul spacing="compact">
-<li><tt>data</tt> is polymorphic: it MUST contain an instance of a message object that directly or indirectly extends the Base Message Object. The concrete message object is identified by the <tt>@type</tt> of the value used for <tt>data</tt> property.</li>
+<li><tt>data</tt> is polymorphic: it MUST contain an instance of a message object that directly or indirectly extends the Base Message Object. The concrete message object is identified by the <tt>@type</tt> of the value used for the <tt>data</tt> property.</li>
 </ul>
 
 <section anchor="create-5"><name>Create</name>
@@ -3793,8 +3895,8 @@ list won't be possible this way</t>
 </aside>
 <t>To support multiple extensions, a mechanism for mapping extensions to their respective base objects is defined using the <tt>rpp:extends</tt> property within the extension schema.</t>
 <t>Extensions SHOULD be independent of one another, meaning that an extension should not rely on the presence of another extension to function correctly. This ensures modularity and reduces the risk of conflicts between extensions.</t>
-<t>An extension schema MUST define a unique identifier using a toplevel <tt>$id</tt> to ensure that references to the schema are unambiguous and correctly resolved. For IETF standardized extensions, using a stable and unique URI as the <tt>$id</tt> is RECOMMENDED.</t>
-<t>An IANA registry for RPP JSON extensions is requested in this document, standardized JSON extensions SHALL be registered in this registry. Ensuring that each extension has a unique and stable identifier that can be referenced reliably across different implementations. This also promotes the reuse of common extensions and reduces duplication of effort.</t>
+<t>An extension schema MUST define a unique identifier using a top-level <tt>$id</tt> to ensure that references to the schema are unambiguous and correctly resolved. For IETF standardised extensions, using a stable and unique URI as the <tt>$id</tt> is RECOMMENDED.</t>
+<t>An IANA registry for RPP JSON extensions is requested in this document, standardised JSON extensions SHALL be registered in this registry. Ensuring that each extension has a unique and stable identifier that can be referenced reliably across different implementations. This also promotes the reuse of common extensions and reduces duplication of effort.</t>
 <t>It is RECOMMENDED to use the prefix &quot;ext.&quot; for every extension sub-schema defined, for example <tt>#/$defs/ext.domainFoo</tt>.</t>
 <t><strong>TODO</strong> what objects are eligible for extensions?</t>
 
@@ -3812,7 +3914,7 @@ list won't be possible this way</t>
 
 <section anchor="effective-schema"><name>Effective Schema</name>
 <t>Extensions are additive and independent, the effective schema for a base object MUST account for all applicable extensions to ensure that a validator can determine whether an object fully conforms to the combined set of constraints. When one or more extensions are applied to a base object, the effective schema for that object is obtained by composing the base object's schema with the schemas contributed by each extension using the <tt>allOf</tt> keyword, the server uses the <tt>rpp:extends</tt> metadata property to resolve the mapping between the base object and its extensions correctly.</t>
-<t>The resulting schema is a self contained schema that includes everything from both the base specification and the extensions, allowing clients to validate objects against a single comprehensive schema.</t>
+<t>The resulting schema is a self-contained schema that includes everything from both the base specification and the extensions, allowing clients to validate objects against a single comprehensive schema.</t>
 <t>The following is an example of an extension JSON Schema, which adds new properties to both the domain and contact base objects:</t>
 
 <sourcecode type="json"><![CDATA[{
@@ -3882,9 +3984,27 @@ list won't be possible this way</t>
 </section>
 
 <section anchor="examples-1"><name>Examples</name>
-<t>This section provides examples that follow the JSON representation rules and JSON Schema definitions specified in the previous sections. The examples illustrate typical request and response messages for domain name, contact, and host resources.</t>
+<t>This section provides examples that follow the JSON representation rules and JSON Schema definitions specified in the previous sections. The examples illustrate typical request and response messages for the RPP Data Objects defined in <xref target="I-D.ietf-rpp-data-objects"></xref>.</t>
 
 <section anchor="domain-name"><name>Domain Name</name>
+
+<section anchor="availability-3"><name>Availability</name>
+<t>Example domain availability response for a domain name that can be created:</t>
+
+<sourcecode type="json"><![CDATA[{
+    "@type": "domainNameAvailability",
+    "available": true
+}
+]]></sourcecode>
+<t>Example domain availability response for a domain name that cannot be created:</t>
+
+<sourcecode type="json"><![CDATA[{
+    "@type": "domainNameAvailability",
+    "available": false,
+    "reason": "In use"
+}
+]]></sourcecode>
+</section>
 
 <section anchor="create-7"><name>Create</name>
 <t>Example domain create request:</t>
@@ -4021,7 +4141,7 @@ list won't be possible this way</t>
     }
 }
 ]]></sourcecode>
-<t>Example Read response for an internationalized domain name, showing the ACE <tt>name</tt>, the corresponding <tt>uName</tt>, and the <tt>lgr</tt> identifying the Label Generation Ruleset (LGR) used for validation:</t>
+<t>Example Read response for an internationalised domain name, showing the ACE <tt>name</tt>, the corresponding <tt>uName</tt>, and the <tt>lgr</tt> identifying the Label Generation Ruleset (LGR) used for validation:</t>
 
 <sourcecode type="json"><![CDATA[{
     "@type": "domainName",
@@ -4120,8 +4240,8 @@ list won't be possible this way</t>
 </section>
 
 <section anchor="transfer-request"><name>Transfer Request</name>
-<t>Authorization information for the transfer MUST be conveyed using the <tt>RPP-Authorization</tt> HTTP header (see <xref target="authorization-information-rules" format="title"></xref>), not in the JSON request body.</t>
-<t>Example domain transfer request (pull transfer)</t>
+<t>Authorisation information for the transfer MUST be conveyed using the <tt>RPP-Authorization</tt> HTTP header (see <xref target="authorization-information-rules" format="title"></xref>), not in the JSON request body.</t>
+<t>Example domain transfer request (pull transfer):</t>
 
 <sourcecode type="json"><![CDATA[{
     "@type": "domainTransferProcess",
@@ -4165,7 +4285,7 @@ list won't be possible this way</t>
 </section>
 
 <section anchor="transfer-approve"><name>Transfer Approve</name>
-<t>The Transfer approve operation has request body with an empty JSON object, the server can identify the transfer process to be approved based on the request URL and the authenticated client's permissions.</t>
+<t>The Transfer approve operation has a request body with an empty JSON object, the server can identify the transfer process to be approved based on the request URL and the authenticated client's permissions.</t>
 <t>Example domain transfer approve request with empty JSON object:</t>
 
 <sourcecode type="json"><![CDATA[{ 
@@ -4181,7 +4301,7 @@ list won't be possible this way</t>
 </section>
 
 <section anchor="transfer-reject"><name>Transfer Reject</name>
-<t>Example domain transfer reject request</t>
+<t>Example domain transfer reject request:</t>
 
 <sourcecode type="json"><![CDATA[{
     "@type": "domainTransferProcess",
@@ -4290,6 +4410,17 @@ list won't be possible this way</t>
 </section>
 
 <section anchor="contact"><name>Contact</name>
+
+<section anchor="availability-4"><name>Availability</name>
+<t>Example contact availability response for a contact that cannot be created:</t>
+
+<sourcecode type="json"><![CDATA[{
+    "@type": "contactAvailability",
+    "available": false,
+    "reason": "In use"
+}
+]]></sourcecode>
+</section>
 
 <section anchor="create-8"><name>Create</name>
 <t>Example contact create request:</t>
@@ -4513,8 +4644,8 @@ list won't be possible this way</t>
 </section>
 
 <section anchor="transfer-request-1"><name>Transfer Request</name>
-<t>Authorization information for the transfer MUST be conveyed using the <tt>RPP-Authorization</tt> HTTP header (see <xref target="authorization-information-rules" format="title"></xref>), not in the JSON request body.</t>
-<t>Example contact transfer request (pull transfer)</t>
+<t>Authorisation information for the transfer MUST be conveyed using the <tt>RPP-Authorization</tt> HTTP header (see <xref target="authorization-information-rules" format="title"></xref>), not in the JSON request body.</t>
+<t>Example contact transfer request (pull transfer):</t>
 
 <sourcecode type="json"><![CDATA[{
     "@type": "transferProcess", 
@@ -4555,7 +4686,7 @@ list won't be possible this way</t>
 </section>
 
 <section anchor="transfer-reject-1"><name>Transfer Reject</name>
-<t>Example Contact Transfer Reject request</t>
+<t>Example contact transfer reject request:</t>
 
 <sourcecode type="json"><![CDATA[{
     "@type": "transferProcess",
@@ -4567,6 +4698,16 @@ list won't be possible this way</t>
 </section>
 
 <section anchor="host"><name>Host</name>
+
+<section anchor="availability-5"><name>Availability</name>
+<t>Example host availability response for a host that can be created:</t>
+
+<sourcecode type="json"><![CDATA[{
+    "@type": "hostAvailability",
+    "available": true
+}
+]]></sourcecode>
+</section>
 
 <section anchor="create-9"><name>Create</name>
 <t>Example host create request:</t>
@@ -5283,7 +5424,7 @@ list won't be possible this way</t>
 </section>
 
 <section anchor="query-1"><name>Query</name>
-<t>There exist no request message for the message query operation.</t>
+<t>There is no request message for the message query operation.</t>
 <t>Example message query response, containing a Transfer Request Message Object for the domain <tt>transfer-test.example</tt>:</t>
 
 <sourcecode type="json"><![CDATA[[{
@@ -5317,7 +5458,7 @@ list won't be possible this way</t>
 <section anchor="discovery-1"><name>Discovery</name>
 
 <section anchor="read-15"><name>Read</name>
-<t>There exists no request message for the discovery read operation.</t>
+<t>There is no request message for the discovery read operation.</t>
 <t>Example discovery read response:</t>
 
 <sourcecode type="json"><![CDATA[{
@@ -5375,7 +5516,7 @@ list won't be possible this way</t>
 <section anchor="profile"><name>Profile</name>
 
 <section anchor="read-16"><name>Read</name>
-<t>There exists no request message for the profile read operation.</t>
+<t>There is no request message for the profile read operation.</t>
 <t>Example profile read response:</t>
 
 <sourcecode type="json"><![CDATA[{
@@ -5451,8 +5592,8 @@ Provisional registration: No
 ]]></sourcecode>
 </section>
 
-<section anchor="rpp-json-schema-extensions-registry"><name>RPP JSON Schema Extensions registry</name>
-<t>The IANA is requested to create a new registry for RPP JSON Schema extensions, this registry will be used to register standardized JSON Schema extensions to the JSON representation of RPP JSON objects, as defined in the <xref target="extension-framework"></xref> of this document.</t>
+<section anchor="rpp-json-schema-extensions-registry"><name>RPP JSON Schema Extensions Registry</name>
+<t>The IANA is requested to create a new registry for RPP JSON Schema extensions, this registry will be used to register standardised JSON Schema extensions to the JSON representation of RPP JSON objects, as defined in the <xref target="extension-framework"></xref> of this document.</t>
 
 <sourcecode type="text"><![CDATA[Name of the registry: RPP JSON Schema Extensions
 Registry group: RESTful Provisioning Protocol (RPP)
@@ -5473,19 +5614,19 @@ Registration procedure: Expert Review
 </section>
 
 <section anchor="internationalization-considerations"><name>Internationalization Considerations</name>
-<t>Internationalized Domain Names (IDN) are represented using the paired <tt>name</tt>/<tt>uName</tt> data elements described in the Domain Name Data Object. The <tt>name</tt> property, which addresses the resource and is used for object identity, MUST always contain the ACE A-label form; the <tt>uName</tt> property carries the Unicode U-label form for display and MUST be Unicode Normalization Form C (NFC) as defined in [UNICODE.NFC].</t>
+<t>Internationalized Domain Names (IDN) are represented using the paired <tt>name</tt>/<tt>uName</tt> data elements described in the Domain Name Data Object. The <tt>name</tt> property, which addresses the resource and is used for object identity, MUST always contain the ACE A-label form; the <tt>uName</tt> property carries the Unicode U-label form for display and MUST be Unicode Normalization Form C (NFC) as defined in <xref target="UNICODE.NFC"></xref>.</t>
 <t>Because JSON strings are Unicode character sequences, implementations MUST take the following precautions to avoid producing or misinterpreting <tt>uName</tt> (and any other Unicode-bearing string value) in a way that breaks common JSON consumers, in particular JavaScript, whose native strings are sequences of UTF-16 code units rather than Unicode code points:</t>
 
 <ul spacing="compact">
 <li>A string value MUST NOT contain an unpaired (lone) UTF-16 surrogate code point. Although <xref target="RFC8259"></xref>, Section 8.2, permits such values in JSON text, they do not represent a well-formed Unicode scalar value and MAY fail to round-trip when re-encoded as UTF-8 by non-JavaScript consumers.</li>
 <li>Consumers MUST NOT use a UTF-16 code-unit count (such as JavaScript's <tt>String.prototype.length</tt>) to validate or enforce length constraints on <tt>uName</tt>. Domain name label length restrictions are defined in terms of the <tt>name</tt> (A-label) octet count; scripts using supplementary-plane code points are represented as surrogate pairs in UTF-16, so a code-unit count over-counts the number of Unicode code points.</li>
-<li>Consumers MUST NOT rely on native string equality (e.g. JavaScript's <tt>===</tt>) to compare <tt>uName</tt> values for identity purposes, since two strings that differ only in Unicode normalization form compare unequal even though they represent the same name; <tt>name</tt> MUST be used instead for identity comparison.</li>
+<li>Consumers MUST NOT rely on native string equality (e.g. JavaScript's <tt>===</tt>) to compare <tt>uName</tt> values for identity purposes, since two strings that differ only in Unicode normalisation form compare unequal even though they represent the same name; <tt>name</tt> MUST be used instead for identity comparison.</li>
 <li>Servers MUST emit <tt>name</tt> in lowercase. Because ACE (A-label) domain names are case-insensitive per DNS comparison rules but JSON/JavaScript string comparison is case-sensitive, clients performing equality checks on <tt>name</tt> MUST lowercase both operands first rather than relying on native string equality.</li>
 </ul>
 </section>
 
 <section anchor="security-considerations"><name>Security Considerations</name>
-<t>If a server accepts a <tt>uName</tt> value without strictly verifying both that it is already Unicode Normalization Form C (NFC) and that it converts, via the ToASCII procedure of <xref target="RFC5891" sectionFormat="bare" section="Section 4.2"></xref>, to the exact supplied <tt>name</tt> value, an attacker could cause a displayed <tt>uName</tt> to diverge from the name actually resolved in the DNS. Servers MUST reject any create or update request where <tt>uName</tt> is not already NFC-normalized or does not convert to the supplied <tt>name</tt>; servers MUST NOT silently normalize or correct the value on the client's behalf.</t>
+<t>If a server accepts a <tt>uName</tt> value without strictly verifying both that it is already Unicode Normalization Form C (NFC) and that it converts, via the ToASCII procedure of <xref target="RFC5891" sectionFormat="bare" section="Section 4.2"></xref>, to the exact supplied <tt>name</tt> value, an attacker could cause a displayed <tt>uName</tt> to diverge from the name actually resolved in the DNS. Servers MUST reject any create or update request where <tt>uName</tt> is not already NFC-normalised or does not convert to the supplied <tt>name</tt>; servers MUST NOT silently normalise or correct the value on the client's behalf.</t>
 <t><strong>TODO</strong></t>
 </section>
 
@@ -5498,23 +5639,23 @@ Registration procedure: Expert Review
 <section anchor="version-draft-ietf-rpp-json-00-to-draft-ietf-rpp-json-01"><name>Version draft-ietf-rpp-json-00 to draft-ietf-rpp-json-01</name>
 
 <ul spacing="compact">
-<li>Added section &quot;JSON Schema Composition Rules&quot;. (Issue #102)</li>
-<li>Added schemas and examples for the Discovery and Profile Data Objects. (Issue #92)</li>
-<li>Added schemas and examples related to service messages. (Issue #82)</li>
-<li>Added IANA registration for the &quot;application/rpp+json&quot; media type (Issue #84)</li>
-<li>Added extension framework section, describing how extensions should be defined. (Issue #78)</li>
-<li>Added support for Internationalized Domain Names (IDN). (Issue #86)</li>
-<li>Added &quot;inheritance&quot; section (Issue #88)</li>
+<li>Added section &quot;JSON Schema Composition Rules&quot;, including <xref target="status-object-rules"></xref> and <tt>read</tt>/<tt>create</tt> views for Component Objects. (Issue #102)</li>
+<li>Replaced the JSON Schema definitions the generic Status Object with type-specific objects in <xref target="status-objects"></xref>.</li>
+<li>Added schemas and examples for the Availability Objects, service messages, and for the Discovery and Profile Data Objects. (Issues #133, #82, #92)</li>
+<li>Added IANA registration for the &quot;application/rpp+json&quot; media type. (Issue #84)</li>
+<li>Added <xref target="extension-framework"></xref>. (Issue #78)</li>
+<li>Added support for Internationalized Domain Names (IDN), see <xref target="internationalization-considerations"></xref>. (Issue #86)</li>
+<li>Added section &quot;Inheritance&quot;. (Issue #88)</li>
 <li>Added section describing the representation of undefined values. (Issue #97)</li>
-<li>Regenerated the JSON Schema definitions from the RPP Data Objects model, replacing the generic Status Object with type-specific objects in <xref target="status-objects"></xref> and adding <xref target="status-object-rules"></xref> and <tt>read</tt>/<tt>create</tt> views for Component Objects to JSON Schema Composition Rules.</li>
+<li>Rewrote the partial update processing in <xref target="partial-steps"></xref>, added replacement of a whole array, and added flow figures. (Issue #91, #77)</li>
+<li>Aligned the JSContact constraints with the RPP JSContact profile. (Issue #76)</li>
+<li>Made the JSON Schema definitions normative. (Issue #75)</li>
 <li>Added the Disclose Object and Process Object (Base, Create, Restore) schemas, and removed redundant Process alias and Transfer response schemas.</li>
 <li>Aligned all examples, including those in <xref target="extension-framework"></xref>, with the updated JSON Schema definitions.</li>
-<li>Added a reference to the RPP data model terms in Terminology.</li>
-<li>Removed repeated references to the RPP data model document that Terminology covers.</li>
-<li>Generalised the Mutability Rules to derive request and response content from operation Input and Output.</li>
-<li>Changed server handling of disallowed request data elements from ignore to reject in the Mutability Rules.</li>
+<li>Generalised the Mutability Rules to derive request and response content from operation Input and Output, and changed handling of disallowed request data elements from ignore to reject. (Issue #112 M2)</li>
 <li>Replaced the primary identifier with the Unique Identifier in Association Rules.</li>
-<li>Removed rule numbering and replaced references to rule numbers with section references.</li>
+<li>Editorial: Removed rule numbering and replaced references to rule numbers with section references.</li>
+<li>Editorial: Updated the Abstract and Introduction to cover all defined Data Objects.</li>
 </ul>
 </section>
 
@@ -5555,7 +5696,6 @@ Registration procedure: Expert Review
 <references><name>Normative References</name>
 <xi:include href="https://bib.ietf.org/public/rfc/bibxml3/reference.I-D.ietf-jsonschema-json-schema.xml"/>
 <xi:include href="https://bib.ietf.org/public/rfc/bibxml3/reference.I-D.ietf-rpp-core.xml"/>
-<xi:include href="https://bib.ietf.org/public/rfc/bibxml3/reference.I-D.ietf-rpp-data-objects.xml"/>
 <reference anchor="IDN-Tables" target="https://www.iana.org/assignments/idn-tables">
   <front>
     <title>Repository of IDN Practices</title>
@@ -5608,6 +5748,13 @@ Registration procedure: Expert Review
 <xi:include href="https://bib.ietf.org/public/rfc/bibxml/reference.RFC.8543.xml"/>
 <xi:include href="https://bib.ietf.org/public/rfc/bibxml/reference.RFC.9553.xml"/>
 <xi:include href="https://bib.ietf.org/public/rfc/bibxml/reference.RFC.9982.xml"/>
+</references>
+<references><name>Informative References</name>
+<xi:include href="https://bib.ietf.org/public/rfc/bibxml3/reference.I-D.ietf-rpp-data-objects.xml"/>
+<xi:include href="https://bib.ietf.org/public/rfc/bibxml3/reference.I-D.simmen-rpp-dns-data.xml"/>
+<xi:include href="https://bib.ietf.org/public/rfc/bibxml/reference.RFC.3596.xml"/>
+<xi:include href="https://bib.ietf.org/public/rfc/bibxml/reference.RFC.4034.xml"/>
+<xi:include href="https://bib.ietf.org/public/rfc/bibxml/reference.RFC.5910.xml"/>
 <reference anchor="UNICODE.NFC" target="https://www.unicode.org/reports/tr15/">
   <front>
     <title>Unicode Normalization Forms</title>
@@ -5617,12 +5764,6 @@ Registration procedure: Expert Review
     <date year="2026" month="08"></date>
   </front>
 </reference>
-</references>
-<references><name>Informative References</name>
-<xi:include href="https://bib.ietf.org/public/rfc/bibxml3/reference.I-D.simmen-rpp-dns-data.xml"/>
-<xi:include href="https://bib.ietf.org/public/rfc/bibxml/reference.RFC.3596.xml"/>
-<xi:include href="https://bib.ietf.org/public/rfc/bibxml/reference.RFC.4034.xml"/>
-<xi:include href="https://bib.ietf.org/public/rfc/bibxml/reference.RFC.5910.xml"/>
 </references>
 </references>
 
