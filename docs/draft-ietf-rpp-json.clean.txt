@@ -2,25 +2,26 @@
 
 
 
-Network Working Group                                         M. Wullink
+RESTful Provisioning Protocol                                 M. Wullink
 Internet-Draft                                                 SIDN Labs
 Intended status: Standards Track                              P. Kowalik
-Expires: 7 January 2027                                            DENIC
-                                                             6 July 2026
+Expires: 6 May 2027                                                DENIC
+                                                         2 November 2026
 
 
               JSON for RESTful Provisioning Protocol (RPP)
-                         draft-ietf-rpp-json-00
+                         draft-ietf-rpp-json-01
 
 Abstract
 
    This document defines the rules for representing the RESTful
    Provisioning Protocol (RPP) data objects using the JavaScript Object
-   Notation (JSON) Data Interchange Format [RFC8259].  It specifies how
-   RPP primitive types, common data types, component objects, resource
-   objects, and associations are mapped to JSON and JSON Schema, and
-   provides normative JSON Schema definitions and worked examples for
-   domain name, contact, and host data objects.
+   Notation (JSON) Data Interchange Format.  It specifies how RPP
+   primitive types, common data types, Component Objects, Data Objects,
+   and associations are mapped to JSON and JSON Schema, and provides
+   normative JSON Schema definitions and examples for the RPP Data
+   Objects, the representation of update requests, and an extension
+   framework.
 
 Status of This Memo
 
@@ -37,7 +38,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 7 January 2027.
+   This Internet-Draft will expire on 6 May 2027.
 
 Copyright Notice
 
@@ -65,7 +66,7 @@ Table of Contents
      4.3.  Cardinality Rules
      4.4.  Mutability Rules
      4.5.  Association Rules
-       4.5.1.  Labelled associations
+       4.5.1.  Labelled Associations
        4.5.2.  Aggregation
        4.5.3.  Composition
        4.5.4.  Labelled Aggregation
@@ -78,7 +79,7 @@ Table of Contents
      4.9.  JSON Schema Definition Rules
        4.9.1.  Undeclared Properties
        4.9.2.  Type Property
-       4.9.3.  Authorization Information in Requests
+       4.9.3.  Authorisation Information in Requests
      4.10. JSON Schema Composition Rules
        4.10.1.  Status Objects
        4.10.2.  Inheritance
@@ -108,7 +109,7 @@ Table of Contents
        6.2.4.  DNS Resource Record Object
        6.2.5.  DNS Operational Controls Object
        6.2.6.  DNS Data Object
-       6.2.7.  Authorization Information Object
+       6.2.7.  Authorisation Information Object
        6.2.8.  Disclose Object
        6.2.9.  JSContact Card Object
        6.2.10. Restore Report Object
@@ -120,14 +121,19 @@ Table of Contents
          6.2.13.3.  IDN LGR Object
          6.2.13.4.  Notice Object
        6.2.14. Processes Object
-       6.2.15. Messages
-         6.2.15.1.  Base Message Object
-         6.2.15.2.  Review Response Object
-         6.2.15.3.  Transfer Request Message Object
-         6.2.15.4.  Transfer Outcome Message Object
-         6.2.15.5.  Expiration Deletion Message Object
-         6.2.15.6.  Auto-Renewal Message Object
-         6.2.15.7.  Service Notice Message Object
+       6.2.15. Availability
+         6.2.15.1.  Base Availability Object
+         6.2.15.2.  Domain Name Availability Object
+         6.2.15.3.  Contact Availability Object
+         6.2.15.4.  Host Availability Object
+       6.2.16. Messages
+         6.2.16.1.  Base Message Object
+         6.2.16.2.  Review Response Object
+         6.2.16.3.  Transfer Request Message Object
+         6.2.16.4.  Transfer Outcome Message Object
+         6.2.16.5.  Expiration Deletion Message Object
+         6.2.16.6.  Auto-Renewal Message Object
+         6.2.16.7.  Service Notice Message Object
      6.3.  Process Object Schemas
        6.3.1.  Base Process Object
        6.3.2.  Create Process Object
@@ -141,23 +147,26 @@ Table of Contents
          6.3.4.6.  Reference
        6.3.5.  Restore Process Object
      6.4.  Domain Name Data Object
-       6.4.1.  Create
-       6.4.2.  Create Process
-       6.4.3.  Read
-       6.4.4.  Update
-       6.4.5.  Transfer
-       6.4.6.  Reference
+       6.4.1.  Availability
+       6.4.2.  Create
+       6.4.3.  Create Process
+       6.4.4.  Read
+       6.4.5.  Update
+       6.4.6.  Transfer
+       6.4.7.  Reference
      6.5.  Contact Data Object
        6.5.1.  JSContact Profile for RPP
-       6.5.2.  Create
-       6.5.3.  Read
-       6.5.4.  Update
-       6.5.5.  Reference
+       6.5.2.  Availability
+       6.5.3.  Create
+       6.5.4.  Read
+       6.5.5.  Update
+       6.5.6.  Reference
      6.6.  Host Data Object
-       6.6.1.  Create
-       6.6.2.  Read
-       6.6.3.  Update
-       6.6.4.  Reference
+       6.6.1.  Availability
+       6.6.2.  Create
+       6.6.3.  Read
+       6.6.4.  Update
+       6.6.5.  Reference
      6.7.  Organisation Data Object
        6.7.1.  Create
        6.7.2.  Read
@@ -183,37 +192,40 @@ Table of Contents
      7.2.  Effective Schema
    8.  Examples
      8.1.  Domain Name
-       8.1.1.  Create
-       8.1.2.  Create Process Data
-       8.1.3.  Read
-       8.1.4.  Update
-       8.1.5.  Delete
-       8.1.6.  Renew
-       8.1.7.  Transfer Request
-       8.1.8.  Transfer Query
-       8.1.9.  Transfer Approve
-       8.1.10. Transfer Cancel
-       8.1.11. Transfer Reject
-       8.1.12. Restore Request
-       8.1.13. Restore Report
-       8.1.14. Read (Restore Query)
+       8.1.1.  Availability
+       8.1.2.  Create
+       8.1.3.  Create Process Data
+       8.1.4.  Read
+       8.1.5.  Update
+       8.1.6.  Delete
+       8.1.7.  Renew
+       8.1.8.  Transfer Request
+       8.1.9.  Transfer Query
+       8.1.10. Transfer Approve
+       8.1.11. Transfer Cancel
+       8.1.12. Transfer Reject
+       8.1.13. Restore Request
+       8.1.14. Restore Report
+       8.1.15. Read (Restore Query)
      8.2.  Contact
-       8.2.1.  Create
-       8.2.2.  Read
-       8.2.3.  Update
-       8.2.4.  Delete
-       8.2.5.  Transfer Request
-       8.2.6.  Transfer Query
-       8.2.7.  Transfer Cancel / Approve
-       8.2.8.  Transfer Reject
+       8.2.1.  Availability
+       8.2.2.  Create
+       8.2.3.  Read
+       8.2.4.  Update
+       8.2.5.  Delete
+       8.2.6.  Transfer Request
+       8.2.7.  Transfer Query
+       8.2.8.  Transfer Cancel / Approve
+       8.2.9.  Transfer Reject
      8.3.  Host
-       8.3.1.  Create
-       8.3.2.  Read
-       8.3.3.  Update
-       8.3.4.  Delete
-       8.3.5.  Restore Request
-       8.3.6.  Restore Report
-       8.3.7.  Read (Restore Query)
+       8.3.1.  Availability
+       8.3.2.  Create
+       8.3.3.  Read
+       8.3.4.  Update
+       8.3.5.  Delete
+       8.3.6.  Restore Request
+       8.3.7.  Restore Report
+       8.3.8.  Read (Restore Query)
      8.4.  Organisation
        8.4.1.  Create
        8.4.2.  Read
@@ -236,7 +248,7 @@ Table of Contents
        8.8.1.  Read
    9.  IANA Considerations
      9.1.  RPP Media Type (application/rpp+json)
-     9.2.  RPP JSON Schema Extensions registry
+     9.2.  RPP JSON Schema Extensions Registry
    10. Internationalization Considerations
    11. Security Considerations
    12. Acknowledgments
@@ -254,8 +266,8 @@ Table of Contents
 1.  Introduction
 
    The RESTful Provisioning Protocol (RPP) defines a set of data objects
-   for managing foundational registry resources including domain names,
-   contacts, and hosts.  The data model is defined in
+   for managing registry resources, such as domain names, contacts,
+   hosts, organisations, and users.  The data model is defined in
    [I-D.ietf-rpp-data-objects] independently of any particular
    representation format.  This document defines the JSON [RFC8259]
    representation of those data objects.
@@ -300,12 +312,12 @@ Table of Contents
    standard libraries, contributing to improved system performance amid
    frequent interactions between RPP clients and servers.
 
-   However, the absence of a standardized JSON format for domain
+   However, the absence of a standardised JSON format for domain
    provisioning has led to the emergence of TLD-specific implementations
    that lack interoperability, increasing the development effort
    required for integration.  Similarly, at the registrar level, the
    absence of standards has resulted in numerous incompatible API
-   implementations provided to clients and resellers.  Standardizing a
+   implementations provided to clients and resellers.  Standardising a
    JSON format for domain provisioning within the RPP framework could
    mitigate these challenges, reducing fragmentation and simplifying
    integration efforts across the domain registration industry.
@@ -321,8 +333,8 @@ Table of Contents
    Data Object, and This Object, are used as defined in
    [I-D.ietf-rpp-data-objects].
 
-   RPP Data Objects - The abstract data model definitions for domain
-   name, contact, and host resources, as specified in
+   RPP Data Objects - The abstract data model definitions of the objects
+   provisioned and exchanged with RPP, as specified in
    [I-D.ietf-rpp-data-objects].
 
    RESTful Provisioning Protocol - A RESTful protocol for provisioning
@@ -549,13 +561,13 @@ Table of Contents
 4.5.  Association Rules
 
    The RPP data model defines several association types between objects,
-   the following rules specify their JSON representations.  A
+   the following rules specify their JSON representations.  An
    Aggregation represents a relationship between two independent
    objects, where one object references another.  A Composition
    represents a parent-child relationship where the child object is
    embedded within the parent object and cannot exist independently.
 
-4.5.1.  Labelled associations
+4.5.1.  Labelled Associations
 
    Some associations between objects carry a string label that provides
    additional context for the relationship.  The label is not an
@@ -565,7 +577,7 @@ Table of Contents
    associations in JSON, the property label MUST be included alongside
    the reference to the target object.  A property with the name object
    MUST be used to contain the reference to the target object, which can
-   be either limited representation containing at minimum the Unique
+   be either a limited representation containing at minimum the Unique
    Identifier of the target object for aggregations or an embedded
    object for compositions.
 
@@ -881,12 +893,12 @@ Table of Contents
        "name": "example.example"
    }
 
-4.9.3.  Authorization Information in Requests
+4.9.3.  Authorisation Information in Requests
 
-   When a transfer request or other operation requires authorization
+   When a transfer request or other operation requires authorisation
    information (e.g., EPP-style authinfo), the client MUST NOT include
    the authInfo object in the JSON request body.  Instead, the client
-   MUST convey the authorization information using the RPP-Authorization
+   MUST convey the authorisation information using the RPP-Authorization
    HTTP request header as defined in [I-D.ietf-rpp-core].  Servers MUST
    reject any request that includes an authInfo object in the JSON body
    with an appropriate error response.
@@ -1001,7 +1013,7 @@ Table of Contents
 4.10.2.  Inheritance
 
    RPP Data Objects and Component Objects MAY inherit the data elements
-   and operations of another object.  The JSON schema for an object must
+   and operations of another object.  The JSON Schema for an object must
    include all the inherited data elements and constraints from its base
    object, using a flat structure where all properties are defined at
    the top level of the schema, rather than nested under an "allOf" or
@@ -1095,7 +1107,7 @@ Table of Contents
    (the operation), a path (a JSON Pointer to the property the operation
    targets), a value (the new value, for add and replace), and
    optionally a match (to select array elements).  When the path points
-   to an existing primitive type property, the add operations has the
+   to an existing primitive type property, the add operation has the
    same semantics as replace and will overwrite the existing value.
 
 5.2.1.  Matching
@@ -1515,7 +1527,7 @@ Table of Contents
      }
    ]
 
-   Example of a partial update request for adding a additional tech
+   Example of a partial update request for adding an additional tech
    contact to a domain name:
 
    [
@@ -1556,8 +1568,8 @@ Table of Contents
 6.1.  Common Data Types Schemas
 
    This section defines shared data types that are based on the
-   primitive data types above and are re-used across multiple data
-   object definitions.
+   primitive data types above and are reused across multiple data object
+   definitions.
 
 6.1.1.  Identifier
 
@@ -1667,7 +1679,7 @@ Table of Contents
       been modified.
    -  trDate MUST NOT be present if the object has never been
       transferred.
-   -  In EPP Compatibility Profile, repositoryId MUST be provided.
+   -  In the EPP Compatibility Profile, repositoryId MUST be provided.
 
    Read schema:
 
@@ -2073,9 +2085,9 @@ Table of Contents
       representing the domain name itself.
    -  type MUST be a valid string representation of a DNS resource
       record type as defined in [RFC1035].  Values MUST be converted to
-      lower case.  Allowed values MAY be further constrained by server
+      lowercase.  Allowed values MAY be further constrained by server
       policy.
-   -  In EPP Compatibility Profile ([RFC5732]), the following record
+   -  In the EPP Compatibility Profile ([RFC5732]), the following record
       types MUST be supported: ns, a, and aaaa.  With DNSSEC Extension
       [RFC5910], ds and dnskey MUST additionally be supported.
    -  class, if present, MUST be chosen from Section 3.2.4 (CLASS
@@ -2084,7 +2096,7 @@ Table of Contents
    -  The fields within rdata MUST match the expected structure for the
       given record type (see RDATA structures below).
 
-   RDATA structures required in EPP Compatibility Profile:
+   RDATA structures required in the EPP Compatibility Profile:
 
    -  NS records ([RFC1035], Section 3.3.11): nsdname
    -  A records ([RFC1035], Section 3.4.1): address
@@ -2200,7 +2212,7 @@ Table of Contents
    The following constraints cannot be expressed in JSON Schema and MUST
    be enforced by implementations:
 
-   -  In EPP Compatibility Profile with DNSSEC Extension [RFC5910],
+   -  In the EPP Compatibility Profile with DNSSEC Extension [RFC5910],
       records of type ds and dnskey MUST be supported in addition to ns,
       a, and aaaa.  A server MUST support either ds or dnskey or both.
       If provided with only dnskey, a server MUST calculate the DS
@@ -2244,17 +2256,17 @@ Table of Contents
      }
    }
 
-6.2.7.  Authorization Information Object
+6.2.7.  Authorisation Information Object
 
    The following constraints cannot be expressed in JSON Schema and MUST
    be enforced by implementations:
 
    -  method MUST be one of the values registered in the IANA RPP
       Authorization Method Registry as defined in [I-D.ietf-rpp-core].
-      In EPP Compatibility Profile, this value MUST be "authinfo" for
-      standard password-based authorization.
-   -  The Authorization Information Object is immutable.  When
-      authorization information changes, a new instance MUST be created
+      In the EPP Compatibility Profile, this value MUST be "authinfo"
+      for standard password-based authorisation.
+   -  The Authorisation Information Object is immutable.  When
+      authorisation information changes, a new instance MUST be created
       rather than modifying the existing one.  The value of authdata MAY
       be omitted from read responses, depending on the method and server
       policy.
@@ -2430,9 +2442,9 @@ Table of Contents
    -  At least one and at most two statements MUST be provided.
    -  restoreTime MAY be omitted when the restore report is submitted
       inline within the restore request in a single-step process.
-   -  In EPP Compatibility Profile, restoreTime MUST be present as
+   -  In the EPP Compatibility Profile, restoreTime MUST be present as
       defined in [RFC3915].
-   -  In EPP Compatibility Profile, exactly two statements MUST be
+   -  In the EPP Compatibility Profile, exactly two statements MUST be
       present as defined in [RFC3915].
 
    Read schema:
@@ -2702,7 +2714,91 @@ Table of Contents
      }
    }
 
-6.2.15.  Messages
+6.2.15.  Availability
+
+   The Availability Objects are the output of the Availability
+   operation.  The Base Availability Object is extended by Data Object
+   specific Availability Objects in order to allow independent
+   extensibility.
+
+6.2.15.1.  Base Availability Object
+
+   The following constraints cannot be expressed in JSON Schema and MUST
+   be enforced by implementations:
+
+   -  reason MUST only be present when available is false.
+
+   Read schema:
+
+   {
+     "$defs": {
+       "baseAvailability.read": {
+         "type": "object",
+         "properties": {
+           "@type": { "type": "string", "const": "baseAvailability", "readOnly": true },
+           "available": { "type": "boolean", "readOnly": true },
+           "reason": { "type": "string", "readOnly": true }
+         },
+         "required": ["@type", "available"]
+       }
+     }
+   }
+
+6.2.15.2.  Domain Name Availability Object
+
+   Read schema:
+
+   {
+     "$defs": {
+       "domainNameAvailability.read": {
+         "type": "object",
+         "properties": {
+           "@type": { "type": "string", "const": "domainNameAvailability", "readOnly": true },
+           "available": { "type": "boolean", "readOnly": true },
+           "reason": { "type": "string", "readOnly": true }
+         },
+         "required": ["@type", "available"]
+       }
+     }
+   }
+
+6.2.15.3.  Contact Availability Object
+
+   Read schema:
+
+   {
+     "$defs": {
+       "contactAvailability.read": {
+         "type": "object",
+         "properties": {
+           "@type": { "type": "string", "const": "contactAvailability", "readOnly": true },
+           "available": { "type": "boolean", "readOnly": true },
+           "reason": { "type": "string", "readOnly": true }
+         },
+         "required": ["@type", "available"]
+       }
+     }
+   }
+
+6.2.15.4.  Host Availability Object
+
+   Read schema:
+
+   {
+     "$defs": {
+       "hostAvailability.read": {
+         "type": "object",
+         "properties": {
+           "@type": { "type": "string", "const": "hostAvailability", "readOnly": true },
+           "available": { "type": "boolean", "readOnly": true },
+           "reason": { "type": "string", "readOnly": true }
+         },
+         "required": ["@type", "available"]
+       }
+     }
+   }
+
+6.2.16.  Messages
 
    All message objects are generated by the server and are read-only
    from the perspective of the receiving client.
@@ -2714,7 +2810,7 @@ Table of Contents
    concrete message object and enables a client to determine which data
    elements to expect.
 
-6.2.15.1.  Base Message Object
+6.2.16.1.  Base Message Object
 
    The Base Message Object contains the data elements common to all
    message objects.
@@ -2743,7 +2839,7 @@ Table of Contents
      }
    }
 
-6.2.15.2.  Review Response Object
+6.2.16.2.  Review Response Object
 
    Read schema:
 
@@ -2777,7 +2873,7 @@ Table of Contents
      }
    }
 
-6.2.15.3.  Transfer Request Message Object
+6.2.16.3.  Transfer Request Message Object
 
    Read schema:
 
@@ -2805,7 +2901,7 @@ Table of Contents
      }
    }
 
-6.2.15.4.  Transfer Outcome Message Object
+6.2.16.4.  Transfer Outcome Message Object
 
    Read schema:
 
@@ -2844,7 +2940,7 @@ Table of Contents
      }
    }
 
-6.2.15.5.  Expiration Deletion Message Object
+6.2.16.5.  Expiration Deletion Message Object
 
    Read schema:
 
@@ -2863,7 +2959,7 @@ Table of Contents
      }
    }
 
-6.2.15.6.  Auto-Renewal Message Object
+6.2.16.6.  Auto-Renewal Message Object
 
    Read schema:
 
@@ -2883,7 +2979,7 @@ Table of Contents
      }
    }
 
-6.2.15.7.  Service Notice Message Object
+6.2.16.7.  Service Notice Message Object
 
    The Service Notice Message Object extends the Base Message Object.
    It is not linked to a specific object or process, so objectType,
@@ -3319,16 +3415,21 @@ Table of Contents
       domain names to a specific namespace for which they are
       authoritative.  The implicit trailing dot MUST NOT be included.
    -  name MUST use the ASCII Compatible Encoding (ACE) A-label form
-      when the domain name is internationalized, as defined in
+      when the domain name is internationalised, as defined in
       [RFC5890].
-   -  uName, when present, MUST be normalized to Unicode Normalization
+   -  uName, when present, MUST be normalised to Unicode Normalization
       Form C (NFC) as defined in [UNICODE.NFC], and MUST convert to the
       exact value of name using the procedure described in Section 4.4.
    -  lgr, when present, MUST identify a valid Label Generation Ruleset
       (LGR) registered in the [IDN-Tables] registry, and MUST be present
       whenever uName is present.
 
-6.4.1.  Create
+6.4.1.  Availability
+
+   The response of the Availability operation is the Domain Name
+   Availability Object, see Section 6.2.15.2.
+
+6.4.2.  Create
 
    Create request schema (create-only and read-write properties):
 
@@ -3382,7 +3483,7 @@ Table of Contents
      }
    }
 
-6.4.2.  Create Process
+6.4.3.  Create Process
 
    The Domain Create Process Object extends the Create Process Object
    and is submitted only within the processes data element of the Domain
@@ -3442,7 +3543,7 @@ Table of Contents
      }
    }
 
-6.4.3.  Read
+6.4.4.  Read
 
    Read response schema (read-write and read-only properties):
 
@@ -3494,7 +3595,7 @@ Table of Contents
      }
    }
 
-6.4.4.  Update
+6.4.5.  Update
 
    Update request schema (read-write properties):
 
@@ -3534,7 +3635,7 @@ Table of Contents
      }
    }
 
-6.4.5.  Transfer
+6.4.6.  Transfer
 
    Create request for Domain Transfer Process Object schema (create-only
    and read-write properties):
@@ -3682,7 +3783,7 @@ Table of Contents
      }
    }
 
-6.4.6.  Reference
+6.4.7.  Reference
 
    Reference schema (identifier only):
 
@@ -3720,15 +3821,21 @@ Table of Contents
    The following constraints cannot be expressed in JSON Schema and MUST
    be enforced by implementations:
 
-   -  card.name.full MUST be provided in EPP Compatibility Profile.
-   -  card.addresses.addr MUST be provided in EPP Compatibility Profile,
-      containing at least countryCode and a "locality" kind component.
-   -  card.emails.email.address MUST be provided in EPP Compatibility
-      Profile.
+   -  card.name.full MUST be provided in the EPP Compatibility Profile.
+   -  card.addresses.addr MUST be provided in the EPP Compatibility
+      Profile, containing at least countryCode and a "locality" kind
+      component.
+   -  card.emails.email.address MUST be provided in the EPP
+      Compatibility Profile.
    -  card.addresses[*].countryCode MUST be a valid two-character ISO
       3166-1 [ISO3166-1] alpha-2 code when present.
 
-6.5.2.  Create
+6.5.2.  Availability
+
+   The response of the Availability operation is the Contact
+   Availability Object, see Section 6.2.15.3.
+
+6.5.3.  Create
 
    Create request schema (create-only and read-write properties):
 
@@ -3754,7 +3861,7 @@ Table of Contents
      }
    }
 
-6.5.3.  Read
+6.5.4.  Read
 
    Read response schema (read-write and read-only properties):
 
@@ -3783,7 +3890,7 @@ Table of Contents
      }
    }
 
-6.5.4.  Update
+6.5.5.  Update
 
    Update request schema (read-write properties):
 
@@ -3808,7 +3915,7 @@ Table of Contents
      }
    }
 
-6.5.5.  Reference
+6.5.6.  Reference
 
    Reference schema (identifier only):
 
@@ -3837,7 +3944,12 @@ Table of Contents
       is authoritative, the superordinate domain MUST already exist in
       the server.
 
-6.6.1.  Create
+6.6.1.  Availability
+
+   The response of the Availability operation is the Host Availability
+   Object, see Section 6.2.15.4.
+
+6.6.2.  Create
 
    Create request schema (create-only and read-write properties):
 
@@ -3861,7 +3973,7 @@ Table of Contents
      }
    }
 
-6.6.2.  Read
+6.6.3.  Read
 
    Read response schema (read-write and read-only properties):
 
@@ -3888,7 +4000,7 @@ Table of Contents
      }
    }
 
-6.6.3.  Update
+6.6.4.  Update
 
    Update request schema (read-write properties):
 
@@ -3912,7 +4024,7 @@ Table of Contents
      }
    }
 
-6.6.4.  Reference
+6.6.5.  Reference
 
    Reference schema (identifier only):
 
@@ -4131,7 +4243,7 @@ Table of Contents
    -  data is polymorphic: it MUST contain an instance of a message
       object that directly or indirectly extends the Base Message
       Object.  The concrete message object is identified by the @type of
-      the value used for data property.
+      the value used for the data property.
 
 6.8.1.  Create
 
@@ -4518,13 +4630,13 @@ Table of Contents
    function correctly.  This ensures modularity and reduces the risk of
    conflicts between extensions.
 
-   An extension schema MUST define a unique identifier using a toplevel
+   An extension schema MUST define a unique identifier using a top-level
    $id to ensure that references to the schema are unambiguous and
-   correctly resolved.  For IETF standardized extensions, using a stable
+   correctly resolved.  For IETF standardised extensions, using a stable
    and unique URI as the $id is RECOMMENDED.
 
    An IANA registry for RPP JSON extensions is requested in this
-   document, standardized JSON extensions SHALL be registered in this
+   document, standardised JSON extensions SHALL be registered in this
    registry.  Ensuring that each extension has a unique and stable
    identifier that can be referenced reliably across different
    implementations.  This also promotes the reuse of common extensions
@@ -4562,7 +4674,7 @@ Table of Contents
    rpp:extends metadata property to resolve the mapping between the base
    object and its extensions correctly.
 
-   The resulting schema is a self contained schema that includes
+   The resulting schema is a self-contained schema that includes
    everything from both the base specification and the extensions,
    allowing clients to validate objects against a single comprehensive
    schema.
@@ -4644,12 +4756,31 @@ Table of Contents
 
    This section provides examples that follow the JSON representation
    rules and JSON Schema definitions specified in the previous sections.
-   The examples illustrate typical request and response messages for
-   domain name, contact, and host resources.
+   The examples illustrate typical request and response messages for the
+   RPP Data Objects defined in [I-D.ietf-rpp-data-objects].
 
 8.1.  Domain Name
 
-8.1.1.  Create
+8.1.1.  Availability
+
+   Example domain availability response for a domain name that can be
+   created:
+
+   {
+       "@type": "domainNameAvailability",
+       "available": true
+   }
+
+   Example domain availability response for a domain name that cannot be
+   created:
+
+   {
+       "@type": "domainNameAvailability",
+       "available": false,
+       "reason": "In use"
+   }
+
+8.1.2.  Create
 
    Example domain create request:
 
@@ -4704,7 +4835,7 @@ Table of Contents
        "expiryDate": "2001-04-03T22:00:00.0Z"
    }
 
-8.1.2.  Create Process Data
+8.1.3.  Create Process Data
 
    Example Create Process Object without object-specific create inputs,
    as returned in a read response:
@@ -4726,7 +4857,7 @@ Table of Contents
        }
    }
 
-8.1.3.  Read
+8.1.4.  Read
 
    Example domain read response:
 
@@ -4785,7 +4916,7 @@ Table of Contents
        }
    }
 
-   Example Read response for an internationalized domain name, showing
+   Example Read response for an internationalised domain name, showing
    the ACE name, the corresponding uName, and the lgr identifying the
    Label Generation Ruleset (LGR) used for validation:
 
@@ -4806,7 +4937,7 @@ Table of Contents
        ]
    }
 
-8.1.4.  Update
+8.1.5.  Update
 
    Example domain update request (read-write properties):
 
@@ -4840,7 +4971,7 @@ Table of Contents
        "registrant": { "@type": "contact", "id": "SH-8013" }
    }
 
-8.1.5.  Delete
+8.1.6.  Delete
 
    The domain delete operation takes the domain name as the resource
    identifier in the request.  No request body is required.
@@ -4861,7 +4992,7 @@ Table of Contents
        ]
    }
 
-8.1.6.  Renew
+8.1.7.  Renew
 
    The renew operation creates a Renew Process Object.  The optional
    expiryDate in the request is the _current_ expiry date, sent by the
@@ -4888,13 +5019,13 @@ Table of Contents
        "expiryDate": "2010-04-03T22:00:00.0Z"
    }
 
-8.1.7.  Transfer Request
+8.1.8.  Transfer Request
 
-   Authorization information for the transfer MUST be conveyed using the
-   RPP-Authorization HTTP header (see Authorization Information in
+   Authorisation information for the transfer MUST be conveyed using the
+   RPP-Authorization HTTP header (see Authorisation Information in
    Requests), not in the JSON request body.
 
-   Example domain transfer request (pull transfer)
+   Example domain transfer request (pull transfer):
 
    {
        "@type": "domainTransferProcess",
@@ -4919,7 +5050,7 @@ Table of Contents
        "expiryDate": "2002-09-08T22:00:00.0Z"
    }
 
-8.1.8.  Transfer Query
+8.1.9.  Transfer Query
 
    Example domain transfer query response (Transfer Process Object):
 
@@ -4934,9 +5065,9 @@ Table of Contents
        "expiryDate": "2002-09-08T22:00:00.0Z"
    }
 
-8.1.9.  Transfer Approve
+8.1.10.  Transfer Approve
 
-   The Transfer approve operation has request body with an empty JSON
+   The Transfer approve operation has a request body with an empty JSON
    object, the server can identify the transfer process to be approved
    based on the request URL and the authenticated client's permissions.
 
@@ -4949,7 +5080,7 @@ Table of Contents
    The response is the Transfer Process Object, similar to the Create
    (Transfer Request) and Read (Transfer Query) responses.
 
-8.1.10.  Transfer Cancel
+8.1.11.  Transfer Cancel
 
    The Transfer cancel operation has an empty request body, the server
    can identify the transfer process to be cancelled based on the
@@ -4958,9 +5089,9 @@ Table of Contents
    The response is the Transfer Process Object, similar to the Create
    (Transfer Request) and Read (Transfer Query) responses.
 
-8.1.11.  Transfer Reject
+8.1.12.  Transfer Reject
 
-   Example domain transfer reject request
+   Example domain transfer reject request:
 
    {
        "@type": "domainTransferProcess",
@@ -4970,7 +5101,7 @@ Table of Contents
    The transfer reject response is the Transfer Process Object, similar
    to the Create (Transfer Request) and Read (Transfer Query) responses.
 
-8.1.12.  Restore Request
+8.1.13.  Restore Request
 
    Example domain restore request (without inline report; object
    transitions to pendingRestore state):
@@ -5018,7 +5149,7 @@ Table of Contents
        "reportDate": "2025-01-20T15:30:00.0Z"
    }
 
-8.1.13.  Restore Report
+8.1.14.  Restore Report
 
    Example domain restore report request:
 
@@ -5047,7 +5178,7 @@ Table of Contents
        "reportDate": "2025-01-22T09:15:00.0Z"
    }
 
-8.1.14.  Read (Restore Query)
+8.1.15.  Read (Restore Query)
 
    The Read (Restore Query) operation takes no request body (Parameters:
    None).
@@ -5074,7 +5205,18 @@ Table of Contents
 
 8.2.  Contact
 
-8.2.1.  Create
+8.2.1.  Availability
+
+   Example contact availability response for a contact that cannot be
+   created:
+
+   {
+       "@type": "contactAvailability",
+       "available": false,
+       "reason": "In use"
+   }
+
+8.2.2.  Create
 
    Example contact create request:
 
@@ -5163,7 +5305,7 @@ Table of Contents
        }
    }
 
-8.2.2.  Read
+8.2.3.  Read
 
    Example contact read response:
 
@@ -5212,7 +5354,7 @@ Table of Contents
        }
    }
 
-8.2.3.  Update
+8.2.4.  Update
 
    Example contact update request:
 
@@ -5288,18 +5430,18 @@ Table of Contents
        }
    }
 
-8.2.4.  Delete
+8.2.5.  Delete
 
    The contact delete operation takes the contact identifier as the
    resource identifier.  No request body is required.
 
-8.2.5.  Transfer Request
+8.2.6.  Transfer Request
 
-   Authorization information for the transfer MUST be conveyed using the
-   RPP-Authorization HTTP header (see Authorization Information in
+   Authorisation information for the transfer MUST be conveyed using the
+   RPP-Authorization HTTP header (see Authorisation Information in
    Requests), not in the JSON request body.
 
-   Example contact transfer request (pull transfer)
+   Example contact transfer request (pull transfer):
 
    {
        "@type": "transferProcess",
@@ -5318,7 +5460,7 @@ Table of Contents
        "actionDate": "2000-06-13T22:00:00.0Z"
    }
 
-8.2.6.  Transfer Query
+8.2.7.  Transfer Query
 
    Example contact transfer query response (Transfer Process Object):
 
@@ -5332,7 +5474,7 @@ Table of Contents
        "actionDate": "2000-06-11T22:00:00.0Z"
    }
 
-8.2.7.  Transfer Cancel / Approve
+8.2.8.  Transfer Cancel / Approve
 
    Transfer cancel and approve responses return the Transfer Process
    Object.  The response structure is the same as the Transfer Query
@@ -5340,9 +5482,9 @@ Table of Contents
    operation (e.g. "clientCancelled", "clientRejected", or
    "clientApproved").
 
-8.2.8.  Transfer Reject
+8.2.9.  Transfer Reject
 
-   Example Contact Transfer Reject request
+   Example contact transfer reject request:
 
    {
        "@type": "transferProcess",
@@ -5354,7 +5496,16 @@ Table of Contents
 
 8.3.  Host
 
-8.3.1.  Create
+8.3.1.  Availability
+
+   Example host availability response for a host that can be created:
+
+   {
+       "@type": "hostAvailability",
+       "available": true
+   }
+
+8.3.2.  Create
 
    Example host create request:
 
@@ -5434,7 +5585,7 @@ Table of Contents
        }
    }
 
-8.3.2.  Read
+8.3.3.  Read
 
    Example host read response:
 
@@ -5470,7 +5621,7 @@ Table of Contents
        }
    }
 
-8.3.3.  Update
+8.3.4.  Update
 
    Example host update request:
 
@@ -5496,14 +5647,14 @@ Table of Contents
        }
    }
 
-8.3.4.  Delete
+8.3.5.  Delete
 
    The host delete operation takes the host name as the resource
    identifier.  No request body is required.  The server SHOULD reject
    the request if the host object is associated with any domain name
    objects.
 
-8.3.5.  Restore Request
+8.3.6.  Restore Request
 
    Example host restore request (without inline report; object
    transitions to pendingRestore state):
@@ -5551,7 +5702,7 @@ Table of Contents
        "reportDate": "2025-01-20T15:30:00.0Z"
    }
 
-8.3.6.  Restore Report
+8.3.7.  Restore Report
 
    Example host restore report request:
 
@@ -5580,7 +5731,7 @@ Table of Contents
        "reportDate": "2025-01-22T09:15:00.0Z"
    }
 
-8.3.7.  Read (Restore Query)
+8.3.8.  Read (Restore Query)
 
    The Read (Restore Query) operation takes no request body (Parameters:
    None).
@@ -6073,7 +6224,7 @@ Table of Contents
 
 8.6.3.  Query
 
-   There exist no request message for the message query operation.
+   There is no request message for the message query operation.
 
    Example message query response, containing a Transfer Request Message
    Object for the domain transfer-test.example:
@@ -6107,7 +6258,7 @@ Table of Contents
 
 8.7.1.  Read
 
-   There exists no request message for the discovery read operation.
+   There is no request message for the discovery read operation.
 
    Example discovery read response:
 
@@ -6164,7 +6315,7 @@ Table of Contents
 
 8.8.1.  Read
 
-   There exists no request message for the profile read operation.
+   There is no request message for the profile read operation.
 
    Example profile read response:
 
@@ -6238,10 +6389,10 @@ Table of Contents
    Change controller: Document authors
    Provisional registration: No
 
-9.2.  RPP JSON Schema Extensions registry
+9.2.  RPP JSON Schema Extensions Registry
 
    The IANA is requested to create a new registry for RPP JSON Schema
-   extensions, this registry will be used to register standardized JSON
+   extensions, this registry will be used to register standardised JSON
    Schema extensions to the JSON representation of RPP JSON objects, as
    defined in the Section 7 of this document.
 
@@ -6300,7 +6451,7 @@ Table of Contents
       over-counts the number of Unicode code points.
    -  Consumers MUST NOT rely on native string equality (e.g.
       JavaScript's ===) to compare uName values for identity purposes,
-      since two strings that differ only in Unicode normalization form
+      since two strings that differ only in Unicode normalisation form
       compare unequal even though they represent the same name; name
       MUST be used instead for identity comparison.
    -  Servers MUST emit name in lowercase.  Because ACE (A-label) domain
@@ -6317,8 +6468,8 @@ Table of Contents
    supplied name value, an attacker could cause a displayed uName to
    diverge from the name actually resolved in the DNS.  Servers MUST
    reject any create or update request where uName is not already NFC-
-   normalized or does not convert to the supplied name; servers MUST NOT
-   silently normalize or correct the value on the client's behalf.
+   normalised or does not convert to the supplied name; servers MUST NOT
+   silently normalise or correct the value on the client's behalf.
 
    *TODO*
 
@@ -6330,40 +6481,42 @@ Table of Contents
 
 13.1.  Version draft-ietf-rpp-json-00 to draft-ietf-rpp-json-01
 
-   -  Added section "JSON Schema Composition Rules".  (Issue #102)
-   -  Added schemas and examples for the Discovery and Profile Data
-      Objects.  (Issue #92)
-   -  Added schemas and examples related to service messages.  (Issue
-      #82)
-   -  Added IANA registration for the "application/rpp+json" media type
+   -  Added section "JSON Schema Composition Rules", including
+      Section 4.10.1 and read/create views for Component Objects.
+      (Issue #102)
+   -  Replaced the JSON Schema definitions the generic Status Object
+      with type-specific objects in Section 6.2.3.
+   -  Added schemas and examples for the Availability Objects, service
+      messages, and for the Discovery and Profile Data Objects.  (Issues
+      #133, #82, #92)
+   -  Added IANA registration for the "application/rpp+json" media type.
       (Issue #84)
-   -  Added extension framework section, describing how extensions
-      should be defined.  (Issue #78)
-   -  Added support for Internationalized Domain Names (IDN).  (Issue
-      #86)
-   -  Added "inheritance" section (Issue #88)
+   -  Added Section 7.  (Issue #78)
+   -  Added support for Internationalized Domain Names (IDN), see
+      Section 10.  (Issue #86)
+   -  Added section "Inheritance".  (Issue #88)
    -  Added section describing the representation of undefined values.
       (Issue #97)
-   -  Regenerated the JSON Schema definitions from the RPP Data Objects
-      model, replacing the generic Status Object with type-specific
-      objects in Section 6.2.3 and adding Section 4.10.1 and read/create
-      views for Component Objects to JSON Schema Composition Rules.
+   -  Rewrote the partial update processing in Section 5.2.2, added
+      replacement of a whole array, and added flow figures.  (Issue #91,
+      #77)
+   -  Aligned the JSContact constraints with the RPP JSContact profile.
+      (Issue #76)
+   -  Made the JSON Schema definitions normative.  (Issue #75)
    -  Added the Disclose Object and Process Object (Base, Create,
       Restore) schemas, and removed redundant Process alias and Transfer
       response schemas.
    -  Aligned all examples, including those in Section 7, with the
       updated JSON Schema definitions.
-   -  Added a reference to the RPP data model terms in Terminology.
-   -  Removed repeated references to the RPP data model document that
-      Terminology covers.
    -  Generalised the Mutability Rules to derive request and response
-      content from operation Input and Output.
-   -  Changed server handling of disallowed request data elements from
-      ignore to reject in the Mutability Rules.
+      content from operation Input and Output, and changed handling of
+      disallowed request data elements from ignore to reject.
    -  Replaced the primary identifier with the Unique Identifier in
       Association Rules.
-   -  Removed rule numbering and replaced references to rule numbers
-      with section references.
+   -  Editorial: Removed rule numbering and replaced references to rule
+      numbers with section references.
+   -  Editorial: Updated the Abstract and Introduction to cover all
+      defined Data Objects.
 
 13.2.  Version draft-wullink-rpp-json-02 to draft-ietf-rpp-json-00
 
@@ -6410,13 +6563,6 @@ Table of Contents
               core-00, 6 July 2026,
               <https://datatracker.ietf.org/doc/html/draft-ietf-rpp-
               core-00>.
-
-   [I-D.ietf-rpp-data-objects]
-              Kowalik, P. and M. Wullink, "RESTful Provisioning Protocol
-              (RPP) Data Objects", Work in Progress, Internet-Draft,
-              draft-ietf-rpp-data-objects-01, 3 July 2026,
-              <https://datatracker.ietf.org/doc/html/draft-ietf-rpp-
-              data-objects-01>.
 
    [IDN-Tables]
               Internet Assigned Numbers Authority (IANA), "Repository of
@@ -6507,11 +6653,14 @@ Table of Contents
               DOI 10.17487/RFC9982, May 2026,
               <https://www.rfc-editor.org/info/rfc9982>.
 
-   [UNICODE.NFC]
-              Unicode Consortium, "Unicode Normalization Forms", August
-              2026, <https://www.unicode.org/reports/tr15/>.
-
 14.2.  Informative References
+
+   [I-D.ietf-rpp-data-objects]
+              Kowalik, P. and M. Wullink, "RESTful Provisioning Protocol
+              (RPP) Data Objects", Work in Progress, Internet-Draft,
+              draft-ietf-rpp-data-objects-01, 3 July 2026,
+              <https://datatracker.ietf.org/doc/html/draft-ietf-rpp-
+              data-objects-01>.
 
    [I-D.simmen-rpp-dns-data]
               Simmen, C. and P. Kowalik, "DNS data representation for
@@ -6535,6 +6684,10 @@ Table of Contents
               Provisioning Protocol (EPP)", RFC 5910,
               DOI 10.17487/RFC5910, May 2010,
               <https://www.rfc-editor.org/info/rfc5910>.
+
+   [UNICODE.NFC]
+              Unicode Consortium, "Unicode Normalization Forms", August
+              2026, <https://www.unicode.org/reports/tr15/>.
 
 Authors' Addresses
 

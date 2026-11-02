@@ -105,7 +105,7 @@ as `Term - definition.` lines._
 
 | Term | Short definition |
 |------|-----------------|
-| RPP Data Objects | The abstract data model definitions for domain name, contact, and host resources, per `[@!I-D.ietf-rpp-data-objects]`. |
+| RPP Data Objects | The abstract data model definitions of the objects provisioned and exchanged with RPP, per `[@!I-D.ietf-rpp-data-objects]`. |
 | RESTful Provisioning Protocol | A RESTful protocol for provisioning heterogeneous database objects. |
 | JSON Schema | A vocabulary for annotation and validation of JSON documents, per `[@?JSON-SCHEMA]`. |
 | EPP Compatibility Profile | Additional constraints (from `[@!I-D.ietf-rpp-data-objects]`) a server MUST adhere to when supporting RPP and EPP concurrently. |
