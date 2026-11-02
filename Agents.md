@@ -3,8 +3,9 @@
 ## Project Overview
 
 This repository contains the IETF Internet-Draft for **JSON for Restful
-Provisioning Protocol (RPP)** (`draft-wullink-rpp-json`, individual submission to
-the Network Working Group). The document defines how RPP data objects — as defined
+Provisioning Protocol (RPP)** (`draft-ietf-rpp-json`, working group document of the
+RESTful Provisioning Protocol (RPP) Working Group; formerly the individual
+submission `draft-wullink-rpp-json`). The document defines how RPP data objects — as defined
 in `[@!I-D.ietf-rpp-data-objects]` — are represented in JSON `[@!RFC8259]`,
 including normative JSON Schema definitions (draft 2020-12) and worked examples for
 domain name, contact, and host data objects. It is authored in Markdown for mmark
@@ -15,13 +16,13 @@ and compiled to XML (xml2rfc v3), HTML, PDF, and TXT.
 - Source format: Markdown for [mmark](https://mmark.miek.nl/) (CommonMark +
   extensions for RFCXML).
 - Build (via `src/Makefile`, which writes outputs into `docs/`):
-  - `mmark draft-wullink-rpp-json.md > ../docs/draft-wullink-rpp-json.xml` (`make xml`)
+  - `mmark draft-ietf-rpp-json.md > ../docs/draft-ietf-rpp-json.xml` (`make xml`)
   - `xml2rfc --text/--html/--pdf --v3 ../docs/...xml` (`make txt|html|pdf`)
   - `make all` builds txt, html, pdf, and the no-pagination `.clean.txt`.
 - mmark uses a TOML title block (between `%%%` fences) for document metadata
   (`title`, `ipr`, `area`, `workgroup`, `submissiontype`, `[seriesInfo]`,
   `[[author]]`, …). The draft revision number lives in `[seriesInfo].value`
-  (currently `draft-wullink-rpp-json-02`).
+  (currently `draft-ietf-rpp-json-01`).
 - mmark-specific syntax to know: block attributes `{#anchor}` for cross-reference
   targets, `[@!RFCxxxx]` (normative) / `[@RFCxxxx]` (informative) /
   `[@?RFCxxxx]` citations, `{type="..."}` on lists, and fenced
@@ -30,7 +31,7 @@ and compiled to XML (xml2rfc v3), HTML, PDF, and TXT.
 
 ## File to Edit
 
-- **ONLY** edit: `src/draft-wullink-rpp-json.md`
+- **ONLY** edit: `src/draft-ietf-rpp-json.md`
 - This is the single source file for the entire document.
 
 ## Files to NEVER Edit
@@ -144,7 +145,7 @@ Schema, not a grammar. If a grammar is added later, document it here._
 - Classify each new reference as Normative or Informative deliberately — this
   affects the published RFC. Normative refs already in use include
   `[@!RFC8259]`, `[@!RFC2119]`, `[@!RFC9553]`, `[@!I-D.ietf-rpp-data-objects]`,
-  `[@!I-D.wullink-rpp-core]`.
+  `[@!I-D.ietf-rpp-core]`.
 
 ### RFC 2119 / 8174 requirement keywords (markup)
 
@@ -254,11 +255,18 @@ Acknowledgments → Change History. When adding sections, preserve RFC 7322 orde
   `example.net`, `.example`; RFC 5737 / RFC 3849 IP ranges) in all examples — never
   real domains or addresses.
 - Wrap bare URIs in angle brackets (`<https://example.com/>`).
+- **ASCII only.** The draft MUST contain only ASCII characters. The sole
+  exceptions are internationalised domain names (U-labels, e.g. `"uName"`
+  values) and personal data in examples (e.g. contact names or addresses).
+  Use ASCII substitutes elsewhere (`-`/`--` for dashes, straight quotes, `...`
+  for ellipsis). Check with
+  `grep -nP '[^\x00-\x7F]' src/draft-*.md` and confirm every hit falls under
+  an exception.
 - Run **idnits** (or the datatracker submission checks) before submitting.
 
 ### Writing Change History Entries
 
-Each substantive edit gets a bullet under the current draft revision's `=== Change from … to …` heading (create the heading for the new revision if it does not yet exist).
+Each substantive edit gets a bullet under the current draft revision's `## Version draft-ietf-rpp-json-(NN-1) to draft-ietf-rpp-json-NN` heading (create the heading for the new revision if it does not yet exist).
 
 Keep entries **terse**: state the action and point to the affected section by cross-reference, then stop. Do **not** append a summary of what the section now says or why the change was made — the cross-referenced section is the source of truth for that detail.
 
@@ -288,7 +296,7 @@ calls. The script:
 
 - **Transforms structure only, never rewrites prose.** Re-emit existing
   cells/lines verbatim; only markup may change.
-- **Is verified before trusting it.** Snapshot first (`cp src/draft-wullink-rpp-json.md /tmp/before`),
+- **Is verified before trusting it.** Snapshot first (`cp src/draft-ietf-rpp-json.md /tmp/before`),
   run, then diff: confirm document prefix and tail are byte-identical and only the
   intended structural tokens changed. Preserve all anchors.
 - **Respects manual edits.** Drive off the current file state; skip already-converted
@@ -335,7 +343,8 @@ git-ignored `.agent-index.md`; this file no longer embeds the index.
 ## Change History
 
 The draft maintains a `# Change History` section with one subsection per revision
-("Version 01 to 02", "Version 00 to 01"). Add an entry there whenever you make a
+(e.g. "Version draft-ietf-rpp-json-00 to draft-ietf-rpp-json-01"; older
+revisions of the individual draft are named after `draft-wullink-rpp-json`). Add an entry there whenever you make a
 substantive edit, summarising what changed. This is standard IETF practice and
 helps reviewers track revisions across submissions.
 
@@ -356,7 +365,8 @@ pass, so it is the one case where every section is read — still in
    then the whole body, IANA Considerations, and backmatter in chunks of a few
    hundred lines. Note findings as you read; apply nothing.
 3. **Mechanical sweeps.** Complement the reading with greps for things that are
-   easy to miss by eye: trailing whitespace, non-ASCII characters, semicolons in
+   easy to miss by eye: trailing whitespace, non-ASCII characters (allowed only
+   in IDNs and personal data, see Tone and mechanics), semicolons in
    prose, mixed-case BCP 14 keywords (`MUST not`, `Must`, `MAY not`), citations
    without `@` (`[RFCxxxx]`), cited references vs references defined in the
    backmatter, `(#anchor)` targets without a matching `{#anchor}`, US spellings,
@@ -400,10 +410,10 @@ In the TOML title block:
 - `date` MUST be today's date (`YYYY-MM-DD`), unless the user has set a planned
   submission date — report the difference and let the user decide.
 - `[seriesInfo] value` MUST be the exact name of the revision being released
-  (`draft-ietf-rpp-data-objects-NN`) with no suffixes or annotations such as
+  (`draft-ietf-rpp-json-NN`) with no suffixes or annotations such as
   `(editorial)`, `-wip`, or `draft`/`tmp` markers.
 - The revision number in `value` MUST match the newest Changes History
-  subsection heading (`draft-ietf-rpp-data-objects -(NN-1) - -NN`).
+  subsection heading (`## Version draft-ietf-rpp-json-(NN-1) to draft-ietf-rpp-json-NN`).
 - Sanity-check `title`, `abbrev`, `area`, `workgroup`, `keyword`, and the
   `[[author]]` tables for stale, empty, or placeholder values.
 - Check the Abstract: no citations, no BCP 14 key words, and a scope that
@@ -483,9 +493,13 @@ Scan the full document for inconsistencies, including:
   made stale by later changes), commented-out text, empty sections, IANA
   placeholders other than `TBDn`, and missing required sections (Security
   Considerations, Privacy Considerations where personal data is handled).
-- **Mechanics:** semicolons in prose, non-ASCII characters, trailing
-  whitespace, double spaces, missing blank lines before lists, example
-  domains not using reserved names.
+- **Non-ASCII characters:** run `grep -nP '[^\x00-\x7F]' src/draft-*.md` and
+  report every hit that is not an internationalised domain name (U-label) or
+  personal data in an example (see Writing Style → Tone and mechanics), with
+  the ASCII substitute as the proposed fix. List the allowed hits too, marked
+  as accepted, so the user can confirm them.
+- **Mechanics:** semicolons in prose, trailing whitespace, double spaces,
+  missing blank lines before lists, example domains not using reserved names.
 
 Report findings only; do not restructure or rewrite prose beyond the minimal fix
 for each finding.
