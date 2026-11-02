@@ -10,7 +10,7 @@ Expires: 6 May 2027                                                DENIC
 
 
               JSON for RESTful Provisioning Protocol (RPP)
-                         draft-ietf-rpp-json-01
+                   draft-ietf-rpp-json-02 (editorial)
 
 Abstract
 
@@ -253,11 +253,12 @@ Table of Contents
    11. Security Considerations
    12. Acknowledgments
    13. Change History
-     13.1.  Version draft-ietf-rpp-json-00 to draft-ietf-rpp-json-01
-     13.2.  Version draft-wullink-rpp-json-02 to
+     13.1.  Version draft-ietf-rpp-json-01 to draft-ietf-rpp-json-02
+     13.2.  Version draft-ietf-rpp-json-00 to draft-ietf-rpp-json-01
+     13.3.  Version draft-wullink-rpp-json-02 to
             draft-ietf-rpp-json-00
-     13.3.  Version 01 to 02
-     13.4.  Version 00 to 01
+     13.4.  Version 01 to 02
+     13.5.  Version 00 to 01
    14. References
      14.1.  Normative References
      14.2.  Informative References
@@ -6479,7 +6480,9 @@ Table of Contents
 
 13.  Change History
 
-13.1.  Version draft-ietf-rpp-json-00 to draft-ietf-rpp-json-01
+13.1.  Version draft-ietf-rpp-json-01 to draft-ietf-rpp-json-02
+
+13.2.  Version draft-ietf-rpp-json-00 to draft-ietf-rpp-json-01
 
    -  Added section "JSON Schema Composition Rules", including
       Section 4.10.1 and read/create views for Component Objects.
@@ -6519,7 +6522,7 @@ Table of Contents
    -  Editorial: Updated the Abstract and Introduction to cover all
       defined Data Objects.
 
-13.2.  Version draft-wullink-rpp-json-02 to draft-ietf-rpp-json-00
+13.3.  Version draft-wullink-rpp-json-02 to draft-ietf-rpp-json-00
 
    -  Added "Update Rules" section, describing update requests (Issue
       #54)
@@ -6533,11 +6536,11 @@ Table of Contents
       interface operations (especially create).  (Issue #60)
    -  Added JSContact as External Type Embedding (Issue #43).
 
-13.3.  Version 01 to 02
+13.4.  Version 01 to 02
 
    -  Adjust rule 19 and all schemas to match it.
 
-13.4.  Version 00 to 01
+13.5.  Version 00 to 01
 
    -  Updated all examples and schemas to be based on RPP Data Object
       and no longer on EPP XML schemas.  (Issue #15)

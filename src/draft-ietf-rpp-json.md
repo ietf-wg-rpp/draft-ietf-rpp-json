@@ -11,7 +11,7 @@ date = 2026-11-02
 
 [seriesInfo]
 name = "Internet-Draft"
-value = "draft-ietf-rpp-json-01"
+value = "draft-ietf-rpp-json-02 (editorial)"
 stream = "IETF"
 status = "standard"
 
@@ -5970,6 +5970,9 @@ If a server accepts a `uName` value without strictly verifying both that it is a
 TODO
 
 # Change History
+
+## Version draft-ietf-rpp-json-01 to draft-ietf-rpp-json-02
+
 
 ## Version draft-ietf-rpp-json-00 to draft-ietf-rpp-json-01
 
